@@ -63,6 +63,16 @@ class _HomeScreenState extends State<HomeScreen> {
   String _plan = 'BASICO';
   int? _diasRestantesPlan;
   BodegaInfo? _bodegaInfo;
+
+  bool get _esGastronomico {
+    final giro = (_bodegaInfo?.giroNegocio ?? '').toUpperCase();
+    return giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro.contains('FAST') ||
+        giro == 'RESTAURANTE';
+  }
+
   Map<String, dynamic> _anuncioGlobal = {};
   bool _anuncioDismissed = false;
   int _sugerenciasPendientes = 0;
@@ -2800,6 +2810,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   selectedIndex: _selectedIndex.clamp(0, _screens.length - 1),
                   onItemSelected: _selectTab,
                   isDark: isDark,
+                  esGastronomico: _esGastronomico,
                 ),
         ),
       ),
@@ -3383,14 +3394,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildSidebarNavTile(
                     index: 3,
                     icon: LucideIcons.boxes,
-                    label: 'Stock / Catálogo',
+                    label: _esGastronomico
+                        ? 'Carta / Menú'
+                        : 'Stock / Catálogo',
                     shortcut: 'F3',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 4,
-                    icon: LucideIcons.bookUser,
-                    label: 'Clientes & Fiados',
+                    icon: _esGastronomico
+                        ? LucideIcons.users
+                        : LucideIcons.bookUser,
+                    label: _esGastronomico
+                        ? 'Clientes & Delivery'
+                        : 'Clientes & Fiados',
                     shortcut: 'F5',
                     isDark: isDark,
                   ),
@@ -3414,7 +3431,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                       child: Text(
-                        'LOGÍSTICA Y AUDITORÍA',
+                        _esGastronomico
+                            ? 'INSUMOS Y OPERACIONES'
+                            : 'LOGÍSTICA Y AUDITORÍA',
                         style: GoogleFonts.outfit(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -3440,25 +3459,28 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  _buildSidebarActionTile(
-                    icon: LucideIcons.calendarClock,
-                    label: 'Vencimientos',
-                    color: const Color(0xFF64748B),
-                    badge: 'Alertas',
-                    isDark: isDark,
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const VencimientosScreen(),
-                        ),
-                      );
-                    },
-                  ),
+                  if (!_esGastronomico)
+                    _buildSidebarActionTile(
+                      icon: LucideIcons.calendarClock,
+                      label: 'Vencimientos',
+                      color: const Color(0xFF64748B),
+                      badge: 'Alertas',
+                      isDark: isDark,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const VencimientosScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   _buildSidebarActionTile(
                     icon: LucideIcons.truck,
-                    label: 'Compras Proveedor',
+                    label: _esGastronomico
+                        ? 'Compras e Insumos'
+                        : 'Compras Proveedor',
                     color: const Color(0xFF64748B),
                     badge: 'Facturas',
                     isDark: isDark,
@@ -3506,7 +3528,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                   _buildSidebarActionTile(
                     icon: LucideIcons.globe,
-                    label: 'Mi Bodega Online',
+                    label: _esGastronomico
+                        ? 'Mi Carta Web'
+                        : 'Mi Bodega Online',
                     color: const Color(0xFF10B981),
                     badge: 'Web',
                     isDark: isDark,

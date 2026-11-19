@@ -57,6 +57,16 @@ class _ProductosScreenState extends State<ProductosScreen>
   @override
   void onDeferredTabRefresh() => _cargarProductos(forceRefresh: true);
   BodegaInfo? _bodegaInfo;
+
+  bool get _esGastronomico {
+    final giro = (_bodegaInfo?.giroNegocio ?? '').toUpperCase();
+    return giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro.contains('FAST') ||
+        giro == 'RESTAURANTE';
+  }
+
   List<Producto> _todosProductos = [];
   List<Producto> _productosFiltrados = [];
   bool _isLoading = true;
@@ -412,7 +422,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Stock & Inventario',
+                          _esGastronomico
+                              ? 'Carta & Menú'
+                              : 'Stock & Inventario',
                           style: GoogleFonts.outfit(
                             fontSize: 16.5,
                             fontWeight: FontWeight.w800,
@@ -428,7 +440,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                '${items.length} items',
+                                '${items.length} ${_esGastronomico ? "platos/ítems" : "items"}',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -447,8 +459,10 @@ class _ProductosScreenState extends State<ProductosScreen>
                               const SizedBox(width: 6),
                               Text(
                                 totalAlertasStock > 0
-                                    ? '$totalAlertasStock por agotar'
-                                    : 'Stock saludable',
+                                    ? '$totalAlertasStock ${_esGastronomico ? "insumos por agotar" : "por agotar"}'
+                                    : (_esGastronomico
+                                          ? 'Carta disponible'
+                                          : 'Stock saludable'),
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
@@ -518,12 +532,13 @@ class _ProductosScreenState extends State<ProductosScreen>
                                 size: 14,
                                 color: AppTheme.brandPrimary,
                               ),
-                              if (_safeTodos.any(
-                                (p) =>
-                                    p.controlaVencimiento &&
-                                    p.semaforoVencimiento ==
-                                        SemaforoVencimiento.critico,
-                              ))
+                              if (!_esGastronomico &&
+                                  _safeTodos.any(
+                                    (p) =>
+                                        p.controlaVencimiento &&
+                                        p.semaforoVencimiento ==
+                                            SemaforoVencimiento.critico,
+                                  ))
                                 Positioned(
                                   top: -2,
                                   right: -2,
@@ -714,56 +729,58 @@ class _ProductosScreenState extends State<ProductosScreen>
                           ],
                         ),
                       ),
-                      const PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: 'vencimientos',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
+                      if (!_esGastronomico) ...[
+                        const PopupMenuDivider(),
+                        PopupMenuItem(
+                          value: 'vencimientos',
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEF4444)
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.calendarClock,
+                                  size: 15,
+                                  color: Color(0xFFEF4444),
+                                ),
                               ),
-                              child: const Icon(
-                                LucideIcons.calendarClock,
-                                size: 15,
-                                color: Color(0xFFEF4444),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Control de Vencimientos',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Control de Vencimientos',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'Monitoreo preventivo por lotes',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
+                                    Text(
+                                      'Monitoreo preventivo por lotes',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                       PopupMenuItem(
                         value: 'mermas',
                         child: Row(
@@ -788,7 +805,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    'Registro de Mermas',
+                                    _esGastronomico
+                                        ? 'Mermas de Cocina'
+                                        : 'Registro de Mermas',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w700,
@@ -798,7 +817,9 @@ class _ProductosScreenState extends State<ProductosScreen>
                                     ),
                                   ),
                                   Text(
-                                    'Bajas por rotura o caducidad',
+                                    _esGastronomico
+                                        ? 'Desperdicios y sobrantes de cocina'
+                                        : 'Bajas por rotura o caducidad',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -813,106 +834,111 @@ class _ProductosScreenState extends State<ProductosScreen>
                           ],
                         ),
                       ),
-                      PopupMenuItem(
-                        value: 'auditoria',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF6366F1)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
+                      if (!_esGastronomico)
+                        PopupMenuItem(
+                          value: 'auditoria',
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF6366F1)
+                                      .withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.clipboardCheck,
+                                  size: 15,
+                                  color: Color(0xFF6366F1),
+                                ),
                               ),
-                              child: const Icon(
-                                LucideIcons.clipboardCheck,
-                                size: 15,
-                                color: Color(0xFF6366F1),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Auditoría Rápida por Pasillo',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? Colors.white
-                                              : AppTheme.textDark,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Auditoría Rápida por Pasillo',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
+                                          ),
                                         ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                          vertical: 1,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              ((_bodegaInfo?.plan
+                                        const SizedBox(width: 5),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                            vertical: 1,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                ((_bodegaInfo?.plan
+                                                                .toUpperCase() !=
+                                                            'PRO')
+                                                        ? const Color(
+                                                            0xFFD97706,
+                                                          )
+                                                        : const Color(
+                                                            0xFF10B981,
+                                                          ))
+                                                    .withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (_bodegaInfo?.plan
+                                                      .toUpperCase() !=
+                                                  'PRO') ...[
+                                                const Icon(
+                                                  LucideIcons.lock,
+                                                  size: 8,
+                                                  color: Color(0xFFD97706),
+                                                ),
+                                                const SizedBox(width: 2),
+                                              ],
+                                              Text(
+                                                'PRO',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 8.5,
+                                                  fontWeight: FontWeight.w900,
+                                                  color:
+                                                      (_bodegaInfo?.plan
                                                               .toUpperCase() !=
                                                           'PRO')
                                                       ? const Color(0xFFD97706)
-                                                      : const Color(0xFF10B981))
-                                                  .withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
+                                                      : const Color(0xFF059669),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (_bodegaInfo?.plan
-                                                    .toUpperCase() !=
-                                                'PRO') ...[
-                                              const Icon(
-                                                LucideIcons.lock,
-                                                size: 8,
-                                                color: Color(0xFFD97706),
-                                              ),
-                                              const SizedBox(width: 2),
-                                            ],
-                                            Text(
-                                              'PRO',
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 8.5,
-                                                fontWeight: FontWeight.w900,
-                                                color:
-                                                    (_bodegaInfo?.plan
-                                                            .toUpperCase() !=
-                                                        'PRO')
-                                                    ? const Color(0xFFD97706)
-                                                    : const Color(0xFF059669),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    '5 min de conteo físico contra robo hormiga',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
+                                      ],
                                     ),
-                                  ),
-                                ],
+                                    Text(
+                                      '5 min de conteo físico contra robo hormiga',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? AppTheme.textDarkSecondary
+                                            : const Color(0xFF334155),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
                       PopupMenuItem(
                         value: 'hueso',
                         child: Row(
@@ -2156,8 +2182,9 @@ class _ProductosScreenState extends State<ProductosScreen>
           ),
 
           // Vencen Pronto (Violeta/Púrpura)
-          if (vencenProntoCount > 0 ||
-              _estadoStockFiltro == 'vencen_pronto') ...[
+          if (!_esGastronomico &&
+              (vencenProntoCount > 0 ||
+                  _estadoStockFiltro == 'vencen_pronto')) ...[
             const SizedBox(width: 6),
             _buildCalmaFilterChip(
               label: 'Vencen Pronto',
@@ -2624,7 +2651,8 @@ class _ProductosScreenState extends State<ProductosScreen>
                             ),
                         ],
                       ),
-                      if (p.controlaVencimiento &&
+                      if (!_esGastronomico &&
+                          p.controlaVencimiento &&
                           p.fechaVencimiento != null) ...[
                         const SizedBox(height: 3),
                         _buildProductCardFifoBadge(p, isDark),
@@ -3191,7 +3219,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                           );
                         },
                       ),
-                      if (p.controlaVencimiento) ...[
+                      if (!_esGastronomico && p.controlaVencimiento) ...[
                         const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(12),

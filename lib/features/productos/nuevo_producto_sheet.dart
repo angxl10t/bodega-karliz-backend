@@ -17,6 +17,7 @@ import 'producto_model.dart';
 import 'producto_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/permisos_cajero_service.dart';
+import '../../core/secure_storage_service.dart';
 
 class NuevoProductoSheet extends StatefulWidget {
   final VoidCallback onProductoCreado;
@@ -57,6 +58,17 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
   bool _isLoadingCategorias = true;
   bool _isGuardando = false;
   bool _mostrarOpcionesAvanzadas = false;
+  String _giroNegocio = 'BODEGA';
+
+  bool get _esGastronomico {
+    final giro = _giroNegocio.toUpperCase();
+    return giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro.contains('FAST') ||
+        giro == 'RESTAURANTE';
+  }
+
   bool _controlaVencimiento = false;
   DateTime? _fechaVencimiento;
   final _precioCostoCtrl = TextEditingController();
@@ -218,11 +230,14 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
       final results = await Future.wait([
         _categoriaService.getCategorias(),
         _productoService.getProductos(),
+        SecureStorageService.read('giro_negocio'),
       ]);
       if (mounted) {
         final cats = results[0] as List<Categoria>;
         final prods = results[1] as List<Producto>;
+        final giro = results[2] as String?;
         setState(() {
+          if (giro != null && giro.isNotEmpty) _giroNegocio = giro;
           _categorias = cats;
           _todosLosProductos = prods;
           _isLoadingCategorias = false;
@@ -562,7 +577,9 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Nuevo Producto',
+                              _esGastronomico
+                                  ? 'Nuevo Plato / Ítem'
+                                  : 'Nuevo Producto',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
@@ -573,7 +590,9 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                               ),
                             ),
                             Text(
-                              'Añadir artículo al inventario de la bodega',
+                              _esGastronomico
+                                  ? 'Añadir ítem a la carta / menú'
+                                  : 'Añadir artículo al inventario de la bodega',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 color: isDark
@@ -1223,218 +1242,110 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 14),
+                    if (!_esGastronomico) ...[
+                      const SizedBox(height: 14),
 
-                    // Control de Vencimiento / Perecible
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: inputBg,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: _controlaVencimiento
-                                  ? AppTheme.brandPrimary.withValues(
-                                      alpha: 0.15,
-                                    )
-                                  : (isDark
-                                        ? const Color(0xFF1E293B)
-                                        : const Color(0xFFE2E8F0)),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              LucideIcons.calendarClock,
-                              size: 18,
-                              color: _controlaVencimiento
-                                  ? AppTheme.brandPrimary
-                                  : (isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF64748B)),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Control de Vencimiento',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? Colors.white
-                                        : AppTheme.textDark,
-                                  ),
-                                ),
-                                Text(
-                                  'Alerta si el producto es perecible o tiene caducidad',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF334155),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Switch.adaptive(
-                            value: _controlaVencimiento,
-                            activeTrackColor: AppTheme.brandPrimary,
-                            onChanged: (val) =>
-                                setState(() => _controlaVencimiento = val),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    if (_controlaVencimiento) ...[
-                      const SizedBox(height: 10),
+                      // Control de Vencimiento / Perecible
                       Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E293B).withValues(alpha: 0.6)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFCBD5E1),
-                            width: 1,
-                          ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        decoration: BoxDecoration(
+                          color: inputBg,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  LucideIcons.calendar,
-                                  size: 16,
-                                  color: AppTheme.brandPrimary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Fecha de Caducidad de Lote',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? Colors.white
-                                        : AppTheme.textDark,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            InkWell(
-                              onTap: () async {
-                                final now = DateTime.now();
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate:
-                                      _fechaVencimiento ??
-                                      now.add(const Duration(days: 30)),
-                                  firstDate: now.subtract(
-                                    const Duration(days: 365),
-                                  ),
-                                  lastDate: now.add(
-                                    const Duration(days: 365 * 5),
-                                  ),
-                                );
-                                if (picked != null) {
-                                  setState(() => _fechaVencimiento = picked);
-                                }
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 11,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? AppTheme.cardDark
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: _fechaVencimiento != null
-                                        ? AppTheme.brandPrimary
-                                        : (isDark
-                                              ? AppTheme.borderDark
-                                              : AppTheme.borderLight),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.calendarCheck,
-                                      size: 16,
-                                      color: _fechaVencimiento != null
-                                          ? AppTheme.brandPrimary
-                                          : (isDark
-                                                ? AppTheme.textDarkSecondary
-                                                : const Color(0xFF64748B)),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        _fechaVencimiento != null
-                                            ? '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}'
-                                            : 'Seleccionar fecha (opcional)',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 13,
-                                          fontWeight: _fechaVencimiento != null
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
-                                          color: _fechaVencimiento != null
-                                              ? (isDark
-                                                    ? Colors.white
-                                                    : AppTheme.textDark)
-                                              : (isDark
-                                                    ? AppTheme.textDarkSecondary
-                                                    : const Color(0xFF334155)),
-                                        ),
-                                      ),
-                                    ),
-                                    if (_fechaVencimiento != null)
-                                      IconButton(
-                                        icon: const Icon(
-                                          LucideIcons.x,
-                                          size: 16,
-                                        ),
-                                        visualDensity: VisualDensity.compact,
-                                        onPressed: () => setState(
-                                          () => _fechaVencimiento = null,
-                                        ),
-                                      ),
-                                  ],
-                                ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: _controlaVencimiento
+                                    ? AppTheme.brandPrimary.withValues(
+                                        alpha: 0.15,
+                                      )
+                                    : (isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFE2E8F0)),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                LucideIcons.calendarClock,
+                                size: 18,
+                                color: _controlaVencimiento
+                                    ? AppTheme.brandPrimary
+                                    : (isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF64748B)),
                               ),
                             ),
-                            if (AuthService.esAdmin ||
-                                PermisosCajeroService.puedeVerCostos) ...[
-                              const SizedBox(height: 12),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Control de Vencimiento',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Alerta si el producto es perecible o tiene caducidad',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF334155),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: _controlaVencimiento,
+                              activeTrackColor: AppTheme.brandPrimary,
+                              onChanged: (val) =>
+                                  setState(() => _controlaVencimiento = val),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      if (_controlaVencimiento) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E293B).withValues(alpha: 0.6)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFCBD5E1),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Row(
                                 children: [
                                   const Icon(
-                                    LucideIcons.tag,
+                                    LucideIcons.calendar,
                                     size: 16,
-                                    color: AppTheme.accentGreen,
+                                    color: AppTheme.brandPrimary,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Costo de Compra / Proveedor (S/.)',
+                                    'Fecha de Caducidad de Lote',
                                     style: GoogleFonts.outfit(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -1446,34 +1357,145 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              TextFormField(
-                                controller: _precioCostoCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
+                              InkWell(
+                                onTap: () async {
+                                  final now = DateTime.now();
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        _fechaVencimiento ??
+                                        now.add(const Duration(days: 30)),
+                                    firstDate: now.subtract(
+                                      const Duration(days: 365),
                                     ),
-                                decoration: InputDecoration(
-                                  hintText: 'Ej. 2.50 (Opcional, para margen y mermas)',
-                                  prefixIcon: const Icon(
-                                    LucideIcons.coins,
-                                    size: 16,
-                                  ),
-                                  filled: true,
-                                  fillColor: isDark
-                                      ? AppTheme.cardDark
-                                      : Colors.white,
-                                  contentPadding: const EdgeInsets.symmetric(
+                                    lastDate: now.add(
+                                      const Duration(days: 365 * 5),
+                                    ),
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _fechaVencimiento = picked);
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
                                     horizontal: 14,
-                                    vertical: 12,
+                                    vertical: 11,
                                   ),
-                                  border: OutlineInputBorder(
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? AppTheme.cardDark
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
+                                    border: Border.all(
+                                      color: _fechaVencimiento != null
+                                          ? AppTheme.brandPrimary
+                                          : (isDark
+                                                ? AppTheme.borderDark
+                                                : AppTheme.borderLight),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        LucideIcons.calendarCheck,
+                                        size: 16,
+                                        color: _fechaVencimiento != null
+                                            ? AppTheme.brandPrimary
+                                            : (isDark
+                                                  ? AppTheme.textDarkSecondary
+                                                  : const Color(0xFF64748B)),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          _fechaVencimiento != null
+                                              ? '${_fechaVencimiento!.day.toString().padLeft(2, '0')}/${_fechaVencimiento!.month.toString().padLeft(2, '0')}/${_fechaVencimiento!.year}'
+                                              : 'Seleccionar fecha (opcional)',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 13,
+                                            fontWeight:
+                                                _fechaVencimiento != null
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            color: _fechaVencimiento != null
+                                                ? (isDark
+                                                      ? Colors.white
+                                                      : AppTheme.textDark)
+                                                : (isDark
+                                                      ? AppTheme
+                                                            .textDarkSecondary
+                                                      : const Color(
+                                                          0xFF334155,
+                                                        )),
+                                          ),
+                                        ),
+                                      ),
+                                      if (_fechaVencimiento != null)
+                                        IconButton(
+                                          icon: const Icon(
+                                            LucideIcons.x,
+                                            size: 16,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                          onPressed: () => setState(
+                                            () => _fechaVencimiento = null,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ],
-                          ],
+                          ),
+                        ),
+                      ],
+                    ],
+
+                    if (AuthService.esAdmin ||
+                        PermisosCajeroService.puedeVerCostos) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Icon(
+                            LucideIcons.tag,
+                            size: 16,
+                            color: AppTheme.accentGreen,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _esGastronomico
+                                ? 'Costo de Preparación / Insumos (S/.)'
+                                : 'Costo de Compra / Proveedor (S/.)',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _precioCostoCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: _esGastronomico
+                              ? 'Ej. 8.50 (Opcional, para margen y recetas)'
+                              : 'Ej. 2.50 (Opcional, para margen y mermas)',
+                          prefixIcon: const Icon(LucideIcons.coins, size: 16),
+                          filled: true,
+                          fillColor: isDark ? AppTheme.cardDark : Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
                       ),
                     ],

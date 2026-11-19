@@ -29,13 +29,42 @@ class KarlizPixelPerfectNavBar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onItemSelected;
   final bool isDark;
+  final bool esGastronomico;
 
   const KarlizPixelPerfectNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemSelected,
     required this.isDark,
+    this.esGastronomico = false,
   });
+
+  List<KarlizNavItem> get currentItems => [
+    KarlizNavItem(
+      iconWidgetBuilder: (c, s) => KarlizGridIcon(color: c, size: s),
+      icon: LucideIcons.layoutGrid,
+      label: 'Inicio',
+    ),
+    KarlizNavItem(
+      iconWidgetBuilder: (c, s) => KarlizShoppingBagIcon(color: c, size: s),
+      icon: LucideIcons.shoppingBag,
+      label: 'POS',
+    ),
+    KarlizNavItem(
+      iconWidgetBuilder: (c, s) => KarlizCashIcon(color: c, size: s),
+      icon: LucideIcons.banknote,
+      label: 'Caja',
+    ),
+    KarlizNavItem(
+      iconWidgetBuilder: (c, s) => KarlizBoxIcon(color: c, size: s),
+      icon: LucideIcons.boxes,
+      label: esGastronomico ? 'Carta' : 'Stock',
+    ),
+    KarlizNavItem(
+      icon: esGastronomico ? LucideIcons.users : LucideIcons.bookUser,
+      label: esGastronomico ? 'Clientes' : 'Fiados',
+    ),
+  ];
 
   static final List<KarlizNavItem> items = [
     KarlizNavItem(
@@ -140,8 +169,8 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
           const barTop = 18.0;
           const cornerRadius = 22.0;
           final pad = max(18.0, cornerRadius);
-          final tabWidth =
-              (w - 2 * pad) / KarlizPixelPerfectNavBar.items.length;
+          final tabList = widget.currentItems;
+          final tabWidth = (w - 2 * pad) / tabList.length;
           final span = min(30.0, tabWidth * 0.44);
 
           return AnimatedBuilder(
@@ -176,66 +205,64 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: pad),
                         child: Row(
-                          children: List.generate(
-                            KarlizPixelPerfectNavBar.items.length,
-                            (index) {
-                              final item =
-                                  KarlizPixelPerfectNavBar.items[index];
-                              final isSelected = index == widget.selectedIndex;
-                              final selectProgress =
-                                  (1.0 - (activeTabVal - index).abs()).clamp(
-                                    0.0,
-                                    1.0,
-                                  );
+                          children: List.generate(tabList.length, (index) {
+                            final item = tabList[index];
+                            final isSelected = index == widget.selectedIndex;
+                            final selectProgress =
+                                (1.0 - (activeTabVal - index).abs()).clamp(
+                                  0.0,
+                                  1.0,
+                                );
 
-                              return Expanded(
-                                child: GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    widget.onItemSelected(index);
-                                  },
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(height: barTop + 6),
+                            return Expanded(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  widget.onItemSelected(index);
+                                },
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: barTop + 6),
 
-                                      // Icono inactivo en su posición de reposo
-                                      SizedBox(
-                                        height: 24,
-                                        child: Center(
-                                          child: Opacity(
-                                            opacity: (1.0 - selectProgress)
-                                                .clamp(0.0, 1.0),
-                                            child: item.buildIcon(
-                                              size: 20,
-                                              color: inactiveColor,
-                                            ),
+                                    // Icono inactivo en su posición de reposo
+                                    SizedBox(
+                                      height: 24,
+                                      child: Center(
+                                        child: Opacity(
+                                          opacity: (1.0 - selectProgress).clamp(
+                                            0.0,
+                                            1.0,
+                                          ),
+                                          child: item.buildIcon(
+                                            size: 20,
+                                            color: inactiveColor,
                                           ),
                                         ),
                                       ),
+                                    ),
 
-                                      const SizedBox(height: 14),
+                                    const SizedBox(height: 14),
 
-                                      // Nombre de sección en la base inferior
-                                      Text(
-                                        item.label,
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 11,
-                                          fontWeight: isSelected
-                                              ? FontWeight.w800
-                                              : FontWeight.w600,
-                                          color: isSelected
-                                              ? activeColor
-                                              : inactiveColor,
-                                          letterSpacing: 0.1,
-                                        ),
+                                    // Nombre de sección en la base inferior
+                                    Text(
+                                      item.label,
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                        color: isSelected
+                                            ? activeColor
+                                            : inactiveColor,
+                                        letterSpacing: 0.1,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          }),
                         ),
                       ),
                     ),
@@ -287,14 +314,17 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                                   ),
                               child: KeyedSubtree(
                                 key: ValueKey(widget.selectedIndex),
-                                child: KarlizPixelPerfectNavBar
-                                    .items[widget.selectedIndex]
-                                    .buildIcon(
-                                      size: 21,
-                                      color: isDark
-                                          ? Colors.white
-                                          : themePrimary,
-                                    ),
+                                child:
+                                    tabList[widget.selectedIndex.clamp(
+                                          0,
+                                          tabList.length - 1,
+                                        )]
+                                        .buildIcon(
+                                          size: 21,
+                                          color: isDark
+                                              ? Colors.white
+                                              : themePrimary,
+                                        ),
                               ),
                             ),
                           ),

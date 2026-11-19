@@ -65,6 +65,15 @@ class _ClientesScreenState extends State<ClientesScreen>
   ResumenCreditos? _resumen;
   BodegaInfo? _bodegaInfo;
 
+  bool get _esGastronomico {
+    final giro = (_bodegaInfo?.giroNegocio ?? '').toUpperCase();
+    return giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro.contains('FAST') ||
+        giro == 'RESTAURANTE';
+  }
+
   List<GarantiaBotella> _garantias = [];
   ResumenGarantias? _resumenGarantias;
 
@@ -429,7 +438,9 @@ class _ClientesScreenState extends State<ClientesScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Fiados y Garantías de Botellas',
+                    _esGastronomico
+                        ? 'Directorio de Clientes & Delivery'
+                        : 'Fiados y Garantías de Botellas',
                     style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -437,7 +448,9 @@ class _ClientesScreenState extends State<ClientesScreen>
                     ),
                   ),
                   Text(
-                    'Cuentas por cobrar y control de envases retornables',
+                    _esGastronomico
+                        ? 'Historial de comensales, direcciones y pedidos frecuentes'
+                        : 'Cuentas por cobrar y control de envases retornables',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
@@ -465,23 +478,27 @@ class _ClientesScreenState extends State<ClientesScreen>
       floatingActionButton: isWide
           ? null
           : FloatingActionButton.extended(
-              backgroundColor: _tabController.index == 0
+              backgroundColor: (_esGastronomico || _tabController.index == 0)
                   ? AppTheme.brandPrimary
                   : const Color(0xFF2563EB),
               foregroundColor: Colors.white,
               elevation: 4,
               icon: Icon(
-                _tabController.index == 0
+                (_esGastronomico || _tabController.index == 0)
                     ? LucideIcons.userPlus
                     : LucideIcons.bottleWine,
                 size: 18,
               ),
               label: Text(
-                _tabController.index == 0 ? 'Nuevo Vecino' : 'Dejar Botellas',
+                _esGastronomico
+                    ? 'Nuevo Cliente'
+                    : (_tabController.index == 0
+                          ? 'Nuevo Vecino'
+                          : 'Dejar Botellas'),
                 style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
               ),
               onPressed: () {
-                if (_tabController.index == 0) {
+                if (_esGastronomico || _tabController.index == 0) {
                   _abrirNuevoCliente();
                 } else {
                   _abrirNuevaGarantia();
@@ -509,9 +526,11 @@ class _ClientesScreenState extends State<ClientesScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _tabController.index == 0
-                                ? 'Libreta de Fiados'
-                                : 'Garantía de Botellas',
+                            _esGastronomico
+                                ? 'Directorio de Clientes & Delivery'
+                                : (_tabController.index == 0
+                                      ? 'Libreta de Fiados'
+                                      : 'Garantía de Botellas'),
                             style: GoogleFonts.outfit(
                               fontSize: 16.5,
                               fontWeight: FontWeight.w800,
@@ -520,7 +539,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                             ),
                           ),
                           const SizedBox(height: 2),
-                          if (_tabController.index == 0)
+                          if (_esGastronomico || _tabController.index == 0)
                             Wrap(
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
@@ -705,7 +724,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
                             HapticFeedback.selectionClick();
-                            if (_tabController.index == 0) {
+                            if (_esGastronomico || _tabController.index == 0) {
                               _abrirNuevoCliente();
                             } else {
                               _abrirNuevaGarantia();
@@ -717,14 +736,16 @@ class _ClientesScreenState extends State<ClientesScreen>
                               vertical: 6.5,
                             ),
                             decoration: BoxDecoration(
-                              color: _tabController.index == 0
+                              color:
+                                  (_esGastronomico || _tabController.index == 0)
                                   ? AppTheme.brandPrimary
                                   : const Color(0xFF2563EB),
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
                                   color:
-                                      (_tabController.index == 0
+                                      ((_esGastronomico ||
+                                                  _tabController.index == 0)
                                               ? AppTheme.brandPrimary
                                               : const Color(0xFF2563EB))
                                           .withValues(alpha: 0.3),
@@ -737,7 +758,7 @@ class _ClientesScreenState extends State<ClientesScreen>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  _tabController.index == 0
+                                  (_esGastronomico || _tabController.index == 0)
                                       ? LucideIcons.userPlus
                                       : LucideIcons.bottleWine,
                                   size: 14,
@@ -745,9 +766,11 @@ class _ClientesScreenState extends State<ClientesScreen>
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  _tabController.index == 0
+                                  _esGastronomico
                                       ? 'Nuevo'
-                                      : 'Dejar Botellas',
+                                      : (_tabController.index == 0
+                                            ? 'Nuevo'
+                                            : 'Dejar Botellas'),
                                   style: GoogleFonts.outfit(
                                     fontSize: 11.5,
                                     fontWeight: FontWeight.w800,
@@ -765,30 +788,42 @@ class _ClientesScreenState extends State<ClientesScreen>
               ),
 
             // Selector de Pestaña: Libreta de Fiados vs Garantía de Botellas
-            _buildTabBar(isDark, isNarrow, totalVecinos, botellasPendientes),
+            if (!_esGastronomico)
+              _buildTabBar(isDark, isNarrow, totalVecinos, botellasPendientes),
 
             // Contenido según Pestaña
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildTabFiados(
-                    isDark: isDark,
-                    cardBg: cardBg,
-                    isWide: isWide,
-                    totalPorCobrar: totalPorCobrar,
-                    vecinosDeudores: vecinosDeudores,
-                    cobradoMes: cobradoMes,
-                    vecinosAlDia: vecinosAlDia,
-                    creditoTotal: creditoTotal,
-                  ),
-                  _buildTabGarantias(
-                    isDark: isDark,
-                    cardBg: cardBg,
-                    isWide: isWide,
-                  ),
-                ],
-              ),
+              child: _esGastronomico
+                  ? _buildTabFiados(
+                      isDark: isDark,
+                      cardBg: cardBg,
+                      isWide: isWide,
+                      totalPorCobrar: totalPorCobrar,
+                      vecinosDeudores: vecinosDeudores,
+                      cobradoMes: cobradoMes,
+                      vecinosAlDia: vecinosAlDia,
+                      creditoTotal: creditoTotal,
+                    )
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildTabFiados(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          isWide: isWide,
+                          totalPorCobrar: totalPorCobrar,
+                          vecinosDeudores: vecinosDeudores,
+                          cobradoMes: cobradoMes,
+                          vecinosAlDia: vecinosAlDia,
+                          creditoTotal: creditoTotal,
+                        ),
+                        _buildTabGarantias(
+                          isDark: isDark,
+                          cardBg: cardBg,
+                          isWide: isWide,
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -1895,7 +1930,9 @@ class _ClientesScreenState extends State<ClientesScreen>
       _buildFiltroChip('todos', 'Todos (${_clientes.length})', isDark),
       _buildFiltroChip(
         'deudores',
-        'Con Deuda ($vecinosDeudores)',
+        _esGastronomico
+            ? 'Con Saldo ($vecinosDeudores)'
+            : 'Con Deuda ($vecinosDeudores)',
         isDark,
         dotColor: AppTheme.alertRed,
       ),
@@ -1908,7 +1945,9 @@ class _ClientesScreenState extends State<ClientesScreen>
       if (vecinosCaseritos > 0)
         _buildFiltroChip(
           'caseritos',
-          'Caseritos ($vecinosCaseritos)',
+          _esGastronomico
+              ? 'Frecuentes ($vecinosCaseritos)'
+              : 'Caseritos ($vecinosCaseritos)',
           isDark,
           icon: LucideIcons.star,
           iconColor: const Color(0xFFEAB308),
@@ -1973,7 +2012,9 @@ class _ClientesScreenState extends State<ClientesScreen>
           color: isDark ? Colors.white : AppTheme.textDark,
         ),
         decoration: InputDecoration(
-          hintText: 'Buscar por nombre, DNI o teléfono...',
+          hintText: _esGastronomico
+              ? 'Buscar cliente por nombre, teléfono o dirección...'
+              : 'Buscar por nombre, DNI o teléfono...',
           hintStyle: GoogleFonts.plusJakartaSans(
             fontSize: 12.5,
             color: AppTheme.getAdaptiveHintText(isDark),

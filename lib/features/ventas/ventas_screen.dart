@@ -103,6 +103,17 @@ class _VentasScreenState extends State<VentasScreen>
   String _tipoComprobante =
       'BOLETA_ELECTRONICA'; // Por defecto Boleta de Venta (99% de clientes)
   String _regimenTributario = 'NUEVO_RUS';
+  String _giroNegocio = 'BODEGA';
+
+  bool get _esGastronomico {
+    final giro = _giroNegocio.toUpperCase();
+    return giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro.contains('FAST') ||
+        giro == 'RESTAURANTE';
+  }
+
   bool _facturacionSunatActiva = false;
   bool _isConsultandoDoc = false;
   String? _alertaDocMensaje;
@@ -439,6 +450,7 @@ class _VentasScreenState extends State<VentasScreen>
       SecureStorageService.read('ruc_bodega'),
       SecureStorageService.read('direccion_bodega'),
       SecureStorageService.read('lema_comercial'),
+      SecureStorageService.read('giro_negocio'),
     ]);
     final reg = results[0];
     final sunat = results[1];
@@ -446,9 +458,11 @@ class _VentasScreenState extends State<VentasScreen>
     final ruc = results[3];
     final dir = results[4];
     final lema = results[5];
+    final giro = results[6];
 
     if (mounted) {
       setState(() {
+        if (giro != null && giro.isNotEmpty) _giroNegocio = giro;
         _regimenTributario = (reg != null && reg.isNotEmpty)
             ? reg
             : 'NUEVO_RUS';
@@ -2977,6 +2991,7 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   int get _totalBotellasRetornablesEnCarrito {
+    if (_esGastronomico) return 0;
     int total = 0;
     for (final item in _carrito) {
       if (_esBotellaRetornable(
@@ -3002,6 +3017,7 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   Widget _buildRetornablesCartBanner(bool isDark) {
+    if (_esGastronomico) return const SizedBox.shrink();
     final int count = _totalBotellasRetornablesEnCarrito;
     if (count <= 0) return const SizedBox.shrink();
 
@@ -5813,13 +5829,15 @@ class _VentasScreenState extends State<VentasScreen>
 
     int totalRetornablesVendidas = 0;
     String tipoBotellaDetectada = 'Cerveza 650ml';
-    for (final it in items) {
-      if (_esBotellaRetornable(
-        it.producto.nombre,
-        it.producto.nombreCategoria,
-      )) {
-        totalRetornablesVendidas += it.cantidad.toInt();
-        tipoBotellaDetectada = _determinarTipoBotella(it.producto.nombre);
+    if (!_esGastronomico) {
+      for (final it in items) {
+        if (_esBotellaRetornable(
+          it.producto.nombre,
+          it.producto.nombreCategoria,
+        )) {
+          totalRetornablesVendidas += it.cantidad.toInt();
+          tipoBotellaDetectada = _determinarTipoBotella(it.producto.nombre);
+        }
       }
     }
 
@@ -7058,13 +7076,15 @@ class _VentasScreenState extends State<VentasScreen>
                     );
                   },
                 ),
-                const SizedBox(width: 6),
-                _buildPosActionChip(
-                  icon: LucideIcons.wine,
-                  label: 'Garantía Botellas',
-                  onTap: _abrirModalGarantiaEnvase,
-                  isDark: isDark,
-                ),
+                if (!_esGastronomico) ...[
+                  const SizedBox(width: 6),
+                  _buildPosActionChip(
+                    icon: LucideIcons.wine,
+                    label: 'Garantía Botellas',
+                    onTap: _abrirModalGarantiaEnvase,
+                    isDark: isDark,
+                  ),
+                ],
                 const SizedBox(width: 6),
                 _buildPosActionChip(
                   icon: LucideIcons.arrowDownRight,
@@ -7276,18 +7296,20 @@ class _VentasScreenState extends State<VentasScreen>
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
-                              const SizedBox(width: 6),
-                              IconButton(
-                                tooltip: 'Garantía de Botellas / Retornables',
-                                icon: const Icon(
-                                  LucideIcons.wine,
-                                  size: 18,
-                                  color: Color(0xFF2563EB),
+                              if (!_esGastronomico) ...[
+                                const SizedBox(width: 6),
+                                IconButton(
+                                  tooltip: 'Garantía de Botellas / Retornables',
+                                  icon: const Icon(
+                                    LucideIcons.wine,
+                                    size: 18,
+                                    color: Color(0xFF2563EB),
+                                  ),
+                                  onPressed: _abrirModalGarantiaEnvase,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
                                 ),
-                                onPressed: _abrirModalGarantiaEnvase,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
+                              ],
                               const SizedBox(width: 6),
                               TextButton(
                                 style: TextButton.styleFrom(
@@ -9047,19 +9069,20 @@ class _VentasScreenState extends State<VentasScreen>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    tooltip: 'Garantía de Botellas / Retornables',
-                    icon: Icon(
-                      LucideIcons.wine,
-                      size: 17,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
+                  if (!_esGastronomico)
+                    IconButton(
+                      tooltip: 'Garantía de Botellas / Retornables',
+                      icon: Icon(
+                        LucideIcons.wine,
+                        size: 17,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF64748B),
+                      ),
+                      onPressed: _abrirModalGarantiaEnvase,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
-                    onPressed: _abrirModalGarantiaEnvase,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
                   if (_carrito.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     IconButton(

@@ -676,8 +676,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       _OperacionItem(
         id: 'nuevo_producto',
         categoria: 'almacen',
-        title: '+ Nuevo Producto',
-        subtitle: 'Crear en Catálogo',
+        title: _esGastronomico ? '+ Nuevo Plato / Ítem' : '+ Nuevo Producto',
+        subtitle: _esGastronomico ? 'Crear en Carta' : 'Crear en Catálogo',
         icon: LucideIcons.plusCircle,
         color: AppTheme.brandPrimary,
         onTap: _abrirNuevoProducto,
@@ -685,8 +685,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       _OperacionItem(
         id: 'compras',
         categoria: 'almacen',
-        title: 'Compras & Lotes',
-        subtitle: 'Ingreso de proveedores',
+        title: _esGastronomico ? 'Compras & Insumos' : 'Compras & Lotes',
+        subtitle: _esGastronomico
+            ? 'Ingreso de ingredientes'
+            : 'Ingreso de proveedores',
         icon: LucideIcons.truck,
         color: AppTheme.brandPrimary,
         onTap: () {
@@ -696,25 +698,28 @@ class _DashboardScreenState extends State<DashboardScreen>
           ).then((_) => _cargarDatos(forceRefresh: true));
         },
       ),
-      _OperacionItem(
-        id: 'vencimientos',
-        categoria: 'almacen',
-        title: 'Control Vencimientos',
-        subtitle: 'Semáforo de caducidad FIFO',
-        icon: LucideIcons.calendarClock,
-        color: const Color(0xFFD97706),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const VencimientosScreen()),
-          ).then((_) => _cargarDatos(forceRefresh: true));
-        },
-      ),
+      if (!_esGastronomico)
+        _OperacionItem(
+          id: 'vencimientos',
+          categoria: 'almacen',
+          title: 'Control Vencimientos',
+          subtitle: 'Semáforo de caducidad FIFO',
+          icon: LucideIcons.calendarClock,
+          color: const Color(0xFFD97706),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const VencimientosScreen()),
+            ).then((_) => _cargarDatos(forceRefresh: true));
+          },
+        ),
       _OperacionItem(
         id: 'mermas',
         categoria: 'almacen',
-        title: 'Registro de Mermas',
-        subtitle: 'Bajas & pérdidas',
+        title: _esGastronomico ? 'Mermas de Cocina' : 'Registro de Mermas',
+        subtitle: _esGastronomico
+            ? 'Desperdicios y sobrantes'
+            : 'Bajas & pérdidas',
         icon: LucideIcons.trash2,
         color: const Color(0xFFEF4444),
         onTap: () {
@@ -724,31 +729,32 @@ class _DashboardScreenState extends State<DashboardScreen>
           ).then((_) => _cargarDatos(forceRefresh: true));
         },
       ),
-      _OperacionItem(
-        id: 'auditoria_ciega',
-        categoria: 'almacen',
-        title: 'Auditoría Ciega',
-        subtitle: 'Conteo rápido anti-robo',
-        icon: LucideIcons.clipboardCheck,
-        color: AppTheme.brandPrimary,
-        isLocked: !esPro,
-        onTap: () {
-          if (!esPro) {
-            PlanUpgradeModal.show(
+      if (!_esGastronomico)
+        _OperacionItem(
+          id: 'auditoria_ciega',
+          categoria: 'almacen',
+          title: 'Auditoría Ciega',
+          subtitle: 'Conteo rápido anti-robo',
+          icon: LucideIcons.clipboardCheck,
+          color: AppTheme.brandPrimary,
+          isLocked: !esPro,
+          onTap: () {
+            if (!esPro) {
+              PlanUpgradeModal.show(
+                context,
+                featureName: 'Auditoría Rápida por Pasillo',
+                featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal.',
+                icon: LucideIcons.clipboardCheck,
+                onPlanUpdated: _cargarDatos,
+              );
+              return;
+            }
+            Navigator.push(
               context,
-              featureName: 'Auditoría Rápida por Pasillo',
-              featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal.',
-              icon: LucideIcons.clipboardCheck,
-              onPlanUpdated: _cargarDatos,
+              MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
             );
-            return;
-          }
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AuditoriaCiegaScreen()),
-          );
-        },
-      ),
+          },
+        ),
       _OperacionItem(
         id: 'kardex',
         categoria: 'almacen',
@@ -768,8 +774,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       _OperacionItem(
         id: 'bodega_online',
         categoria: 'ventas',
-        title: 'Mi Bodega Online',
-        subtitle: 'Catálogo Web & WhatsApp',
+        title: _esGastronomico ? 'Mi Carta Web Online' : 'Mi Bodega Online',
+        subtitle: _esGastronomico
+            ? 'Carta Digital & WhatsApp'
+            : 'Catálogo Web & WhatsApp',
         icon: LucideIcons.globe,
         color: const Color(0xFF10B981),
         isLocked: !esPro,
@@ -777,8 +785,12 @@ class _DashboardScreenState extends State<DashboardScreen>
           if (!esPro) {
             PlanUpgradeModal.show(
               context,
-              featureName: 'Mi Bodega Online',
-              featureDescription: 'Obtén tu propio enlace web oficial para compartir en redes sociales y recibir pedidos directos en tu WhatsApp sin comisiones.',
+              featureName: _esGastronomico
+                  ? 'Mi Carta Web Online'
+                  : 'Mi Bodega Online',
+              featureDescription: _esGastronomico
+                  ? 'Obtén tu propio enlace web oficial para compartir tu carta en redes sociales y recibir pedidos directos a tu WhatsApp sin comisiones.'
+                  : 'Obtén tu propio enlace web oficial para compartir en redes sociales y recibir pedidos directos en tu WhatsApp sin comisiones.',
               icon: LucideIcons.globe,
               onPlanUpdated: _cargarDatos,
             );
@@ -930,27 +942,30 @@ class _DashboardScreenState extends State<DashboardScreen>
       _OperacionItem(
         id: 'fiados',
         categoria: 'mostrador',
-        title: 'Libreta de Fiados',
-        subtitle: 'Cobros y WhatsApp',
-        icon: LucideIcons.bookUser,
+        title: _esGastronomico ? 'Clientes & Delivery' : 'Libreta de Fiados',
+        subtitle: _esGastronomico
+            ? 'Historial y pedidos frecuentes'
+            : 'Cobros y WhatsApp',
+        icon: _esGastronomico ? LucideIcons.users : LucideIcons.bookUser,
         color: const Color(0xFFD97706),
         onTap: () {
           widget.onNavigateTab(4);
           ClientesScreen.cambiarPestana(0);
         },
       ),
-      _OperacionItem(
-        id: 'garantias',
-        categoria: 'mostrador',
-        title: 'Garantía Botellas',
-        subtitle: 'Envases retornables',
-        icon: LucideIcons.wine,
-        color: const Color(0xFF2563EB),
-        onTap: () {
-          widget.onNavigateTab(4);
-          ClientesScreen.cambiarPestana(1);
-        },
-      ),
+      if (!_esGastronomico)
+        _OperacionItem(
+          id: 'garantias',
+          categoria: 'mostrador',
+          title: 'Garantía Botellas',
+          subtitle: 'Envases retornables',
+          icon: LucideIcons.wine,
+          color: const Color(0xFF2563EB),
+          onTap: () {
+            widget.onNavigateTab(4);
+            ClientesScreen.cambiarPestana(1);
+          },
+        ),
     ];
   }
 
@@ -2934,35 +2949,60 @@ class _DashboardScreenState extends State<DashboardScreen>
   }) {
     final double totalDeuda = _resumenCreditos?.totalDeuda ?? 0.0;
     final int vecinosConSaldo = _resumenCreditos?.clientesConDeuda ?? 0;
+    final double totalVentasHoy = _cierreHoy?.totalVentas ?? 0.0;
+    final int cantVentasHoy = _cierreHoy?.cantidadVentas ?? 0;
+    final double ticketPromedio = cantVentasHoy > 0
+        ? (totalVentasHoy / cantVentasHoy)
+        : 0.0;
+
     final String unidadesStr = stockTotalUnidades % 1 == 0
         ? stockTotalUnidades.toInt().toString()
         : stockTotalUnidades.toStringAsFixed(1);
 
     final cards = [
+      _esGastronomico
+          ? _buildKpiTile(
+              isDark: isDark,
+              title: 'Ticket Promedio',
+              value: 'S/ ${ticketPromedio.toStringAsFixed(2)}',
+              subtitle: cantVentasHoy > 0
+                  ? '$cantVentasHoy comandas hoy'
+                  : 'Sin comandas hoy',
+              subtitleColor: const Color(0xFF10B981),
+              icon: LucideIcons.receipt,
+              accent: const Color(0xFF10B981),
+              onTap: () => widget.onNavigateTab(2),
+            )
+          : _buildKpiTile(
+              isDark: isDark,
+              title: 'Fiados por Cobrar',
+              value: 'S/ ${totalDeuda.toStringAsFixed(2)}',
+              subtitle: '$vecinosConSaldo vecinos con saldo',
+              subtitleColor: const Color(0xFFD97706),
+              icon: LucideIcons.bookUser,
+              accent: const Color(0xFFD97706),
+              onTap: () {
+                widget.onNavigateTab(4);
+                ClientesScreen.cambiarPestana(0);
+              },
+            ),
       _buildKpiTile(
         isDark: isDark,
-        title: 'Fiados por Cobrar',
-        value: 'S/ ${totalDeuda.toStringAsFixed(2)}',
-        subtitle: '$vecinosConSaldo vecinos con saldo',
-        subtitleColor: const Color(0xFFD97706),
-        icon: LucideIcons.bookUser,
-        accent: const Color(0xFFD97706),
-        onTap: () {
-          widget.onNavigateTab(4);
-          ClientesScreen.cambiarPestana(0);
-        },
-      ),
-      _buildKpiTile(
-        isDark: isDark,
-        title: 'Catálogo & Stock',
-        value: '$totalProductos ítems',
+        title: _esGastronomico ? 'Carta & Menú' : 'Catálogo & Stock',
+        value: _esGastronomico
+            ? '$totalProductos platos/ítems'
+            : '$totalProductos ítems',
         subtitle: alertasStockCount > 0
-            ? '$alertasStockCount por reponer'
-            : 'Existencias saludables',
+            ? (_esGastronomico
+                  ? '$alertasStockCount por agotar'
+                  : '$alertasStockCount por reponer')
+            : (_esGastronomico
+                  ? 'Carta 100% disponible'
+                  : 'Existencias saludables'),
         subtitleColor: alertasStockCount > 0
             ? AppTheme.alertRed
             : AppTheme.accentGreen,
-        icon: LucideIcons.boxes,
+        icon: _esGastronomico ? LucideIcons.utensilsCrossed : LucideIcons.boxes,
         accent: alertasStockCount > 0
             ? AppTheme.alertRed
             : AppTheme.brandPrimary,
@@ -2970,13 +3010,15 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
       _buildKpiTile(
         isDark: isDark,
-        title: 'Valor en Mercadería',
+        title: _esGastronomico ? 'Valor en Insumos' : 'Valor en Mercadería',
         value: 'S/ ${valorInventario.toStringAsFixed(2)}',
-        subtitle: '$unidadesStr u. en almacén',
+        subtitle: _esGastronomico
+            ? '$unidadesStr u. en cocina'
+            : '$unidadesStr u. en almacén',
         subtitleColor: isDark
             ? AppTheme.textDarkSecondary
             : const Color(0xFF64748B),
-        icon: LucideIcons.wallet,
+        icon: _esGastronomico ? LucideIcons.packageOpen : LucideIcons.wallet,
         accent: AppTheme.brandPrimary,
         onTap: () => widget.onNavigateTab(3),
       ),
@@ -3336,9 +3378,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     final stockAlerts = [...productosCriticos, ...productosBajos];
     final int stockCount = stockAlerts.length;
     final int fifoCount = productosFifo.length;
+    final int activeTab = _esGastronomico ? 0 : _attentionTab;
 
     Widget buildTabChip(int index, String label) {
-      final active = _attentionTab == index;
+      final active = activeTab == index;
       return InkWell(
         onTap: () {
           HapticFeedback.selectionClick();
@@ -3396,7 +3439,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             runSpacing: 8,
             children: [
               Text(
-                'Requiere atención',
+                _esGastronomico
+                    ? 'Disponibilidad e Insumos'
+                    : 'Requiere atención',
                 style: GoogleFonts.outfit(
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
@@ -3413,9 +3458,16 @@ class _DashboardScreenState extends State<DashboardScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    buildTabChip(0, 'Stock ($stockCount)'),
-                    const SizedBox(width: 2),
-                    buildTabChip(1, 'Vencen ($fifoCount)'),
+                    buildTabChip(
+                      0,
+                      _esGastronomico
+                          ? 'Insumos ($stockCount)'
+                          : 'Stock ($stockCount)',
+                    ),
+                    if (!_esGastronomico) ...[
+                      const SizedBox(width: 2),
+                      buildTabChip(1, 'Vencen ($fifoCount)'),
+                    ],
                   ],
                 ),
               ),
@@ -3423,12 +3475,16 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           const SizedBox(height: 12),
 
-          if (_attentionTab == 0) ...[
+          if (activeTab == 0) ...[
             if (stockAlerts.isEmpty)
               _buildHealthyState(
                 isDark: isDark,
-                title: '¡Inventario en estado óptimo!',
-                subtitle: 'Todos los productos tienen existencias saludables.',
+                title: _esGastronomico
+                    ? '¡Cocina y carta abastecidas!'
+                    : '¡Inventario en estado óptimo!',
+                subtitle: _esGastronomico
+                    ? 'Todos los platos e insumos tienen disponibilidad.'
+                    : 'Todos los productos tienen existencias saludables.',
               )
             else ...[
               ...stockAlerts.take(4).map((p) {
@@ -3529,7 +3585,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                   ),
                   child: Text(
-                    'Ir a reponer stock →',
+                    _esGastronomico
+                        ? 'Ir a gestionar carta e insumos →'
+                        : 'Ir a reponer stock →',
                     style: GoogleFonts.outfit(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w800,
