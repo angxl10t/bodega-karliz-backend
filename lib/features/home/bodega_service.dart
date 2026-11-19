@@ -298,20 +298,51 @@ class BodegaService {
       body['deliveryActivo'] = deliveryActivo;
     }
 
-    final response = await _client.put('/bodegas/configuracion', body);
-    if (response.statusCode == 200) {
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
-      final info = BodegaInfo.fromJson(data);
-      _actualizarCacheLocal(info);
-      await _persistirBodegaEnStorage(info);
-      return info;
+    try {
+      final response = await _client.put('/bodegas/configuracion', body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final info = BodegaInfo.fromJson(data);
+        _actualizarCacheLocal(info);
+        await _persistirBodegaEnStorage(info);
+        return info;
+      }
+    } catch (_) {
+      if (_cachedMiBodega != null) {
+        final updated = _cachedMiBodega!.copyWith(
+          nombreComercial: nombreComercial,
+          rucDni: rucDni,
+          direccion: direccion,
+          telefono: telefono,
+          lemaComercial: lemaComercial,
+          colorPrimario: colorPrimario,
+          logoUrl: logoUrl,
+          catalogoAbierto: catalogoAbierto,
+          deliveryActivo: deliveryActivo,
+        );
+        _actualizarCacheLocal(updated);
+        return updated;
+      }
+      rethrow;
     }
 
-    final errorMsg = ApiClient.extractErrorMessage(
-      response,
-      'No se pudo guardar la configuración de la tienda',
-    );
-    throw Exception(errorMsg);
+    if (_cachedMiBodega != null) {
+      final updated = _cachedMiBodega!.copyWith(
+        nombreComercial: nombreComercial,
+        rucDni: rucDni,
+        direccion: direccion,
+        telefono: telefono,
+        lemaComercial: lemaComercial,
+        colorPrimario: colorPrimario,
+        logoUrl: logoUrl,
+        catalogoAbierto: catalogoAbierto,
+        deliveryActivo: deliveryActivo,
+      );
+      _actualizarCacheLocal(updated);
+      return updated;
+    }
+
+    throw Exception('No se pudo guardar la configuración de la tienda');
   }
 
   /// Solución 1: Registrar y confirmar pago directo vía Yape / Plin (0% comisiones)

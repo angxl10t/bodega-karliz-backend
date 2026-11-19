@@ -26,7 +26,6 @@ import '../../core/widgets/accessibility_panel_modal.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
 import '../productos/sugerencias_precio_modal.dart';
-import 'configuracion_marca_modal.dart';
 import 'mi_bodega_online_modal.dart';
 import '../legal/libro_reclamaciones_screen.dart';
 import '../legal/terminos_condiciones_screen.dart';
@@ -36,6 +35,7 @@ import '../clientes/clientes_screen.dart';
 import '../movimientos/kardex_screen.dart';
 import '../movimientos/vencimientos_screen.dart';
 import '../compras/compras_screen.dart';
+import '../configuracion/configuracion_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_models.dart';
@@ -610,6 +610,90 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 12),
 
+                        // Consola Unificada: Configuración de Tienda & Usuarios (Calma Visual)
+                        if (_userRol == 'ADMIN' ||
+                            _userRol == 'SUPERADMIN') ...[
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(bottomSheetContext);
+                              ConfiguracionScreen.abrir(
+                                context,
+                                onConfigSaved: _cargarDatosUsuario,
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary
+                                    .withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary
+                                      .withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      LucideIcons.slidersHorizontal,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Configuración de Tienda & Usuarios',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Consola unificada: Datos SUNAT, colores, cajeros y tickets',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            color: isDark
+                                                ? AppTheme.textDarkSecondary
+                                                : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    LucideIcons.chevronRight,
+                                    size: 18,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+
                         // Suscripción SaaS (Exclusivo Administrador)
                         if (_userRol == 'ADMIN' ||
                             _userRol == 'SUPERADMIN') ...[
@@ -838,12 +922,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           InkWell(
                             onTap: () {
                               Navigator.pop(bottomSheetContext);
-                              ConfiguracionMarcaModal.show(
+                              ConfiguracionScreen.abrir(
                                 context,
-                                isPro:
-                                    _plan.toUpperCase() == 'PRO' ||
-                                    _plan.toUpperCase() == 'CORPORATIVO',
-                                onSaved: _cargarDatosUsuario,
+                                tabInicial: ConfiguracionTab.tienda,
+                                onConfigSaved: _cargarDatosUsuario,
                               );
                             },
                             borderRadius: BorderRadius.circular(16),
@@ -3327,7 +3409,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: const Color(0xFF64748B),
                     badge: 'Ajustes',
                     isDark: isDark,
-                    onTap: _mostrarPanelAdmin,
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      ConfiguracionScreen.abrir(
+                        context,
+                        onConfigSaved: _cargarDatosUsuario,
+                      );
+                    },
                   ),
                 ],
               ),

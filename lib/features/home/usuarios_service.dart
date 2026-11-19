@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/api_client.dart';
 
 class UsuarioItem {
@@ -43,9 +45,19 @@ class UsuarioItem {
 }
 
 class UsuariosService {
+  static List<UsuarioItem>? _mockUsuarios;
+
+  @visibleForTesting
+  static void setMockUsuarios(List<UsuarioItem>? mockList) {
+    _mockUsuarios = mockList != null ? List<UsuarioItem>.from(mockList) : null;
+  }
+
   final ApiClient _client = ApiClient();
 
   Future<List<UsuarioItem>> listarUsuarios() async {
+    if (_mockUsuarios != null) {
+      return List<UsuarioItem>.from(_mockUsuarios!);
+    }
     final response = await _client.get('/usuarios');
     if (response.statusCode == 200) {
       final List data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -61,6 +73,26 @@ class UsuariosService {
     required String password,
     required String rol,
   }) async {
+    if (_mockUsuarios != null) {
+      final nextId =
+          (_mockUsuarios!.isNotEmpty
+              ? _mockUsuarios!
+                    .map((u) => u.idUsuario)
+                    .reduce((a, b) => a > b ? a : b)
+              : 0) +
+          1;
+      _mockUsuarios!.add(
+        UsuarioItem(
+          idUsuario: nextId,
+          username: username,
+          nombreCompleto: nombreCompleto,
+          email: email,
+          rol: rol,
+          estado: true,
+        ),
+      );
+      return;
+    }
     final Map<String, dynamic> body = {
       'username': username,
       'password': password,
@@ -123,6 +155,24 @@ class UsuariosService {
   }
 
   Future<void> cambiarEstado(int idUsuario, bool activo) async {
+    if (_mockUsuarios != null) {
+      final idx = _mockUsuarios!.indexWhere((u) => u.idUsuario == idUsuario);
+      if (idx != -1) {
+        final curr = _mockUsuarios![idx];
+        _mockUsuarios![idx] = UsuarioItem(
+          idUsuario: curr.idUsuario,
+          username: curr.username,
+          nombreCompleto: curr.nombreCompleto,
+          email: curr.email,
+          rol: curr.rol,
+          estado: activo,
+          idBodega: curr.idBodega,
+          nombreBodega: curr.nombreBodega,
+          planBodega: curr.planBodega,
+        );
+      }
+      return;
+    }
     final response = await _client.patch(
       '/usuarios/$idUsuario/estado?activo=$activo',
       {},
@@ -137,6 +187,9 @@ class UsuariosService {
   }
 
   Future<void> resetPassword(int idUsuario, String nuevaPassword) async {
+    if (_mockUsuarios != null) {
+      return;
+    }
     final response = await _client.put('/usuarios/$idUsuario/reset-password', {
       'nuevaPassword': nuevaPassword,
     });
@@ -150,6 +203,10 @@ class UsuariosService {
   }
 
   Future<void> eliminarUsuario(int idUsuario) async {
+    if (_mockUsuarios != null) {
+      _mockUsuarios!.removeWhere((u) => u.idUsuario == idUsuario);
+      return;
+    }
     final response = await _client.delete('/usuarios/$idUsuario');
     if (response.statusCode != 200 && response.statusCode != 204) {
       final msg = ApiClient.extractErrorMessage(

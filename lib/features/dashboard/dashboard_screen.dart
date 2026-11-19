@@ -19,10 +19,10 @@ import '../clientes/cliente_model.dart';
 import '../clientes/cliente_service.dart';
 import '../clientes/clientes_screen.dart';
 import '../compras/compras_screen.dart';
+import '../configuracion/configuracion_screen.dart';
 import '../home/bodega_service.dart';
 import '../home/configuracion_ticket_modal.dart';
 import '../home/mi_bodega_online_modal.dart';
-import '../home/plan_y_personal_sheet.dart';
 import '../marketing/kit_marketing_barrio_modal.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
 import '../movimientos/kardex_screen.dart';
@@ -874,14 +874,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         icon: LucideIcons.users,
         color: AppTheme.brandPrimary,
         requiresAdmin: true,
-        onTap: () => PlanYPersonalSheet.show(
+        onTap: () => ConfiguracionScreen.abrir(
           context,
-          nombreBodega: _nombreBodega,
-          plan: _plan,
-          currentUsername: _username,
-          userRol: _userRol,
-          seccionInicial: PlanSheetSeccion.personal,
-          onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+          tabInicial: ConfiguracionTab.usuarios,
+          onConfigSaved: () => _cargarDatos(forceRefresh: true),
         ),
       ),
       _OperacionItem(
@@ -892,14 +888,10 @@ class _DashboardScreenState extends State<DashboardScreen>
         icon: LucideIcons.crown,
         color: const Color(0xFF0D9488),
         requiresAdmin: true,
-        onTap: () => PlanYPersonalSheet.show(
+        onTap: () => ConfiguracionScreen.abrir(
           context,
-          nombreBodega: _nombreBodega,
-          plan: _plan,
-          currentUsername: _username,
-          userRol: _userRol,
-          seccionInicial: PlanSheetSeccion.suscripcion,
-          onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+          tabInicial: ConfiguracionTab.plan,
+          onConfigSaved: () => _cargarDatos(forceRefresh: true),
         ),
       ),
 
@@ -1656,14 +1648,10 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     final planBadge = InkWell(
       onTap: () {
-        PlanYPersonalSheet.show(
+        ConfiguracionScreen.abrir(
           context,
-          nombreBodega: _nombreBodega,
-          plan: _plan,
-          currentUsername: _username,
-          userRol: _userRol,
-          seccionInicial: PlanSheetSeccion.suscripcion,
-          onPlanUpdated: () => _cargarDatos(forceRefresh: true),
+          tabInicial: ConfiguracionTab.plan,
+          onConfigSaved: () => _cargarDatos(forceRefresh: true),
         );
       },
       borderRadius: BorderRadius.circular(20),
