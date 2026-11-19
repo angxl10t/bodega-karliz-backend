@@ -21,42 +21,58 @@ class GastronomiaHelper {
     // Mostrito
     if (n.contains('mostrito')) return true;
 
-    // 1/2 Pollo o Medio
+    // 1/2 Pollo o Medio: En pollerías NO existe medio pollo de 2 pechos o 2 piernas.
+    // Solo sale la forma clásica (Pecho y Pierna), pero se permite personalizar ensalada y papas.
     if (n.contains('1/2') || n.contains('medio') || n.contains('1 / 2')) {
       if (n.contains('pollo') || n.contains('brasa') || c.contains('brasa')) {
         return true;
       }
     }
 
-    // Presas sueltas
-    if (n.contains('presa') && (n.contains('pollo') || n.contains('brasa'))) {
+    // Presas sueltas o Broaster individual (se elige Pecho o Pierna)
+    if ((n.contains('presa') || n.contains('broaster')) &&
+        (n.contains('pollo') ||
+            n.contains('brasa') ||
+            c.contains('brasa') ||
+            c.contains('pollo'))) {
       return true;
     }
 
     return false;
   }
 
+  /// Indica si el producto permite elegir entre presas alternativas (ej. 1/4 Pollo: Pecho vs Pierna).
+  /// En 1/2 Pollo y Pollo Entero retorna false porque solo se despachan en su forma clásica.
+  static bool tienePresaSeleccionable(String? nombre) {
+    if (nombre == null) return true;
+    final n = nombre.toLowerCase();
+    if (n.contains('1/2') ||
+        n.contains('medio') ||
+        n.contains('1 / 2') ||
+        n.contains('entero') ||
+        n.contains('completo')) {
+      return false;
+    }
+    return opcionesPresa(nombre).length > 1;
+  }
+
   /// Retorna las opciones de presa según el tipo de plato
   static List<String> opcionesPresa(String? nombre) {
-    if (nombre == null)
+    if (nombre == null) {
       return const ['Pecho (con ala)', 'Pierna (con encuentro)'];
+    }
     final n = nombre.toLowerCase();
 
+    // Medio Pollo: En la gastronomía peruana NO existe 2 pechos o 2 piernas.
+    // Solo sale la forma clásica: Pecho y Pierna.
     if (n.contains('1/2') || n.contains('medio') || n.contains('1 / 2')) {
-      return const [
-        'Pecho y Pierna (Clásico)',
-        '2 Pechos (con ala)',
-        '2 Piernas (con encuentro)',
-      ];
+      return const ['Pecho y Pierna (Clásico)'];
     }
 
+    // Pollo Entero: Siempre incluye 2 pechos y 2 piernas completas
     if (n.contains('entero') ||
         (n.contains('1 pollo') && !n.contains('1/4') && !n.contains('1/2'))) {
-      return const [
-        'Entero Clásico (2 Pechos + 2 Piernas)',
-        'Mayoría Pecho',
-        'Mayoría Pierna',
-      ];
+      return const ['Entero Clásico (2 Pechos + 2 Piernas)'];
     }
 
     // Por defecto para 1/4 Pollo, Mostrito, Broaster:

@@ -93,20 +93,30 @@ void main() {
       },
     );
 
-    test('opcionesPresa returns Pecho vs Pierna for 1/4 and appropriate cuts for 1/2', () {
+    test('opcionesPresa returns Pecho vs Pierna for 1/4 and strictly classic single cut for 1/2', () {
       final opcionesCuarto = GastronomiaHelper.opcionesPresa(
         '1/4 Pollo a la Brasa',
       );
       expect(opcionesCuarto, contains('Pecho (con ala)'));
       expect(opcionesCuarto, contains('Pierna (con encuentro)'));
       expect(opcionesCuarto.length, equals(2));
+      expect(
+        GastronomiaHelper.tienePresaSeleccionable('1/4 Pollo a la Brasa'),
+        isTrue,
+      );
 
+      // En la gastronomía peruana NO existe medio pollo con dos pechos o dos piernas
       final opcionesMedio = GastronomiaHelper.opcionesPresa(
         '1/2 Pollo a la Brasa',
       );
       expect(opcionesMedio, contains('Pecho y Pierna (Clásico)'));
-      expect(opcionesMedio, contains('2 Pechos (con ala)'));
-      expect(opcionesMedio, contains('2 Piernas (con encuentro)'));
+      expect(opcionesMedio.length, equals(1));
+      expect(opcionesMedio, isNot(contains('2 Pechos (con ala)')));
+      expect(opcionesMedio, isNot(contains('2 Piernas (con encuentro)')));
+      expect(
+        GastronomiaHelper.tienePresaSeleccionable('1/2 Pollo a la Brasa'),
+        isFalse,
+      );
     });
 
     test(

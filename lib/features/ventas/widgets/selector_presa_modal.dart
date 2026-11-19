@@ -246,132 +246,212 @@ class _SelectorPresaModalState extends State<SelectorPresaModal> {
                 ),
                 const SizedBox(height: 18),
 
-                // Sección 1: Presas principales (Cards grandes táctiles)
-                Text(
-                  'PRESA PRINCIPAL (OBLIGATORIA)',
-                  style: GoogleFonts.outfit(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.6,
-                    color: const Color(0xFFEA580C),
+                // Sección 1: Presas principales (Cards grandes táctiles si hay opciones, o badge de corte clásico)
+                if (_opcionesPresa.length > 1) ...[
+                  Text(
+                    'PRESA PRINCIPAL (SELECCIONAR)',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                      color: const Color(0xFFEA580C),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
+                  ...List.generate(_opcionesPresa.length, (idx) {
+                    final opcion = _opcionesPresa[idx];
+                    final isSelected = _presaSeleccionada == opcion;
+                    final esPecho = opcion.toLowerCase().contains('pecho');
+                    final esPierna = opcion.toLowerCase().contains('pierna');
 
-                ...List.generate(_opcionesPresa.length, (idx) {
-                  final opcion = _opcionesPresa[idx];
-                  final isSelected = _presaSeleccionada == opcion;
-                  final esPecho = opcion.toLowerCase().contains('pecho');
-                  final esPierna = opcion.toLowerCase().contains('pierna');
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _presaSeleccionada = opcion);
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFFF97316)
-                                      .withValues(alpha: isDark ? 0.22 : 0.12)
-                                : (isDark
-                                      ? const Color(0xFF0F172A)
-                                      : const Color(0xFFF8FAFC)),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _presaSeleccionada = opcion);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
                               color: isSelected
                                   ? const Color(0xFFF97316)
+                                        .withValues(alpha: isDark ? 0.22 : 0.12)
                                   : (isDark
-                                        ? const Color(0xFF334155)
-                                        : const Color(0xFFE2E8F0)),
-                              width: isSelected ? 2.0 : 1.0,
+                                        ? const Color(0xFF0F172A)
+                                        : const Color(0xFFF8FAFC)),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFFF97316)
+                                    : (isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0)),
+                                width: isSelected ? 2.0 : 1.0,
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 36,
-                                height: 36,
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? const Color(0xFFF97316)
-                                      : (isDark
-                                            ? const Color(0xFF1E293B)
-                                            : const Color(0xFFE2E8F0)),
-                                  shape: BoxShape.circle,
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFFF97316)
+                                        : (isDark
+                                              ? const Color(0xFF1E293B)
+                                              : const Color(0xFFE2E8F0)),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    esPecho
+                                        ? LucideIcons.flame
+                                        : (esPierna
+                                              ? LucideIcons.drumstick
+                                              : LucideIcons.utensils),
+                                    size: 18,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDark
+                                              ? Colors.white60
+                                              : const Color(0xFF64748B)),
+                                  ),
                                 ),
-                                child: Icon(
-                                  esPecho
-                                      ? LucideIcons.flame
-                                      : (esPierna
-                                            ? LucideIcons.drumstick
-                                            : LucideIcons.utensils),
-                                  size: 18,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : (isDark
-                                            ? Colors.white60
-                                            : const Color(0xFF64748B)),
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      opcion,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w800,
-                                        color: isSelected
-                                            ? (isDark
-                                                  ? Colors.white
-                                                  : const Color(0xFFC2410C))
-                                            : (isDark
-                                                  ? Colors.white70
-                                                  : AppTheme.textDark),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        opcion,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: isSelected
+                                              ? (isDark
+                                                    ? Colors.white
+                                                    : const Color(0xFFC2410C))
+                                              : (isDark
+                                                    ? Colors.white70
+                                                    : AppTheme.textDark),
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      esPecho
-                                          ? 'Parte jugosa con ala crujiente'
-                                          : (esPierna
-                                                ? 'Pierna con encuentro tierno'
-                                                : 'Porción estándar'),
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11.5,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF64748B),
+                                      Text(
+                                        esPecho
+                                            ? 'Parte jugosa con ala crujiente'
+                                            : (esPierna
+                                                  ? 'Pierna con encuentro tierno'
+                                                  : 'Porción estándar'),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11.5,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              if (isSelected)
-                                const Icon(
-                                  LucideIcons.checkCircle2,
-                                  color: Color(0xFFF97316),
-                                  size: 22,
-                                ),
-                            ],
+                                if (isSelected)
+                                  const Icon(
+                                    LucideIcons.checkCircle2,
+                                    color: Color(0xFFF97316),
+                                    size: 22,
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
+                    );
+                  }),
+                ] else ...[
+                  // Forma clásica incluida (ej. 1/2 Pollo tradicional)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
                     ),
-                  );
-                }),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEA580C)
+                          .withValues(alpha: isDark ? 0.15 : 0.08),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFFEA580C)
+                            .withValues(alpha: isDark ? 0.35 : 0.25),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEA580C)
+                                .withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.drumstick,
+                            size: 18,
+                            color: Color(0xFFEA580C),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'FORMA CLÁSICA INCLUIDA',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFFEA580C),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _opcionesPresa.isNotEmpty
+                                    ? _opcionesPresa.first
+                                    : 'Pecho y Pierna (Clásico)',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                'En medio pollo siempre se sirve medio corte tradicional (pecho y pierna).',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          LucideIcons.checkCircle2,
+                          size: 20,
+                          color: Color(0xFF059669),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
 
                 // Sección 2: Ensalada

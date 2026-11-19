@@ -4043,7 +4043,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       nombre,
       categoria,
     );
-    String seleccionPresa = GastronomiaHelper.opcionesPresa(nombre).first;
+    final List<String> opcionesPresa = GastronomiaHelper.opcionesPresa(nombre);
+    final bool tieneOpcionesMultiples = opcionesPresa.length > 1;
+    String seleccionPresa = opcionesPresa.isNotEmpty
+        ? opcionesPresa.first
+        : 'Pecho (con ala)';
     String seleccionEnsalada = GastronomiaHelper.opcionesEnsalada().first;
     String seleccionPapas = GastronomiaHelper.opcionesPapas().first;
     final TextEditingController notasCtrl = TextEditingController();
@@ -4504,115 +4508,178 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      LucideIcons.drumstick,
-                                      size: 16,
-                                      color: Color(0xFFD97706),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'SELECCIONA TU PRESA FAVORITA',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w800,
-                                        color: const Color(0xFFD97706),
-                                        letterSpacing: 0.5,
+                                if (tieneOpcionesMultiples) ...[
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.drumstick,
+                                        size: 16,
+                                        color: Color(0xFFD97706),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  children:
-                                      GastronomiaHelper.opcionesPresa(
-                                        nombre,
-                                      ).map((opt) {
-                                        final isSel = seleccionPresa == opt;
-                                        return Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 4,
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'SELECCIONA TU PRESA FAVORITA',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFFD97706),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: opcionesPresa.map((opt) {
+                                      final isSel = seleccionPresa == opt;
+                                      return Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
                                             ),
-                                            child: InkWell(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              onTap: () {
-                                                HapticFeedback.selectionClick();
-                                                setModalState(
-                                                  () => seleccionPresa = opt,
-                                                );
-                                              },
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      vertical: 10,
-                                                      horizontal: 8,
-                                                    ),
-                                                decoration: BoxDecoration(
+                                            onTap: () {
+                                              HapticFeedback.selectionClick();
+                                              setModalState(
+                                                () => seleccionPresa = opt,
+                                              );
+                                            },
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                    horizontal: 8,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: isSel
+                                                    ? const Color(0xFFD97706)
+                                                    : (isDark
+                                                          ? const Color(
+                                                              0xFF1E293B,
+                                                            )
+                                                          : Colors.white),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                border: Border.all(
                                                   color: isSel
                                                       ? const Color(0xFFD97706)
                                                       : (isDark
-                                                            ? const Color(
-                                                                0xFF1E293B,
-                                                              )
-                                                            : Colors.white),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: isSel
-                                                        ? const Color(
-                                                            0xFFD97706,
-                                                          )
-                                                        : (isDark
-                                                              ? Colors.white12
-                                                              : const Color(
-                                                                  0xFFCBD5E1,
-                                                                )),
-                                                    width: isSel ? 1.8 : 1.0,
-                                                  ),
+                                                            ? Colors.white12
+                                                            : const Color(
+                                                                0xFFCBD5E1,
+                                                              )),
+                                                  width: isSel ? 1.8 : 1.0,
                                                 ),
-                                                child: Column(
-                                                  children: [
-                                                    Icon(
-                                                      LucideIcons.utensils,
-                                                      size: 16,
+                                              ),
+                                              child: Column(
+                                                children: [
+                                                  Icon(
+                                                    LucideIcons.utensils,
+                                                    size: 16,
+                                                    color: isSel
+                                                        ? Colors.white
+                                                        : (isDark
+                                                              ? Colors.white70
+                                                              : const Color(
+                                                                  0xFF475569,
+                                                                )),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    opt,
+                                                    textAlign: TextAlign.center,
+                                                    style: GoogleFonts.plusJakartaSans(
+                                                      fontSize: 11.5,
+                                                      fontWeight: isSel
+                                                          ? FontWeight.w800
+                                                          : FontWeight.w600,
                                                       color: isSel
                                                           ? Colors.white
                                                           : (isDark
-                                                                ? Colors.white70
+                                                                ? Colors.white
                                                                 : const Color(
-                                                                    0xFF475569,
+                                                                    0xFF1E293B,
                                                                   )),
                                                     ),
-                                                    const SizedBox(height: 4),
-                                                    Text(
-                                                      opt,
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      style: GoogleFonts.plusJakartaSans(
-                                                        fontSize: 11.5,
-                                                        fontWeight: isSel
-                                                            ? FontWeight.w800
-                                                            : FontWeight.w600,
-                                                        color: isSel
-                                                            ? Colors.white
-                                                            : (isDark
-                                                                  ? Colors.white
-                                                                  : const Color(
-                                                                      0xFF1E293B,
-                                                                    )),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ),
-                                        );
-                                      }).toList(),
-                                ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ] else ...[
+                                  // Forma clásica incluida (1/2 Pollo o Entero)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF1E293B)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: const Color(0xFFD97706)
+                                            .withValues(alpha: 0.35),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          LucideIcons.drumstick,
+                                          size: 18,
+                                          color: Color(0xFFD97706),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'FORMA CLÁSICA INCLUIDA',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 10.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: const Color(
+                                                    0xFFD97706,
+                                                  ),
+                                                  letterSpacing: 0.5,
+                                                ),
+                                              ),
+                                              Text(
+                                                opcionesPresa.isNotEmpty
+                                                    ? opcionesPresa.first
+                                                    : 'Pecho y Pierna (Clásico)',
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 12.5,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: isDark
+                                                          ? Colors.white
+                                                          : AppTheme.textDark,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Icon(
+                                          LucideIcons.checkCircle2,
+                                          size: 18,
+                                          color: Color(0xFF059669),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 14),
                                 Text(
                                   'Elección de Ensalada',
