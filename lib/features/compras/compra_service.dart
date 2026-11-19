@@ -9,6 +9,14 @@ import 'compra_model.dart';
 class CompraService {
   final ApiClient _apiClient = ApiClient();
 
+  static List<CompraRegistro>? _mockCompras;
+
+  /// Permite inyectar compras en tests sin realizar llamadas de red HTTP
+  @visibleForTesting
+  static void setMockCompras(List<CompraRegistro>? compras) {
+    _mockCompras = compras != null ? List<CompraRegistro>.from(compras) : null;
+  }
+
   /// Notificador reactivo para sincronizar compras y Kardex en tiempo real
   static final ValueNotifier<int> comprasRevision = ValueNotifier<int>(0);
 
@@ -36,6 +44,9 @@ class CompraService {
   }
 
   Future<List<CompraRegistro>> getCompras() async {
+    if (_mockCompras != null) {
+      return List<CompraRegistro>.from(_mockCompras!);
+    }
     try {
       final response = await _apiClient.get('/compras');
       if (response.statusCode == 200) {

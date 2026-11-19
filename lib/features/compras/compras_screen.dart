@@ -17,6 +17,7 @@ import 'compra_service.dart';
 import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/adaptive_modal.dart';
+import '../../core/widgets/product_image_widget.dart';
 import '../../core/debouncer.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../auth/auth_service.dart';
@@ -256,6 +257,7 @@ class _ComprasScreenState extends State<ComprasScreen>
         final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final primaryColor = Theme.of(context).colorScheme.primary;
             final proveedoresFiltrados = _safeProveedores.where((p) {
               return p.razonSocial.toLowerCase().contains(
                     filtro.toLowerCase(),
@@ -338,7 +340,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                           const SizedBox(width: 8),
                           TextButton.icon(
                             style: TextButton.styleFrom(
-                              foregroundColor: AppTheme.brandPrimary,
+                              foregroundColor: primaryColor,
                               padding: EdgeInsets.zero,
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -416,15 +418,14 @@ class _ComprasScreenState extends State<ComprasScreen>
                                         height: 56,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: AppTheme.brandPrimary
-                                              .withValues(
-                                                alpha: isDark ? 0.2 : 0.1,
-                                              ),
+                                          color: primaryColor.withValues(
+                                            alpha: isDark ? 0.2 : 0.1,
+                                          ),
                                         ),
-                                        child: const Icon(
+                                        child: Icon(
                                           LucideIcons.truck,
                                           size: 24,
-                                          color: AppTheme.brandPrimary,
+                                          color: primaryColor,
                                         ),
                                       ),
                                       const SizedBox(height: 12),
@@ -478,17 +479,19 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       height: 40,
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? AppTheme.brandPrimary
+                                            ? primaryColor
                                             : (isDark
                                                   ? AppTheme.surfaceTintDark
-                                                  : AppTheme.surfaceTint),
+                                                  : primaryColor.withValues(
+                                                      alpha: 0.08,
+                                                    )),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Icon(
                                         LucideIcons.building2,
                                         color: isSelected
                                             ? Colors.white
-                                            : AppTheme.brandPrimary,
+                                            : primaryColor,
                                         size: 20,
                                       ),
                                     ),
@@ -514,9 +517,9 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       ),
                                     ),
                                     trailing: isSelected
-                                        ? const Icon(
+                                        ? Icon(
                                             LucideIcons.check,
-                                            color: AppTheme.brandPrimary,
+                                            color: primaryColor,
                                             size: 20,
                                           )
                                         : null,
@@ -554,6 +557,7 @@ class _ComprasScreenState extends State<ComprasScreen>
         String filtro = searchCtrl.text;
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final primaryColor = Theme.of(context).colorScheme.primary;
             final f = filtro.toLowerCase();
             final prodsFiltrados = _safeProductos.where((p) {
               return p.nombre.toLowerCase().contains(f) ||
@@ -659,7 +663,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                             decoration: BoxDecoration(
                               color: isDark
                                   ? AppTheme.surfaceTintDark
-                                  : AppTheme.surfaceTint,
+                                  : primaryColor.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
@@ -667,7 +671,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: AppTheme.brandPrimary,
+                                color: primaryColor,
                               ),
                             ),
                           ),
@@ -821,28 +825,50 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       horizontal: 8,
                                       vertical: 6,
                                     ),
-                                    leading: Container(
-                                      width: 42,
-                                      height: 42,
-                                      decoration: BoxDecoration(
-                                        color: yaEnOrden
-                                            ? AppTheme.accentGreen.withValues(
-                                                alpha: 0.15,
-                                              )
-                                            : (isDark
-                                                  ? AppTheme.surfaceTintDark
-                                                  : AppTheme.surfaceTint),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        yaEnOrden
-                                            ? LucideIcons.check
-                                            : LucideIcons.package,
-                                        color: yaEnOrden
-                                            ? AppTheme.accentGreen
-                                            : AppTheme.brandPrimary,
-                                        size: 20,
-                                      ),
+                                    leading: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          child: SizedBox(
+                                            width: 42,
+                                            height: 42,
+                                            child: ProductImageWidget(
+                                              imagenUrl: p.imagenUrl,
+                                              nombre: p.nombre,
+                                              codigoBarras: p.codigoBarras,
+                                              categoria: p.nombreCategoria,
+                                              size: 42,
+                                              isDark: isDark,
+                                            ),
+                                          ),
+                                        ),
+                                        if (yaEnOrden)
+                                          Positioned(
+                                            right: -3,
+                                            bottom: -3,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.accentGreen,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: isDark
+                                                      ? AppTheme.cardDark
+                                                      : Colors.white,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: const Icon(
+                                                LucideIcons.check,
+                                                color: Colors.white,
+                                                size: 10,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     title: Text(
                                       p.nombre,
@@ -879,7 +905,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       decoration: BoxDecoration(
                                         color: yaEnOrden
                                             ? AppTheme.accentGreen
-                                            : AppTheme.brandPrimary,
+                                            : primaryColor,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Row(
@@ -918,7 +944,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                         height: 48,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.brandPrimary,
+                            backgroundColor: primaryColor,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(24),
@@ -972,6 +998,7 @@ class _ComprasScreenState extends State<ComprasScreen>
       context: context,
       builder: (dlgCtx) => StatefulBuilder(
         builder: (context, setDlgState) {
+          final primaryColor = Theme.of(context).colorScheme.primary;
           final cant =
               double.tryParse(cantCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
           final costo =
@@ -999,18 +1026,19 @@ class _ComprasScreenState extends State<ComprasScreen>
             ),
             title: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.surfaceTintDark
-                        : AppTheme.surfaceTint,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    LucideIcons.packagePlus,
-                    color: AppTheme.brandPrimary,
-                    size: 20,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: ProductImageWidget(
+                      imagenUrl: productoActual.imagenUrl,
+                      nombre: productoActual.nombre,
+                      codigoBarras: productoActual.codigoBarras,
+                      categoria: productoActual.nombreCategoria,
+                      size: 40,
+                      isDark: isDark,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1023,12 +1051,12 @@ class _ComprasScreenState extends State<ComprasScreen>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       Text(
-                        'P. Venta público: S/ ${productoActual.precioVenta.toStringAsFixed(2)}',
+                        'P. Venta público: S/ ${productoActual.precioVenta.toStringAsFixed(2)} • Stock: ${productoActual.stockActual.toStringAsFixed(0)} u.',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w600,
@@ -1096,7 +1124,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+                    color: primaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
@@ -1114,7 +1142,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: AppTheme.brandPrimary,
+                          color: primaryColor,
                         ),
                       ),
                     ],
@@ -1289,6 +1317,43 @@ class _ComprasScreenState extends State<ComprasScreen>
                       ],
                     ),
                   ),
+                ] else if (cant > 0 && costo > 0) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accentGreen.withValues(
+                        alpha: isDark ? 0.15 : 0.1,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.accentGreen.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          LucideIcons.circleCheck,
+                          color: AppTheme.accentGreen,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Margen Saludable: ${margenPct.toStringAsFixed(1)}% (Ganancia: S/ ${gananciaUnitaria.toStringAsFixed(2)}/u.)',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.accentGreen,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -1304,7 +1369,7 @@ class _ComprasScreenState extends State<ComprasScreen>
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.brandPrimary,
+                  backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -1477,6 +1542,7 @@ class _ComprasScreenState extends State<ComprasScreen>
           context: context,
           builder: (ctx) {
             final isDark = Theme.of(ctx).brightness == Brightness.dark;
+            final primaryColor = Theme.of(ctx).colorScheme.primary;
             return AlertDialog(
               backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
               shape: RoundedRectangleBorder(
@@ -1525,7 +1591,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                     height: 44,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.brandPrimary,
+                        backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(22),
@@ -1588,6 +1654,7 @@ class _ComprasScreenState extends State<ComprasScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final canPop = ModalRoute.of(context)?.canPop ?? false;
 
     if (_isLoading) {
@@ -1614,9 +1681,7 @@ class _ComprasScreenState extends State<ComprasScreen>
             ),
           ),
         ),
-        body: const Center(
-          child: CircularProgressIndicator(color: AppTheme.brandPrimary),
-        ),
+        body: Center(child: CircularProgressIndicator(color: primaryColor)),
       );
     }
 
@@ -1648,29 +1713,126 @@ class _ComprasScreenState extends State<ComprasScreen>
       );
     }
 
-    final tabBar = TabBar(
-      controller: _tabController,
-      labelColor: AppTheme.brandPrimary,
-      unselectedLabelColor: isDark
-          ? AppTheme.textDarkSecondary
-          : const Color(0xFF475569),
-      indicatorColor: AppTheme.brandPrimary,
-      indicatorWeight: 2.5,
-      labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
-      unselectedLabelStyle: GoogleFonts.outfit(
-        fontWeight: FontWeight.w500,
-        fontSize: 13,
+    final tabBar = PreferredSize(
+      preferredSize: const Size.fromHeight(50),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+            width: 0.8,
+          ),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          mouseCursor: SystemMouseCursors.click,
+          indicatorSize: TabBarIndicatorSize.tab,
+          dividerColor: Colors.transparent,
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          onTap: (_) => HapticFeedback.selectionClick(),
+          indicator: BoxDecoration(
+            color: primaryColor,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: primaryColor.withValues(alpha: 0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          labelColor: Colors.white,
+          unselectedLabelColor: isDark
+              ? Colors.white60
+              : const Color(0xFF475569),
+          labelStyle: GoogleFonts.outfit(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w800,
+          ),
+          unselectedLabelStyle: GoogleFonts.outfit(
+            fontSize: 12.5,
+            fontWeight: FontWeight.w600,
+          ),
+          labelPadding: EdgeInsets.zero,
+          tabs: [
+            Tab(
+              height: 36,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.truck, size: 15),
+                    const SizedBox(width: 6),
+                    const Text('Nueva Compra en Lote'),
+                    if (_canastaCompras.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.28),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${_canastaCompras.length}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            Tab(
+              height: 36,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.clipboardList, size: 15),
+                    const SizedBox(width: 6),
+                    const Text('Historial de Compras'),
+                    if (_historialCompras.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.28),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${_historialCompras.length}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      tabs: const [
-        Tab(
-          icon: Icon(LucideIcons.truck, size: 17),
-          text: 'Nueva Compra en Lote',
-        ),
-        Tab(
-          icon: Icon(LucideIcons.clipboardList, size: 17),
-          text: 'Historial de Compras',
-        ),
-      ],
     );
 
     return Scaffold(
@@ -1726,11 +1888,7 @@ class _ComprasScreenState extends State<ComprasScreen>
           ),
           IconButton(
             tooltip: 'Registrar Proveedor',
-            icon: const Icon(
-              LucideIcons.userPlus,
-              size: 19,
-              color: AppTheme.brandPrimary,
-            ),
+            icon: Icon(LucideIcons.userPlus, size: 19, color: primaryColor),
             onPressed: _abrirNuevoProveedorModal,
           ),
           IconButton(
@@ -2016,6 +2174,8 @@ class _ComprasScreenState extends State<ComprasScreen>
   }
 
   Widget _buildCajeroRestringido(bool isDark) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 480),
@@ -2028,13 +2188,13 @@ class _ComprasScreenState extends State<ComprasScreen>
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                  color: primaryColor.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   LucideIcons.shieldAlert,
                   size: 36,
-                  color: AppTheme.brandPrimary,
+                  color: primaryColor,
                 ),
               ),
               const SizedBox(height: 20),
@@ -2063,7 +2223,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                 icon: const Icon(LucideIcons.arrowLeft, size: 18),
                 label: const Text('Volver al Inicio'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.brandPrimary,
+                  backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -2102,6 +2262,9 @@ class _ComprasScreenState extends State<ComprasScreen>
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final labelColor = isDark ? Colors.white : AppTheme.textDark;
+    final countCriticos = _safeProductos
+        .where((p) => p.stockActual <= p.stockMinimo)
+        .length;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -2122,6 +2285,8 @@ class _ComprasScreenState extends State<ComprasScreen>
                     icon: LucideIcons.packagePlus,
                   ),
                   const SizedBox(height: 14),
+                  if (countCriticos > 0)
+                    _buildBannerReposicionInteligente(isDark, countCriticos),
 
                   // 1. Selector de Proveedor
                   _buildCardProveedor(isDark, cardBg, borderColor, labelColor),
@@ -2170,6 +2335,9 @@ class _ComprasScreenState extends State<ComprasScreen>
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final labelColor = isDark ? Colors.white : AppTheme.textDark;
+    final countCriticos = _safeProductos
+        .where((p) => p.stockActual <= p.stockMinimo)
+        .length;
 
     return Center(
       child: ConstrainedBox(
@@ -2185,6 +2353,8 @@ class _ComprasScreenState extends State<ComprasScreen>
                 icon: LucideIcons.packagePlus,
               ),
               const SizedBox(height: 14),
+              if (countCriticos > 0)
+                _buildBannerReposicionInteligente(isDark, countCriticos),
 
               // 1. Selector de Proveedor
               _buildCardProveedor(isDark, cardBg, borderColor, labelColor),
@@ -2207,12 +2377,101 @@ class _ComprasScreenState extends State<ComprasScreen>
     );
   }
 
+  Widget _buildBannerReposicionInteligente(bool isDark, int countCriticos) {
+    if (countCriticos == 0) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFF451A03).withValues(alpha: 0.4)
+            : const Color(0xFFFEF3C7),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFFD97706).withValues(alpha: 0.5)
+              : const Color(0xFFF59E0B).withValues(alpha: 0.6),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              LucideIcons.triangleAlert,
+              color: Color(0xFFD97706),
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$countCriticos ${countCriticos == 1 ? "producto requiere" : "productos requieren"} reposición',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? const Color(0xFFFDE68A)
+                        : const Color(0xFF92400E),
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  'Ítems en quiebre o cercanos al stock mínimo de seguridad.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white70 : const Color(0xFFB45309),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              backgroundColor: const Color(0xFFF59E0B)
+                  .withValues(alpha: isDark ? 0.25 : 0.15),
+              foregroundColor: isDark
+                  ? const Color(0xFFFDE68A)
+                  : const Color(0xFF92400E),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: _mostrarSugerenciaPedidoModal,
+            icon: const Icon(LucideIcons.sparkles, size: 14),
+            label: Text(
+              'Sugerir',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCardProveedor(
     bool isDark,
     Color cardBg,
     Color borderColor,
     Color labelColor,
   ) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -2273,12 +2532,12 @@ class _ComprasScreenState extends State<ComprasScreen>
                       decoration: BoxDecoration(
                         color: isDark
                             ? AppTheme.surfaceTintDark
-                            : AppTheme.surfaceTint,
+                            : primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         LucideIcons.building2,
-                        color: AppTheme.brandPrimary,
+                        color: primaryColor,
                         size: 20,
                       ),
                     ),
@@ -2409,6 +2668,7 @@ class _ComprasScreenState extends State<ComprasScreen>
     Color borderColor,
     Color labelColor,
   ) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final f = _desktopFiltroTexto.toLowerCase().trim();
     final productosMostrados = f.isEmpty
         ? _safeProductos.take(8).toList()
@@ -2580,24 +2840,48 @@ class _ComprasScreenState extends State<ComprasScreen>
                     horizontal: 4,
                     vertical: 4,
                   ),
-                  leading: Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: yaEnOrden
-                          ? AppTheme.accentGreen.withValues(alpha: 0.15)
-                          : (isDark
-                                ? AppTheme.surfaceTintDark
-                                : AppTheme.surfaceTint),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      yaEnOrden ? LucideIcons.check : LucideIcons.package,
-                      color: yaEnOrden
-                          ? AppTheme.accentGreen
-                          : AppTheme.brandPrimary,
-                      size: 18,
-                    ),
+                  leading: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: ProductImageWidget(
+                            imagenUrl: p.imagenUrl,
+                            nombre: p.nombre,
+                            codigoBarras: p.codigoBarras,
+                            categoria: p.nombreCategoria,
+                            size: 40,
+                            isDark: isDark,
+                          ),
+                        ),
+                      ),
+                      if (yaEnOrden)
+                        Positioned(
+                          right: -3,
+                          bottom: -3,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentGreen,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppTheme.cardDark
+                                    : Colors.white,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: const Icon(
+                              LucideIcons.check,
+                              color: Colors.white,
+                              size: 10,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   title: Text(
                     p.nombre,
@@ -2625,7 +2909,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: yaEnOrden
                           ? AppTheme.accentGreen
-                          : AppTheme.brandPrimary,
+                          : primaryColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -2665,6 +2949,8 @@ class _ComprasScreenState extends State<ComprasScreen>
     Color labelColor, {
     required bool isDesktop,
   }) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -2693,12 +2979,12 @@ class _ComprasScreenState extends State<ComprasScreen>
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                      color: primaryColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       LucideIcons.packageCheck,
-                      color: AppTheme.brandPrimary,
+                      color: primaryColor,
                       size: 18,
                     ),
                   ),
@@ -2722,7 +3008,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: AppTheme.surfaceTint,
+                        color: primaryColor.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -2730,7 +3016,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.brandPrimary,
+                          color: primaryColor,
                         ),
                       ),
                     ),
@@ -2780,15 +3066,15 @@ class _ComprasScreenState extends State<ComprasScreen>
                       height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppTheme.brandPrimary.withValues(
+                        color: primaryColor.withValues(
                           alpha: isDark ? 0.18 : 0.09,
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           LucideIcons.shoppingBag,
                           size: 22,
-                          color: AppTheme.brandPrimary,
+                          color: primaryColor,
                         ),
                       ),
                     ),
@@ -2826,8 +3112,27 @@ class _ComprasScreenState extends State<ComprasScreen>
                 ),
                 itemBuilder: (context, idx) {
                   final item = _canastaCompras[idx];
+                  final prod = _safeProductos
+                      .where((p) => p.idProducto == item.idProducto)
+                      .firstOrNull;
                   return Row(
                     children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SizedBox(
+                          width: 38,
+                          height: 38,
+                          child: ProductImageWidget(
+                            imagenUrl: prod?.imagenUrl,
+                            nombre: item.nombreProducto,
+                            codigoBarras: prod?.codigoBarras,
+                            categoria: prod?.nombreCategoria,
+                            size: 38,
+                            isDark: isDark,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2907,10 +3212,10 @@ class _ComprasScreenState extends State<ComprasScreen>
                               minWidth: 28,
                               minHeight: 28,
                             ),
-                            icon: const Icon(
+                            icon: Icon(
                               LucideIcons.plusCircle,
                               size: 18,
-                              color: AppTheme.brandPrimary,
+                              color: primaryColor,
                             ),
                             onPressed: () {
                               setState(() {
@@ -2950,51 +3255,76 @@ class _ComprasScreenState extends State<ComprasScreen>
             ),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Subtotal Neto (Base):',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: AppTheme.getAdaptiveMutedText(isDark),
+                if (_tipoComprobante == 'Factura') ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Subtotal Neto (Base):',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
+                        ),
                       ),
-                    ),
-                    Text(
-                      'S/ ${(_totalCompra / 1.18).toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF334155),
+                      Text(
+                        'S/ ${(_totalCompra / 1.18).toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF334155),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'I.G.V. (18%):',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: AppTheme.getAdaptiveMutedText(isDark),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'I.G.V. (18% SUNAT):',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
+                        ),
                       ),
-                    ),
-                    Text(
-                      'S/ ${(_totalCompra - (_totalCompra / 1.18)).toStringAsFixed(2)}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? Colors.white70
-                            : const Color(0xFF334155),
+                      Text(
+                        'S/ ${(_totalCompra - (_totalCompra / 1.18)).toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF334155),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ] else ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Régimen Fiscal:',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppTheme.getAdaptiveMutedText(isDark),
+                        ),
+                      ),
+                      Text(
+                        '$_tipoComprobante (Monto Directo)',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? Colors.white70
+                              : const Color(0xFF334155),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const Divider(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3014,7 +3344,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                         Text(
                           '${_canastaCompras.length} prods. • $_totalUnidadesCompraFormatted u.',
                           style: GoogleFonts.plusJakartaSans(
-                            color: AppTheme.brandPrimary,
+                            color: primaryColor,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                           ),
@@ -3075,7 +3405,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandPrimary,
+                backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -3094,6 +3424,8 @@ class _ComprasScreenState extends State<ComprasScreen>
     Color borderColor,
     Color labelColor,
   ) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -3127,7 +3459,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.surfaceTint,
+                    color: primaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
@@ -3135,7 +3467,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w800,
-                      color: AppTheme.brandPrimary,
+                      color: primaryColor,
                     ),
                   ),
                 ),
@@ -3153,7 +3485,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                   height: 48,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.brandPrimary,
+                      backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -3225,21 +3557,21 @@ class _ComprasScreenState extends State<ComprasScreen>
                       height: 56,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppTheme.brandPrimary.withValues(
+                        color: primaryColor.withValues(
                           alpha: isDark ? 0.18 : 0.09,
                         ),
                         border: Border.all(
-                          color: AppTheme.brandPrimary.withValues(
+                          color: primaryColor.withValues(
                             alpha: isDark ? 0.35 : 0.2,
                           ),
                           width: 1.5,
                         ),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           LucideIcons.shoppingBag,
                           size: 24,
-                          color: AppTheme.brandPrimary,
+                          color: primaryColor,
                         ),
                       ),
                     ),
@@ -3278,8 +3610,27 @@ class _ComprasScreenState extends State<ComprasScreen>
               ),
               itemBuilder: (context, idx) {
                 final item = _canastaCompras[idx];
+                final prod = _safeProductos
+                    .where((p) => p.idProducto == item.idProducto)
+                    .firstOrNull;
                 return Row(
                   children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: ProductImageWidget(
+                          imagenUrl: prod?.imagenUrl,
+                          nombre: item.nombreProducto,
+                          codigoBarras: prod?.codigoBarras,
+                          categoria: prod?.nombreCategoria,
+                          size: 40,
+                          isDark: isDark,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
                     // Ícono y Nombre
                     Expanded(
                       child: Column(
@@ -3360,10 +3711,10 @@ class _ComprasScreenState extends State<ComprasScreen>
                             minWidth: 32,
                             minHeight: 32,
                           ),
-                          icon: const Icon(
+                          icon: Icon(
                             LucideIcons.plusCircle,
                             size: 20,
-                            color: AppTheme.brandPrimary,
+                            color: primaryColor,
                           ),
                           onPressed: () {
                             setState(() {
@@ -3398,25 +3749,75 @@ class _ComprasScreenState extends State<ComprasScreen>
   }
 
   Widget _buildCardTotalYConfirmarMobile(bool isDark, Color labelColor) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppTheme.cardDark : Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? AppTheme.borderDark : AppTheme.borderTint,
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
           width: 1.4,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.brandPrimary.withValues(alpha: 0.08),
+            color: primaryColor.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          if (_tipoComprobante == 'Factura') ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Subtotal Neto (Base):',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
+                    ),
+                  ),
+                ),
+                Text(
+                  'S/ ${(_totalCompra / 1.18).toStringAsFixed(2)}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'I.G.V. (18% SUNAT):',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11.5,
+                      color: AppTheme.getAdaptiveMutedText(isDark),
+                    ),
+                  ),
+                ),
+                Text(
+                  'S/ ${(_totalCompra - (_totalCompra / 1.18)).toStringAsFixed(2)}',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : const Color(0xFF334155),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 16),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -3459,7 +3860,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                       return Text(
                         'S/ ${val.toStringAsFixed(2)}',
                         style: GoogleFonts.plusJakartaSans(
-                          color: AppTheme.brandPrimary,
+                          color: primaryColor,
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
                           fontFeatures: const [FontFeature.tabularFigures()],
@@ -3502,7 +3903,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.brandPrimary,
+                backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
@@ -3516,6 +3917,7 @@ class _ComprasScreenState extends State<ComprasScreen>
   }
 
   Widget _buildHistorialCompras(bool isDark) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final filtradas = _historialCompras.where((c) {
       final prov = c.razonSocialProveedor.toLowerCase();
       final comp = c.comprobante.toLowerCase();
@@ -3525,15 +3927,35 @@ class _ComprasScreenState extends State<ComprasScreen>
           c.idCompra.toString().contains(q);
     }).toList();
 
+    final totalHistorico = filtradas.fold<double>(
+      0.0,
+      (acc, c) => acc + c.total,
+    );
+    final countFacturas = filtradas
+        .where(
+          (c) =>
+              c.comprobante.toUpperCase().startsWith('F') ||
+              c.comprobante.toUpperCase().contains('FACTURA'),
+        )
+        .length;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 900;
 
         Widget content = Column(
           children: [
+            // KPIs Ejecutivos de Historial de Compras
+            _buildHistorialKpis(
+              isDark,
+              filtradas.length,
+              totalHistorico,
+              countFacturas,
+            ),
+
             // Buscador
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark
@@ -3611,6 +4033,13 @@ class _ComprasScreenState extends State<ComprasScreen>
                             ? '${c.fechaCompra!.day.toString().padLeft(2, '0')}/${c.fechaCompra!.month.toString().padLeft(2, '0')} ${c.fechaCompra!.hour.toString().padLeft(2, '0')}:${c.fechaCompra!.minute.toString().padLeft(2, '0')}'
                             : 'Reciente';
 
+                        final isFactura =
+                            c.comprobante.toUpperCase().startsWith('F') ||
+                            c.comprobante.toUpperCase().contains('FACTURA');
+                        final isBoleta =
+                            c.comprobante.toUpperCase().startsWith('B') ||
+                            c.comprobante.toUpperCase().contains('BOLETA');
+
                         return Container(
                           decoration: BoxDecoration(
                             color: isDark ? AppTheme.cardDark : Colors.white,
@@ -3638,14 +4067,16 @@ class _ComprasScreenState extends State<ComprasScreen>
                                           decoration: BoxDecoration(
                                             color: isDark
                                                 ? AppTheme.surfaceTintDark
-                                                : AppTheme.surfaceTint,
+                                                : primaryColor.withValues(
+                                                    alpha: 0.1,
+                                                  ),
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             LucideIcons.truck,
-                                            color: AppTheme.brandPrimary,
+                                            color: primaryColor,
                                             size: 18,
                                           ),
                                         ),
@@ -3655,19 +4086,78 @@ class _ComprasScreenState extends State<ComprasScreen>
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                c.razonSocialProveedor,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      fontSize: 14,
-                                                      color: isDark
-                                                          ? Colors.white
-                                                          : AppTheme.textDark,
+                                              Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      c.razonSocialProveedor,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            fontSize: 14,
+                                                            color: isDark
+                                                                ? Colors.white
+                                                                : AppTheme
+                                                                      .textDark,
+                                                          ),
                                                     ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: isFactura
+                                                          ? primaryColor
+                                                                .withValues(
+                                                                  alpha: 0.12,
+                                                                )
+                                                          : (isBoleta
+                                                                ? const Color(
+                                                                    0xFF10B981,
+                                                                  ).withValues(
+                                                                    alpha: 0.12,
+                                                                  )
+                                                                : const Color(
+                                                                    0xFF64748B,
+                                                                  ).withValues(
+                                                                    alpha: 0.12,
+                                                                  )),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      isFactura
+                                                          ? 'FACTURA'
+                                                          : (isBoleta
+                                                                ? 'BOLETA'
+                                                                : 'COMPROBANTE'),
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 9.5,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color: isFactura
+                                                            ? primaryColor
+                                                            : (isBoleta
+                                                                  ? const Color(
+                                                                      0xFF059669,
+                                                                    )
+                                                                  : const Color(
+                                                                      0xFF475569,
+                                                                    )),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                               Text(
                                                 'Doc: ${c.comprobante} • $fechaStr',
@@ -3690,7 +4180,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w900,
-                                      color: AppTheme.brandPrimary,
+                                      color: primaryColor,
                                     ),
                                   ),
                                 ],
@@ -3707,17 +4197,41 @@ class _ComprasScreenState extends State<ComprasScreen>
                                   ),
                                   child: Column(
                                     children: c.detalles.map((d) {
+                                      final prodDet = _safeProductos
+                                          .where(
+                                            (p) => p.idProducto == d.idProducto,
+                                          )
+                                          .firstOrNull;
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(
-                                          vertical: 2,
+                                          vertical: 3,
                                         ),
                                         child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
                                           children: [
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              child: SizedBox(
+                                                width: 24,
+                                                height: 24,
+                                                child: ProductImageWidget(
+                                                  imagenUrl: prodDet?.imagenUrl,
+                                                  nombre: d.nombreProducto,
+                                                  codigoBarras:
+                                                      prodDet?.codigoBarras,
+                                                  categoria:
+                                                      prodDet?.nombreCategoria,
+                                                  size: 24,
+                                                  isDark: isDark,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
                                                 '+${d.cantidad.toStringAsFixed(0)}x ${d.nombreProducto}',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                                 style:
                                                     GoogleFonts.plusJakartaSans(
                                                       fontSize: 12,
@@ -3766,6 +4280,119 @@ class _ComprasScreenState extends State<ComprasScreen>
         }
         return content;
       },
+    );
+  }
+
+  Widget _buildHistorialKpis(
+    bool isDark,
+    int totalRegs,
+    double totalMonto,
+    int facturasCount,
+  ) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildHistorialKpiCard(
+              isDark,
+              title: 'Compras Totales',
+              value: '$totalRegs',
+              subtitle: 'Lotes ingresados',
+              icon: LucideIcons.truck,
+              iconColor: primaryColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildHistorialKpiCard(
+              isDark,
+              title: 'Inversión Total',
+              value: 'S/ ${totalMonto.toStringAsFixed(2)}',
+              subtitle: 'Mercadería recepcionada',
+              icon: LucideIcons.coins,
+              iconColor: const Color(0xFF10B981),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildHistorialKpiCard(
+              isDark,
+              title: 'Facturas SUNAT',
+              value: '$facturasCount',
+              subtitle: 'Crédito fiscal 18%',
+              icon: LucideIcons.fileCheck,
+              iconColor: const Color(0xFF6366F1),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistorialKpiCard(
+    bool isDark, {
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.getAdaptiveMutedText(isDark),
+                  ),
+                ),
+              ),
+              Icon(icon, size: 14, color: iconColor),
+            ],
+          ),
+          const SizedBox(height: 3),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: GoogleFonts.outfit(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+            ),
+          ),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 9.5,
+              color: AppTheme.getAdaptiveMutedText(isDark),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
