@@ -8175,7 +8175,9 @@ class _VentasScreenState extends State<VentasScreen>
                   final catIcon = _getCategoryIcon(cat);
                   final catColor = _getCategoryColor(cat, isDark);
                   final count = _getCountForCategoria(cat);
-                  final storeAccentColor = Theme.of(context).colorScheme.primary;
+                  final storeAccentColor = Theme.of(context)
+                      .colorScheme
+                      .primary;
 
                   return Material(
                     color: Colors.transparent,
@@ -8212,7 +8214,9 @@ class _VentasScreenState extends State<VentasScreen>
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: storeAccentColor.withValues(alpha: 0.35),
+                                    color: storeAccentColor.withValues(
+                                      alpha: 0.35,
+                                    ),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -8431,14 +8435,12 @@ class _VentasScreenState extends State<VentasScreen>
                             decoration: BoxDecoration(
                               color: isDark
                                   ? (inCart
-                                        ? Theme.of(context).colorScheme.primary.withValues(
-                                            alpha: 0.18,
-                                          )
+                                        ? Theme.of(context).colorScheme.primary
+                                              .withValues(alpha: 0.18)
                                         : const Color(0xFF1B2030))
                                   : (inCart
-                                        ? Theme.of(context).colorScheme.primary.withValues(
-                                            alpha: 0.08,
-                                          )
+                                        ? Theme.of(context).colorScheme.primary
+                                              .withValues(alpha: 0.08)
                                         : const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
@@ -8452,9 +8454,10 @@ class _VentasScreenState extends State<VentasScreen>
                               boxShadow: inCart
                                   ? [
                                       BoxShadow(
-                                        color: Theme.of(context).colorScheme.primary.withValues(
-                                          alpha: 0.20,
-                                        ),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.20),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -11796,7 +11799,9 @@ class _VentasScreenState extends State<VentasScreen>
             duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
             decoration: BoxDecoration(
-              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(9),
             ),
             child: Row(

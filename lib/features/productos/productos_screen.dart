@@ -2250,7 +2250,8 @@ class _ProductosScreenState extends State<ProductosScreen>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                      color: Theme.of(context).colorScheme.primary
+                          .withValues(alpha: 0.25),
                       blurRadius: 4,
                       offset: const Offset(0, 1),
                     ),
