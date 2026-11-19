@@ -38,6 +38,8 @@ class _PromocionesScreenState extends State<PromocionesScreen>
   bool _cargando = true;
   String _filtroTexto = '';
   String _filtroTipo = 'ALL'; // ALL, COMBOS, DESCUENTOS, DOS_POR_UNO, PAUSADAS
+  String _filtroSeccionSugerencias =
+      'ALL'; // ALL, HUESO_ESTRELLA, ALTA_ROTACION, LIQUIDACION_PAREJA
 
   @override
   void initState() {
@@ -118,13 +120,17 @@ class _PromocionesScreenState extends State<PromocionesScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Promociones y Descuentos',
-                      style: GoogleFonts.outfit(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : AppTheme.textDark,
+                    Flexible(
+                      child: Text(
+                        'Promociones y Descuentos',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -235,9 +241,14 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(LucideIcons.tag, size: 15),
-                                const SizedBox(width: 6),
-                                Text('Promociones (${_promociones.length})'),
+                                const Icon(LucideIcons.tag, size: 14),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Promociones (${_promociones.length})',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -245,13 +256,18 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   LucideIcons.sparkles,
-                                  size: 15,
-                                  color: const Color(0xFF8B5CF6),
+                                  size: 14,
+                                  color: Color(0xFF8B5CF6),
                                 ),
-                                const SizedBox(width: 6),
-                                Text('Combos Huesos (${_sugerencias.length})'),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    'Combos Huesos (${_sugerencias.length})',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -526,6 +542,8 @@ class _PromocionesScreenState extends State<PromocionesScreen>
               ),
               const SizedBox(height: 12),
               _buildBannerCombosHueso(isDark, brandColor),
+              const SizedBox(height: 12),
+              _buildFiltroSeccionesSugerencias(isDark, brandColor),
               const SizedBox(height: 16),
               _buildSugerenciasListContent(isDark, brandColor),
             ],
@@ -1150,12 +1168,97 @@ class _PromocionesScreenState extends State<PromocionesScreen>
     );
   }
 
+  Widget _buildFiltroSeccionesSugerencias(bool isDark, Color brandColor) {
+    final countHuesoEstrella = _sugerencias
+        .where((s) => s.seccionSugerencia == 'HUESO_ESTRELLA')
+        .length;
+    final countAltaRotacion = _sugerencias
+        .where((s) => s.seccionSugerencia == 'ALTA_ROTACION')
+        .length;
+    final countLiquidacion = _sugerencias
+        .where((s) => s.seccionSugerencia == 'LIQUIDACION_PAREJA')
+        .length;
+
+    final options = [
+      {'key': 'ALL', 'label': '✨ Todos (${_sugerencias.length})'},
+      {
+        'key': 'HUESO_ESTRELLA',
+        'label': '🚀 Tractor Afín ($countHuesoEstrella)',
+      },
+      {
+        'key': 'ALTA_ROTACION',
+        'label': '⭐ Dúo Alta Salida ($countAltaRotacion)',
+      },
+      {
+        'key': 'LIQUIDACION_PAREJA',
+        'label': '🏷️ Pack Liquidación ($countLiquidacion)',
+      },
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: options.map((opt) {
+          final isSelected = _filtroSeccionSugerencias == opt['key'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() => _filtroSeccionSugerencias = opt['key']!);
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? brandColor
+                      : (isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFFFFFFF)),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected
+                        ? brandColor
+                        : (isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFCBD5E1)),
+                    width: isSelected ? 1.4 : 1.0,
+                  ),
+                ),
+                child: Text(
+                  opt['label']!,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected
+                        ? Colors.white
+                        : (isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF475569)),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildTabSugerenciasList(bool isDark, Color brandColor) {
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
         _buildBannerCombosHueso(isDark, brandColor),
+        const SizedBox(height: 12),
+        _buildFiltroSeccionesSugerencias(isDark, brandColor),
         const SizedBox(height: 16),
         _buildSugerenciasListContent(isDark, brandColor),
       ],
@@ -1197,8 +1300,47 @@ class _PromocionesScreenState extends State<PromocionesScreen>
       );
     }
 
+    final filtradas = _sugerencias.where((s) {
+      if (_filtroSeccionSugerencias == 'ALL') return true;
+      return s.seccionSugerencia == _filtroSeccionSugerencias;
+    }).toList();
+
+    if (filtradas.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Icon(
+              LucideIcons.filterX,
+              size: 36,
+              color: isDark ? Colors.white38 : AppTheme.textMuted,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Sin sugerencias en esta sección',
+              style: GoogleFonts.outfit(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : AppTheme.textDark,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Prueba seleccionando "✨ Todos" para explorar las demás combinaciones inteligentes.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                color: isDark ? AppTheme.textDarkSecondary : AppTheme.textMuted,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
-      children: _sugerencias.map((sug) {
+      children: filtradas.map((sug) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _buildSugerenciaCard(sug, isDark, brandColor),
@@ -1212,6 +1354,34 @@ class _PromocionesScreenState extends State<PromocionesScreen>
     bool isDark,
     Color brandColor,
   ) {
+    // Configuración visual según sección
+    final bool esAltaRotacion = sug.seccionSugerencia == 'ALTA_ROTACION';
+    final bool esLiquidacion = sug.seccionSugerencia == 'LIQUIDACION_PAREJA';
+    final bool esTractor = sug.seccionSugerencia == 'HUESO_ESTRELLA';
+
+    final Color badgeBgStart = esAltaRotacion
+        ? const Color(0xFF059669)
+        : (esLiquidacion ? const Color(0xFFD97706) : const Color(0xFF8B5CF6));
+    final Color badgeBgEnd = esAltaRotacion
+        ? const Color(0xFF10B981)
+        : (esLiquidacion ? const Color(0xFFF59E0B) : const Color(0xFF6D28D9));
+
+    final String labelProd1 = esAltaRotacion
+        ? 'LÍDER #1'
+        : (esLiquidacion
+              ? 'HUESO #1 (${sug.stockHueso.toInt()} u.)'
+              : 'HUESO (${sug.stockHueso.toInt()} u.)');
+    final Color colorProd1 = esAltaRotacion
+        ? const Color(0xFF10B981)
+        : const Color(0xFFEF4444);
+
+    final String labelProd2 = esAltaRotacion
+        ? 'LÍDER #2'
+        : (esLiquidacion ? 'HUESO #2' : 'LÍDER DE VENTA');
+    final Color colorProd2 = esAltaRotacion
+        ? const Color(0xFF0284C7)
+        : (esLiquidacion ? const Color(0xFFF59E0B) : const Color(0xFF10B981));
+
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -1232,22 +1402,54 @@ class _PromocionesScreenState extends State<PromocionesScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: AI Badge + Capital Alert
-          Row(
+          // Header: Badges de Afinidad Semántica y Estrategia
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
+              // Badge de Afinidad Semántica (ej: 🍿 SNACK & GASEOSA, 🍻 PIQUEO & BRINDIS)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+                  color: isDark
+                      ? const Color(0xFF312E81)
+                      : const Color(0xFFEEF2FF),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isDark
+                        ? const Color(0xFF4338CA)
+                        : const Color(0xFFC7D2FE),
                   ),
+                ),
+                child: Text(
+                  sug.tipoAfinidad,
+                  style: GoogleFonts.outfit(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? const Color(0xFFA5B4FC)
+                        : const Color(0xFF4338CA),
+                  ),
+                ),
+              ),
+
+              // Badge de Estrategia Sugerida
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [badgeBgStart, badgeBgEnd]),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      LucideIcons.sparkles,
+                    Icon(
+                      esAltaRotacion
+                          ? LucideIcons.trendingUp
+                          : (esLiquidacion
+                                ? LucideIcons.tag
+                                : LucideIcons.sparkles),
                       size: 11,
                       color: Colors.white,
                     ),
@@ -1263,33 +1465,63 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                   ],
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444)
-                      .withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+
+              // Alerta de Capital o Rotación
+              if (sug.capitalInmovilizado > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444)
+                        .withValues(alpha: isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    'S/ ${sug.capitalInmovilizado.toStringAsFixed(2)} inmovilizados',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? const Color(0xFFFCA5A5)
+                          : const Color(0xFFDC2626),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981)
+                        .withValues(alpha: isDark ? 0.2 : 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    'Ticket Promedio +',
+                    style: GoogleFonts.outfit(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: isDark
+                          ? const Color(0xFF6EE7B7)
+                          : const Color(0xFF059669),
+                    ),
                   ),
                 ),
-                child: Text(
-                  'S/ ${sug.capitalInmovilizado.toStringAsFixed(2)} inmovilizados',
-                  style: GoogleFonts.outfit(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    color: isDark
-                        ? const Color(0xFFFCA5A5)
-                        : const Color(0xFFDC2626),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Dual Pairing Visual: Hueso (+) Estrella
+          // Dual Pairing Visual: Producto 1 (+) Producto 2
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -1303,7 +1535,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
             ),
             child: Row(
               children: [
-                // HUESO
+                // PRODUCTO 1
                 Expanded(
                   child: Row(
                     children: [
@@ -1324,11 +1556,11 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'HUESO (${sug.stockHueso.toInt()} u.)',
+                              labelProd1,
                               style: GoogleFonts.outfit(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
-                                color: const Color(0xFFEF4444),
+                                color: colorProd1,
                               ),
                             ),
                             Text(
@@ -1344,7 +1576,9 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                               ),
                             ),
                             Text(
-                              'Costo S/ ${sug.costoHueso.toStringAsFixed(2)}',
+                              esAltaRotacion
+                                  ? 'Reg. S/ ${sug.precioRegularHueso.toStringAsFixed(2)}'
+                                  : 'Costo S/ ${sug.costoHueso.toStringAsFixed(2)}',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 10,
                                 color: isDark
@@ -1376,7 +1610,7 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                   ),
                 ),
 
-                // ESTRELLA
+                // PRODUCTO 2
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8),
@@ -1399,11 +1633,11 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'LÍDER DE VENTA',
+                                labelProd2,
                                 style: GoogleFonts.outfit(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF10B981),
+                                  color: colorProd2,
                                 ),
                               ),
                               Text(
@@ -1431,6 +1665,69 @@ class _PromocionesScreenState extends State<PromocionesScreen>
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Banner de Protección de Margen (Cuidado del Margen Bodeguero)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: esTractor
+                  ? (isDark
+                        ? const Color(0xFF064E3B).withValues(alpha: 0.35)
+                        : const Color(0xFFECFDF5))
+                  : (esAltaRotacion
+                        ? (isDark
+                              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+                              : const Color(0xFFEFF6FF))
+                        : (isDark
+                              ? const Color(0xFF78350F).withValues(alpha: 0.35)
+                              : const Color(0xFFFFFBEB))),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: esTractor
+                    ? const Color(0xFF10B981).withValues(alpha: 0.4)
+                    : (esAltaRotacion
+                          ? const Color(0xFF3B82F6).withValues(alpha: 0.4)
+                          : const Color(0xFFF59E0B).withValues(alpha: 0.4)),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  esTractor
+                      ? LucideIcons.shieldCheck
+                      : (esAltaRotacion
+                            ? LucideIcons.trendingUp
+                            : LucideIcons.badgePercent),
+                  size: 15,
+                  color: esTractor
+                      ? const Color(0xFF10B981)
+                      : (esAltaRotacion
+                            ? const Color(0xFF3B82F6)
+                            : const Color(0xFFD97706)),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    sug.impactoMargen,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? Colors.white
+                          : (esTractor
+                                ? const Color(0xFF065F46)
+                                : (esAltaRotacion
+                                      ? const Color(0xFF1E40AF)
+                                      : const Color(0xFF92400E))),
+                      height: 1.35,
                     ),
                   ),
                 ),

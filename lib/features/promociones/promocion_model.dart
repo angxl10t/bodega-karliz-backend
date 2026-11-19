@@ -119,6 +119,12 @@ class SugerenciaComboHueso {
   final String razonEstrategica;
   final String badgeSugerido;
 
+  // Nuevos atributos de afinidad, secciones y protección de margen
+  final String
+  seccionSugerencia; // HUESO_ESTRELLA, ALTA_ROTACION, LIQUIDACION_PAREJA
+  final String tipoAfinidad;
+  final String impactoMargen;
+
   const SugerenciaComboHueso({
     required this.idProductoHueso,
     required this.nombreHueso,
@@ -141,6 +147,9 @@ class SugerenciaComboHueso {
     required this.porcentajeDescuentoSugerido,
     required this.razonEstrategica,
     required this.badgeSugerido,
+    this.seccionSugerencia = 'HUESO_ESTRELLA',
+    this.tipoAfinidad = '⭐ COMBO AFÍN',
+    this.impactoMargen = 'Margen del producto estrella protegido al 100%.',
   });
 
   factory SugerenciaComboHueso.fromJson(Map<String, dynamic> json) {
@@ -172,6 +181,12 @@ class SugerenciaComboHueso {
           (json['porcentajeDescuentoSugerido'] as num?)?.toDouble() ?? 15.0,
       razonEstrategica: json['razonEstrategica']?.toString() ?? '',
       badgeSugerido: json['badgeSugerido']?.toString() ?? '⭐ COMBO -15%',
+      seccionSugerencia:
+          json['seccionSugerencia']?.toString() ?? 'HUESO_ESTRELLA',
+      tipoAfinidad: json['tipoAfinidad']?.toString() ?? '⭐ COMBO AFÍN',
+      impactoMargen:
+          json['impactoMargen']?.toString() ??
+          'Margen del producto estrella protegido al 100%.',
     );
   }
 }
