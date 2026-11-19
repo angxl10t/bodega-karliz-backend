@@ -189,5 +189,96 @@ class PromocionServiceTest {
         assertThat(combo.getPrecioRegularTotal()).isEqualByComparingTo("8.00");
         assertThat(combo.getPrecioComboSugerido()).isLessThan(new BigDecimal("8.00"));
         assertThat(combo.getRazonEstrategica()).contains("Libera S/ 60.00 inmovilizados");
+        assertThat(combo.getSeccionSugerencia()).isEqualTo("HUESO_ESTRELLA");
+        assertThat(combo.getTipoAfinidad()).isEqualTo("🍿 SNACK & GASEOSA");
+        assertThat(combo.getImpactoMargen()).contains("Margen de Coca-Cola 500ml (estrella) protegido al 100%");
+    }
+
+    @Test
+    @DisplayName("Debe rechazar combinaciones absurdas e incompatibles como Cerveza con Comida de Perro")
+    void testRechazaCombinacionesIncompatiblesComoCervezaYComidaPerro() {
+        when(tenantService.getCurrentBodega()).thenReturn(bodegaPro);
+
+        // Hueso: Comida para perro
+        Object[] rawHueso = new Object[]{301L, "Ricocan Adultos Carne 1kg", "RIC01", "Mascotas", "ricocan.png", new BigDecimal("15"), new BigDecimal("7.50"), new BigDecimal("112.50"), null};
+        List<Object[]> listHuesos = new ArrayList<>();
+        listHuesos.add(rawHueso);
+        when(productoRepository.findProductosHuesoByPeriodo(eq(3L), any(OffsetDateTime.class), any(Pageable.class)))
+                .thenReturn(listHuesos);
+
+        // Estrella: Cerveza
+        Object[] rawEstrella = new Object[]{402L, "Cerveza Pilsen Callao 630ml", "CER01", "Licores", "pilsen.png", new BigDecimal("80"), new BigDecimal("560.00"), new BigDecimal("160.00")};
+        List<Object[]> listEstrellas = new ArrayList<>();
+        listEstrellas.add(rawEstrella);
+        when(ventaDetalleRepository.findTopEstrellasByPeriodo(eq(3L), any(OffsetDateTime.class), any(Pageable.class)))
+                .thenReturn(listEstrellas);
+
+        Producto prodHueso = new Producto();
+        prodHueso.setIdProducto(301L);
+        prodHueso.setNombre("Ricocan Adultos Carne 1kg");
+        prodHueso.setPrecioVenta(new BigDecimal("10.50"));
+
+        Producto prodEstrella = new Producto();
+        prodEstrella.setIdProducto(402L);
+        prodEstrella.setNombre("Cerveza Pilsen Callao 630ml");
+        prodEstrella.setPrecioVenta(new BigDecimal("7.00"));
+
+        when(productoRepository.findAllById(anyIterable())).thenReturn(List.of(prodHueso, prodEstrella));
+
+        List<SugerenciaComboHuesoDTO> sugerencias = promocionService.obtenerSugerenciasCombosHueso();
+
+        // Debe descartar el emparejamiento Cerveza + Comida de perro por ser incompatible (afinidad 0)
+        assertThat(sugerencias).noneMatch(s ->
+                (s.getNombreHueso().contains("Ricocan") && s.getNombreEstrella().contains("Pilsen")) ||
+                (s.getNombreHueso().contains("Pilsen") && s.getNombreEstrella().contains("Ricocan")));
+    }
+
+    @Test
+    @DisplayName("Debe generar sugerencias de múltiples secciones con productos que salen y otros que no")
+    void testGeneraSugerenciasMultiplesSecciones() {
+        when(tenantService.getCurrentBodega()).thenReturn(bodegaPro);
+
+        // 2 Huesos afines de abarrotes
+        Object[] h1 = new Object[]{501L, "Fideos Spaghetti Molitalia 500g", "FID01", "Abarrotes", "fideo.png", new BigDecimal("30"), new BigDecimal("2.00"), new BigDecimal("60.00"), null};
+        Object[] h2 = new Object[]{502L, "Salsa de Tomate Pomarola 150g", "SAL01", "Abarrotes", "salsa.png", new BigDecimal("25"), new BigDecimal("1.50"), new BigDecimal("37.50"), null};
+        List<Object[]> listHuesos = new ArrayList<>();
+        listHuesos.add(h1);
+        listHuesos.add(h2);
+        when(productoRepository.findProductosHuesoByPeriodo(eq(3L), any(OffsetDateTime.class), any(Pageable.class)))
+                .thenReturn(listHuesos);
+
+        // 2 Estrellas afines de bebidas y snacks
+        Object[] e1 = new Object[]{601L, "Cerveza Cristal 650ml", "CER02", "Licores", "cristal.png", new BigDecimal("60"), new BigDecimal("420.00"), new BigDecimal("120.00")};
+        Object[] e2 = new Object[]{602L, "Piqueo Snax Familiar 200g", "SNX01", "Snacks", "snax.png", new BigDecimal("40"), new BigDecimal("240.00"), new BigDecimal("80.00")};
+        List<Object[]> listEstrellas = new ArrayList<>();
+        listEstrellas.add(e1);
+        listEstrellas.add(e2);
+        when(ventaDetalleRepository.findTopEstrellasByPeriodo(eq(3L), any(OffsetDateTime.class), any(Pageable.class)))
+                .thenReturn(listEstrellas);
+
+        Producto p501 = new Producto(); p501.setIdProducto(501L); p501.setNombre("Fideos Spaghetti Molitalia 500g"); p501.setPrecioVenta(new BigDecimal("2.80"));
+        Producto p502 = new Producto(); p502.setIdProducto(502L); p502.setNombre("Salsa de Tomate Pomarola 150g"); p502.setPrecioVenta(new BigDecimal("2.20"));
+        Producto p601 = new Producto(); p601.setIdProducto(601L); p601.setNombre("Cerveza Cristal 650ml"); p601.setPrecioVenta(new BigDecimal("7.00"));
+        Producto p602 = new Producto(); p602.setIdProducto(602L); p602.setNombre("Piqueo Snax Familiar 200g"); p602.setPrecioVenta(new BigDecimal("6.00"));
+
+        when(productoRepository.findAllById(anyIterable())).thenReturn(List.of(p501, p502, p601, p602));
+
+        List<SugerenciaComboHuesoDTO> sugerencias = promocionService.obtenerSugerenciasCombosHueso();
+
+        assertThat(sugerencias).isNotEmpty();
+
+        // Verificar sección ALTA_ROTACION (Cerveza + Piqueo Snax)
+        boolean hasAltaRotacion = sugerencias.stream().anyMatch(s ->
+                "ALTA_ROTACION".equals(s.getSeccionSugerencia()) &&
+                s.getBadgeSugerido().contains("DUO ESTRELLA") &&
+                s.getImpactoMargen().contains("Descuento ligero (7%)"));
+        assertThat(hasAltaRotacion).isTrue();
+
+        // Verificar sección LIQUIDACION_PAREJA (Fideos + Salsa)
+        boolean hasLiquidacion = sugerencias.stream().anyMatch(s ->
+                "LIQUIDACION_PAREJA".equals(s.getSeccionSugerencia()) &&
+                s.getBadgeSugerido().contains("PACK CLEARANCE") &&
+                s.getImpactoMargen().contains("Liquidación conjunta de 2 productos dormidos"));
+        assertThat(hasLiquidacion).isTrue();
     }
 }

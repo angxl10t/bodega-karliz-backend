@@ -42,4 +42,10 @@ public class SugerenciaComboHuesoDTO {
     private BigDecimal porcentajeDescuentoSugerido;
     private String razonEstrategica;
     private String badgeSugerido;
+
+    // Segmentación por sección e inteligencia de margen
+    @Builder.Default
+    private String seccionSugerencia = "HUESO_ESTRELLA"; // HUESO_ESTRELLA, ALTA_ROTACION, LIQUIDACION_PAREJA
+    private String tipoAfinidad; // BEBIDA_SNACK, ALMUERZO_BODEGUERO, etc.
+    private String impactoMargen; // Explicación de cómo se protege el margen de la bodega
 }
