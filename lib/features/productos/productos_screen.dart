@@ -1796,6 +1796,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                 nombreBodega: _bodegaInfo?.nombreComercial ?? 'Mi Bodega',
                 telefono: _bodegaInfo?.telefono,
                 bodegaId: _bodegaInfo?.idBodega,
+                giroNegocio: _bodegaInfo?.giroNegocio,
               );
             },
             borderRadius: BorderRadius.circular(10),

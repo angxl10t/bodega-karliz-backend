@@ -96,6 +96,52 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   // Pestaña 5: Plan
   String _planActual = 'PRO';
 
+  String get _giroNegocio =>
+      (_bodegaInfo?.giroNegocio ?? 'BODEGA').toUpperCase();
+
+  bool get _esGastronomico =>
+      _giroNegocio == 'POLLERIA' ||
+      _giroNegocio == 'CHIFA' ||
+      _giroNegocio == 'FASTFOOD' ||
+      _giroNegocio == 'RESTAURANTE';
+
+  String get _tituloTabOnline {
+    switch (_giroNegocio) {
+      case 'POLLERIA':
+        return 'Carta Digital Pollería & Pedidos';
+      case 'CHIFA':
+        return 'Carta Digital Chifa & Pedidos';
+      case 'FASTFOOD':
+        return 'Menú Digital Fast Food & Pedidos';
+      case 'RESTAURANTE':
+        return 'Carta Digital Restaurante & Pedidos';
+      case 'BODEGA':
+      default:
+        return 'Catálogo Web & Pedidos por WhatsApp';
+    }
+  }
+
+  String get _subtituloTabOnline {
+    if (_esGastronomico) {
+      return 'Tu carta gastronómica digital disponible 24/7 para tus clientes';
+    }
+    return 'Tu vitrina digital disponible 24/7 para tus vecinos';
+  }
+
+  String get _tituloQrCartel {
+    if (_esGastronomico) {
+      return 'Código QR para Salón y Mostrador';
+    }
+    return 'Código QR para tu Vitrina';
+  }
+
+  String get _subtituloQrCartel {
+    if (_esGastronomico) {
+      return 'Imprime este cartel con tu código QR para ver la carta digital en mesa o para llevar';
+    }
+    return 'Imprime este cartel con tu color de marca para pedidos desde casa';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1668,8 +1714,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     final cardOnline = _buildCard(
       isDark: isDark,
       icon: LucideIcons.globe,
-      title: 'Catálogo Web & Pedidos por WhatsApp',
-      subtitle: 'Tu vitrina digital disponible 24/7 para tus vecinos',
+      title: _tituloTabOnline,
+      subtitle: _subtituloTabOnline,
       child: Column(
         children: [
           _buildPermissionToggle(
@@ -1723,9 +1769,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     final cardQrMarketing = _buildCard(
       isDark: isDark,
       icon: LucideIcons.qrCode,
-      title: 'Código QR para tu Vitrina',
-      subtitle:
-          'Imprime este cartel con tu color de marca para pedidos desde casa',
+      title: _tituloQrCartel,
+      subtitle: _subtituloQrCartel,
       child: Column(
         children: [
           Container(
@@ -1746,7 +1791,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 Text(
                   _nombreCtrl.text.isNotEmpty
                       ? _nombreCtrl.text.toUpperCase()
-                      : 'BODEGA SAN MARTÍN',
+                      : (_esGastronomico
+                            ? 'CARTA DIGITAL'
+                            : 'BODEGA SAN MARTÍN'),
                   style: GoogleFonts.outfit(
                     color: const Color(0xFF0F172A),
                     fontWeight: FontWeight.w800,
@@ -1785,9 +1832,11 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           ElevatedButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   content: Text(
-                    'Generando PDF listo para imprimir en vitrina...',
+                    _esGastronomico
+                        ? 'Generando PDF listo para imprimir para mesas y mostrador...'
+                        : 'Generando PDF listo para imprimir en vitrina...',
                   ),
                 ),
               );

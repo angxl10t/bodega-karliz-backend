@@ -651,15 +651,23 @@ class ThermalTicketService {
     return bytes;
   }
 
-  /// Genera el texto del volante térmico promocional de barrio para entregar con el vuelto
+  /// Genera el texto del volante térmico promocional para entregar con el vuelto o la cuenta
   static String generateVolanteBarrioText({
     required String nombreComercio,
     required String urlCatalogo,
     String? lemaComercial,
     String? telefono,
+    String? giroNegocio,
     int width = width58mm,
   }) {
     final buffer = StringBuffer();
+    final giro = (giroNegocio ?? 'BODEGA').toUpperCase();
+    final esGastronomico =
+        giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro == 'RESTAURANTE';
+
     buffer.writeln(divider(width, '='));
     buffer.writeln(center(nombreComercio.toUpperCase(), width));
     if (lemaComercial != null && lemaComercial.isNotEmpty) {
@@ -667,12 +675,25 @@ class ThermalTicketService {
     }
     buffer.writeln(divider(width, '='));
     buffer.writeln('');
-    buffer.writeln(center('¡VECINO(A), NO HAGAS COLA!', width));
-    buffer.writeln(center('Haz tus pedidos desde casa', width));
-    buffer.writeln(center('por WhatsApp y te lo alistamos.', width));
+    if (esGastronomico) {
+      buffer.writeln(center('PIDE DESDE TU MESA O CASA!', width));
+      buffer.writeln(center('Revisa nuestra carta digital', width));
+      buffer.writeln(center('por WhatsApp y te lo preparamos.', width));
+    } else {
+      buffer.writeln(center('VECINO(A), NO HAGAS COLA!', width));
+      buffer.writeln(center('Haz tus pedidos desde casa', width));
+      buffer.writeln(center('por WhatsApp y te lo alistamos.', width));
+    }
     buffer.writeln('');
     buffer.writeln(divider(width, '-'));
-    buffer.writeln(center('ESCANEA NUESTRA TIENDA VIRTUAL:', width));
+    buffer.writeln(
+      center(
+        esGastronomico
+            ? 'ESCANEA NUESTRA CARTA DIGITAL:'
+            : 'ESCANEA NUESTRA TIENDA VIRTUAL:',
+        width,
+      ),
+    );
     buffer.writeln('[qr]$urlCatalogo[/qr]');
     if (urlCatalogo.length <= width) {
       buffer.writeln(center(urlCatalogo, width));
@@ -686,15 +707,40 @@ class ThermalTicketService {
     }
     buffer.writeln(divider(width, '-'));
     buffer.writeln('');
-    buffer.writeln(center('* Abarrotes, Bebidas y Golosinas', width));
-    buffer.writeln(center('* Promociones y Precios del Dia', width));
+    switch (giro) {
+      case 'POLLERIA':
+        buffer.writeln(center('* Pollo a la Brasa y Combos', width));
+        buffer.writeln(center('* Papas, Cremas y Guarniciones', width));
+        break;
+      case 'CHIFA':
+        buffer.writeln(center('* Chaufa al Wok y Aeropuertos', width));
+        buffer.writeln(center('* Wantanes, Tipakay y Sopas', width));
+        break;
+      case 'FASTFOOD':
+        buffer.writeln(center('* Hamburguesas y Salchipapas', width));
+        buffer.writeln(center('* Broaster, Salsas y Bebidas', width));
+        break;
+      case 'RESTAURANTE':
+        buffer.writeln(center('* Platos a la Carta y Menus', width));
+        buffer.writeln(center('* Entradas, Postres y Refrescos', width));
+        break;
+      case 'BODEGA':
+      default:
+        buffer.writeln(center('* Abarrotes, Bebidas y Golosinas', width));
+        buffer.writeln(center('* Promociones y Precios del Dia', width));
+        break;
+    }
     buffer.writeln(center('* Aceptamos Yape, Plin y Efectivo', width));
     buffer.writeln('');
     if (telefono != null && telefono.isNotEmpty) {
       buffer.writeln(center('Pedidos WhatsApp: $telefono', width));
     }
     buffer.writeln(divider(width, '='));
-    buffer.writeln(center('¡Gracias por apoyar a tu bodega!', width));
+    if (esGastronomico) {
+      buffer.writeln(center('Buen provecho y gracias!', width));
+    } else {
+      buffer.writeln(center('Gracias por apoyar a tu bodega!', width));
+    }
     buffer.writeln(divider(width, '='));
     return buffer.toString();
   }
@@ -705,6 +751,7 @@ class ThermalTicketService {
     required String urlCatalogo,
     String? lemaComercial,
     String? telefono,
+    String? giroNegocio,
     int width = width58mm,
   }) {
     final List<int> bytes = [];
@@ -716,6 +763,7 @@ class ThermalTicketService {
       urlCatalogo: urlCatalogo,
       lemaComercial: lemaComercial,
       telefono: telefono,
+      giroNegocio: giroNegocio,
       width: width,
     );
 

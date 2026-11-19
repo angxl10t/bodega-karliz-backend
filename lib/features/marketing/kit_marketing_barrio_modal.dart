@@ -17,6 +17,7 @@ class KitMarketingBarrioModal extends StatefulWidget {
   final String? lemaComercial;
   final String? slugOrId;
   final int? bodegaId;
+  final String? giroNegocio;
 
   const KitMarketingBarrioModal({
     super.key,
@@ -25,6 +26,7 @@ class KitMarketingBarrioModal extends StatefulWidget {
     this.lemaComercial,
     this.slugOrId,
     this.bodegaId,
+    this.giroNegocio,
   });
 
   static Future<void> show(
@@ -34,6 +36,7 @@ class KitMarketingBarrioModal extends StatefulWidget {
     String? lemaComercial,
     String? slugOrId,
     int? bodegaId,
+    String? giroNegocio,
   }) {
     return AdaptiveModal.show(
       context: context,
@@ -44,6 +47,7 @@ class KitMarketingBarrioModal extends StatefulWidget {
         lemaComercial: lemaComercial,
         slugOrId: slugOrId,
         bodegaId: bodegaId,
+        giroNegocio: giroNegocio,
       ),
     );
   }
@@ -103,7 +107,14 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
   late String _nombreBodega;
   late String _telefono;
   late String _lemaComercial;
+  late String _giroNegocio;
   int? _bodegaId;
+
+  bool get _esGastronomico =>
+      _giroNegocio == 'POLLERIA' ||
+      _giroNegocio == 'CHIFA' ||
+      _giroNegocio == 'FASTFOOD' ||
+      _giroNegocio == 'RESTAURANTE';
 
   String get _urlCatalogo => KitMarketingBarrioModal.buildUrlCatalogo(
     slugOrId: widget.slugOrId,
@@ -121,6 +132,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     _telefono = widget.telefono?.trim() ?? '';
     _lemaComercial = widget.lemaComercial?.trim() ?? '';
     _bodegaId = widget.bodegaId;
+    _giroNegocio = (widget.giroNegocio ?? 'BODEGA').toUpperCase();
     _cargarInfoBodega();
   }
 
@@ -129,6 +141,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
       final info = await BodegaService().obtenerMiBodega();
       if (info != null && mounted) {
         setState(() {
+          if (info.giroNegocio != null && info.giroNegocio!.isNotEmpty) {
+            _giroNegocio = info.giroNegocio!.toUpperCase();
+          }
           if (info.nombreComercial.isNotEmpty &&
               (_nombreBodega == 'CajaYa POS' || _nombreBodega.isEmpty)) {
             _nombreBodega = info.nombreComercial;
@@ -171,6 +186,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
             urlCatalogo: _urlCatalogo,
             lemaComercial: lema,
             telefono: tel,
+            giroNegocio: _giroNegocio,
           );
 
       final String plainText = ThermalTicketService.generateVolanteBarrioText(
@@ -178,6 +194,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
         urlCatalogo: _urlCatalogo,
         lemaComercial: lema,
         telefono: tel,
+        giroNegocio: _giroNegocio,
       );
 
       // Concatenar N copias si se solicitaron varias
@@ -200,7 +217,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                 : AppTheme.alertRed,
             content: Text(
               result.exito
-                  ? '¡$_cantidadVolantes volantes de barrio enviados a la ticketera con éxito!'
+                  ? (_esGastronomico
+                        ? '¡$_cantidadVolantes volantes de carta digital enviados a la ticketera con éxito!'
+                        : '¡$_cantidadVolantes volantes de barrio enviados a la ticketera con éxito!')
                   : result.mensaje,
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
@@ -329,7 +348,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Viralidad & Marketing de Barrio',
+                                    _esGastronomico
+                                        ? 'Viralidad & Carta Digital'
+                                        : 'Viralidad & Marketing de Barrio',
                                     style: GoogleFonts.outfit(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w800,
@@ -341,7 +362,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   Text(
-                                    'Llena tu bodega y fideliza a tus vecinos',
+                                    _esGastronomico
+                                        ? 'Llena tus mesas y atrae comensales por WhatsApp'
+                                        : 'Llena tu bodega y fideliza a tus vecinos',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -380,20 +403,24 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                   labelColor: AppTheme.brandPrimary,
                   indicatorColor: AppTheme.brandPrimary,
                   tabAlignment: TabAlignment.start,
-                  tabs: const [
+                  tabs: [
                     Tab(
-                      icon: Icon(LucideIcons.receipt, size: 16),
-                      text: 'Volante Térmico',
+                      icon: const Icon(LucideIcons.receipt, size: 16),
+                      text: _esGastronomico
+                          ? 'Volante Carta'
+                          : 'Volante Térmico',
                     ),
                     Tab(
-                      icon: Icon(LucideIcons.qrCode, size: 16),
-                      text: 'Afiche Vitrina',
+                      icon: const Icon(LucideIcons.qrCode, size: 16),
+                      text: _esGastronomico
+                          ? 'Afiche Salón / Mesa'
+                          : 'Afiche Vitrina',
                     ),
-                    Tab(
+                    const Tab(
                       icon: Icon(LucideIcons.messageCircle, size: 16),
                       text: 'Difusión WhatsApp',
                     ),
-                    Tab(
+                    const Tab(
                       icon: Icon(LucideIcons.users, size: 16),
                       text: 'Referir Colega',
                     ),
@@ -433,6 +460,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
       urlCatalogo: _urlCatalogo,
       lemaComercial: lema,
       telefono: tel,
+      giroNegocio: _giroNegocio,
     );
 
     return SingleChildScrollView(
@@ -460,7 +488,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Volante de Bolsillo para el Vuelto',
+                      _esGastronomico
+                          ? 'Volante de Mesa y Cuenta'
+                          : 'Volante de Bolsillo para el Vuelto',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -468,7 +498,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       ),
                     ),
                     Text(
-                      'Imprime volantes en tu ticketera térmica y entrégalos a tus clientes con su vuelto.',
+                      _esGastronomico
+                          ? 'Imprime volantes en tu ticketera térmica y entrégalos con la cuenta o pedidos para llevar.'
+                          : 'Imprime volantes en tu ticketera térmica y entrégalos a tus clientes con su vuelto.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: AppTheme.getAdaptiveMutedText(isDark),
@@ -584,7 +616,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Afiche Diseñado para Reja / Vitrina
+          // Afiche Diseñado para Reja / Vitrina / Mesa
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -661,7 +693,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '¡VECINO, PIDE DESDE CASA POR WHATSAPP!',
+                        _esGastronomico
+                            ? '¡PIDE DESDE TU MESA O LLEVA A CASA!'
+                            : '¡VECINO, PIDE DESDE CASA POR WHATSAPP!',
                         style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
@@ -719,7 +753,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                 const SizedBox(height: 14),
 
                 Text(
-                  'Apunta con la cámara de tu celular y revisa nuestros precios y promociones del día',
+                  _esGastronomico
+                      ? 'Apunta con la cámara de tu celular y revisa nuestra carta digital y promociones del día'
+                      : 'Apunta con la cámara de tu celular y revisa nuestros precios y promociones del día',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -772,8 +808,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    final texto =
-                        '¡Hola vecinos! Les comparto el catálogo virtual de $_nombreBodega. Pueden escanear o ingresar aquí: $_urlCatalogo';
+                    final texto = _esGastronomico
+                        ? '¡Hola! Te comparto la carta virtual de $_nombreBodega. Puedes escanear o ingresar aquí para hacer tus pedidos: $_urlCatalogo'
+                        : '¡Hola vecinos! Les comparto el catálogo virtual de $_nombreBodega. Pueden escanear o ingresar aquí: $_urlCatalogo';
                     _compartirEnWhatsApp(texto);
                   },
                   icon: const Icon(LucideIcons.share2, size: 16),
@@ -795,15 +832,57 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     );
   }
 
-  // --- 3. PESTAÑA: DIFUSIÓN POR WHATSAPP A VECINOS ---
+  // --- 3. PESTAÑA: DIFUSIÓN POR WHATSAPP ---
   Widget _buildTabDifusionVecinal(bool isDark) {
-    final mensajeVecinal =
-        '👋 ¡Hola vecinos! En *$_nombreBodega* ya tenemos tienda virtual.\n\n'
-        'Pueden revisar nuestros precios del día, ofertas y hacernos sus pedidos directo por WhatsApp sin salir de casa ni hacer colas:\n'
-        '👉 $_urlCatalogo\n\n'
-        '🧀 Abarrotes, lácteos, bebidas y golosinas con delivery en el barrio.\n'
-        '💵 Aceptamos Yape, Plin y Efectivo contraentrega.\n\n'
-        '¡Gracias por apoyar a tu bodega amiga de siempre! 😊🥖🥤';
+    final String mensajeVecinal;
+    switch (_giroNegocio) {
+      case 'POLLERIA':
+        mensajeVecinal =
+            '🍗 ¡Hola! En *$_nombreBodega* ya tenemos carta digital online.\n\n'
+            'Puedes revisar nuestra carta completa, pollos a la brasa, combos y hacernos tu pedido directo por WhatsApp sin esperas:\n'
+            '👉 $_urlCatalogo\n\n'
+            '🔥 Pollos doraditos, papas crocantes, cremas y bebidas con delivery o para llevar.\n'
+            '💵 Aceptamos Yape, Plin y Efectivo contraentrega.\n\n'
+            '¡Gracias por elegirnos! Buen provecho 😊🍗🍟';
+        break;
+      case 'CHIFA':
+        mensajeVecinal =
+            '🥢 ¡Hola! En *$_nombreBodega* ya tenemos carta digital online.\n\n'
+            'Puedes revisar nuestros platos al wok, chaufas, combinados y hacernos tu pedido directo por WhatsApp:\n'
+            '👉 $_urlCatalogo\n\n'
+            '🥡 Chaufas al wok, wantanes crocantes y bebidas con delivery o para llevar.\n'
+            '💵 Aceptamos Yape, Plin y Efectivo contraentrega.\n\n'
+            '¡Gracias por tu preferencia! Buen provecho 😊🥢🥡';
+        break;
+      case 'FASTFOOD':
+        mensajeVecinal =
+            '🍔 ¡Hola! En *$_nombreBodega* ya tenemos menú digital online.\n\n'
+            'Puedes revisar nuestras hamburguesas, salchipapas, broaster y hacernos tu pedido directo por WhatsApp:\n'
+            '👉 $_urlCatalogo\n\n'
+            '🍟 Combos irresistibles, salsas de la casa y bebidas con delivery o para llevar.\n'
+            '💵 Aceptamos Yape, Plin y Efectivo contraentrega.\n\n'
+            '¡Gracias por elegirnos! 😊🍔🍟';
+        break;
+      case 'RESTAURANTE':
+        mensajeVecinal =
+            '🍽️ ¡Hola! En *$_nombreBodega* ya tenemos carta digital online.\n\n'
+            'Puedes revisar nuestra carta de platos, menú ejecutivo del día y hacernos tu pedido directo por WhatsApp:\n'
+            '👉 $_urlCatalogo\n\n'
+            '🥗 Platos preparados al momento, postres y refrescos naturales con delivery o para llevar.\n'
+            '💵 Aceptamos Yape, Plin y Efectivo contraentrega.\n\n'
+            '¡Gracias por tu preferencia! Buen provecho 😊🍽️';
+        break;
+      case 'BODEGA':
+      default:
+        mensajeVecinal =
+            '👋 ¡Hola vecinos! En *$_nombreBodega* ya tenemos tienda virtual.\n\n'
+            'Pueden revisar nuestros precios del día, ofertas y hacernos sus pedidos directo por WhatsApp sin salir de casa ni hacer colas:\n'
+            '👉 $_urlCatalogo\n\n'
+            '🧀 Abarrotes, lácteos, bebidas y golosinas con delivery en el barrio.\n'
+            '💵 Aceptamos Yape, Plin y Efectivo contraentrega.\n\n'
+            '¡Gracias por apoyar a tu bodega amiga de siempre! 😊🥖🥤';
+        break;
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -830,7 +909,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mensaje Listo para Grupos del Barrio',
+                      _esGastronomico
+                          ? 'Mensaje Listo para Clientes & Comensales'
+                          : 'Mensaje Listo para Grupos del Barrio',
                       style: GoogleFonts.outfit(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -838,7 +919,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       ),
                     ),
                     Text(
-                      'Envíalo al grupo de WhatsApp de tu urbanización, edificio o a tus caseros frecuentes.',
+                      _esGastronomico
+                          ? 'Envíalo a tus clientes frecuentes, listas de difusión o estados de WhatsApp.'
+                          : 'Envíalo al grupo de WhatsApp de tu urbanización, edificio o a tus caseros frecuentes.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: AppTheme.getAdaptiveMutedText(isDark),
@@ -886,7 +969,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
             ),
             icon: const Icon(LucideIcons.send, size: 18),
             label: Text(
-              'ENVIAR POR WHATSAPP A VECINOS',
+              _esGastronomico
+                  ? 'ENVIAR CARTA POR WHATSAPP'
+                  : 'ENVIAR POR WHATSAPP A VECINOS',
               style: GoogleFonts.outfit(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w800,
@@ -898,13 +983,17 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     );
   }
 
-  // --- 4. PESTAÑA: DE BODEGUERO A BODEGUERO (REFERIDOS) ---
+  // --- 4. PESTAÑA: DE COLEGA A COLEGA (REFERIDOS) ---
   Widget _buildTabReferidos(bool isDark) {
-    const mensajeReferido =
-        '🤝 ¡Hola colega! Te recomiendo *CajaYa Cloud POS* para llevar las cuentas de tu bodega o minimarket.\n\n'
-        '• Te permite vender rápido, fiar con control, hacer arqueos sin descuadres y vender por WhatsApp a los vecinos.\n'
-        '• Pruébalo 30 días gratis en: https://cajaya-pos.onrender.com\n\n'
-        '¡Es ideal para bodegas de barrio del Perú!';
+    final String mensajeReferido = _esGastronomico
+        ? '🤝 ¡Hola colega! Te recomiendo *CajaYa Cloud POS* para llevar las cuentas y comandas de tu pollería, chifa o restaurante.\n\n'
+              '• Te permite vender rápido, controlar caja sin descuadres y compartir tu carta digital por WhatsApp.\n'
+              '• Pruébalo 30 días gratis en: https://cajaya-pos.onrender.com\n\n'
+              '¡Es ideal para locales gastronómicos y comercios del Perú!'
+        : '🤝 ¡Hola colega! Te recomiendo *CajaYa Cloud POS* para llevar las cuentas de tu bodega o minimarket.\n\n'
+              '• Te permite vender rápido, fiar con control, hacer arqueos sin descuadres y vender por WhatsApp a los vecinos.\n'
+              '• Pruébalo 30 días gratis en: https://cajaya-pos.onrender.com\n\n'
+              '¡Es ideal para bodegas de barrio del Perú!';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -939,7 +1028,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
                       ),
                     ),
                     Text(
-                      'Comparte la solución con amigos que tengan tienda, market o bazar.',
+                      _esGastronomico
+                          ? 'Comparte la solución con amigos que tengan restaurante, pollería, chifa o local de comida.'
+                          : 'Comparte la solución con amigos que tengan tienda, market o bazar.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: AppTheme.getAdaptiveMutedText(isDark),

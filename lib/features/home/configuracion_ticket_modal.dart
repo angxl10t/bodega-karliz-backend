@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../../core/thermal_ticket_service.dart';
+import 'bodega_service.dart';
 
 class ConfiguracionTicketModal extends StatefulWidget {
   final VoidCallback? onSaved;
@@ -39,8 +40,15 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
 
   bool _mostrarQr = true;
   String _tipoQr = 'YAPE';
+  String _giroNegocio = 'BODEGA';
   late TextEditingController _numeroQrCtrl;
   late TextEditingController _titularQrCtrl;
+
+  bool get _esGastronomico =>
+      _giroNegocio == 'POLLERIA' ||
+      _giroNegocio == 'CHIFA' ||
+      _giroNegocio == 'FASTFOOD' ||
+      _giroNegocio == 'RESTAURANTE';
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -74,6 +82,14 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
   Future<void> _cargarConfiguracion() async {
     setState(() => _isLoading = true);
     final cfg = await ConfiguracionTicketService.cargar();
+    try {
+      final info = await BodegaService().obtenerMiBodega();
+      if (info != null &&
+          info.giroNegocio != null &&
+          info.giroNegocio!.isNotEmpty) {
+        _giroNegocio = info.giroNegocio!.toUpperCase();
+      }
+    } catch (_) {}
     if (mounted) {
       setState(() {
         _anchoPapel = cfg.anchoPapel;
@@ -646,7 +662,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                                         ),
                                                   ),
                                                 ),
-                                                items: const [
+                                                items: [
                                                   DropdownMenuItem(
                                                     value: 'YAPE',
                                                     child: Text(
@@ -662,7 +678,9 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                                   DropdownMenuItem(
                                                     value: 'CATALOGO',
                                                     child: Text(
-                                                      'Catálogo Digital de la Bodega (PRO)',
+                                                      _esGastronomico
+                                                          ? 'Carta Digital del Local (PRO)'
+                                                          : 'Catálogo Digital de la Bodega (PRO)',
                                                     ),
                                                   ),
                                                   DropdownMenuItem(
@@ -696,13 +714,18 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
                                                 _tipoQr == 'PLIN')
                                             ? 'Número de Celular para Cobro'
                                             : (_tipoQr == 'CATALOGO'
-                                                  ? 'Enlace del Catálogo Online'
+                                                  ? (_esGastronomico
+                                                        ? 'Enlace de la Carta Online'
+                                                        : 'Enlace del Catálogo Online')
                                                   : 'Enlace o Contenido del QR'),
                                         hintText:
                                             (_tipoQr == 'YAPE' ||
                                                 _tipoQr == 'PLIN')
                                             ? '987 654 321'
-                                            : 'https://cajaya-pos.onrender.com/#/catalogo?tienda=mi-bodega',
+                                            : (_tipoQr == 'CATALOGO' &&
+                                                      _esGastronomico
+                                                  ? 'https://cajaya-pos.onrender.com/#/catalogo?tienda=mi-local'
+                                                  : 'https://cajaya-pos.onrender.com/#/catalogo?tienda=mi-bodega'),
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(
                                             12,

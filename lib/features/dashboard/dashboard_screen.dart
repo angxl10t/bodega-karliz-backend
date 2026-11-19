@@ -115,8 +115,15 @@ class _DashboardScreenState extends State<DashboardScreen>
   String _userRol = 'ADMIN';
   String _plan = 'BASICO';
   String _telefono = '';
+  String _giroNegocio = 'BODEGA';
   bool _isLoading = true;
   double _metaDiaria = 1000.0;
+
+  bool get _esGastronomico =>
+      _giroNegocio == 'POLLERIA' ||
+      _giroNegocio == 'CHIFA' ||
+      _giroNegocio == 'FASTFOOD' ||
+      _giroNegocio == 'RESTAURANTE';
 
   // Buscador global de productos y módulos
   String _searchQuery = '';
@@ -456,6 +463,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               setState(() {
                 if (info.plan.toUpperCase() != _plan.toUpperCase()) {
                   _plan = info.plan;
+                }
+                if (info.giroNegocio != null && info.giroNegocio!.isNotEmpty) {
+                  _giroNegocio = info.giroNegocio!.toUpperCase();
                 }
                 if (info.telefono != null && info.telefono!.isNotEmpty) {
                   _telefono = info.telefono!;
@@ -841,8 +851,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       _OperacionItem(
         id: 'marketing',
         categoria: 'ventas',
-        title: 'Marketing de Barrio',
-        subtitle: 'Afiche vitrina y volante QR',
+        title: _esGastronomico ? 'Marketing & Carta QR' : 'Marketing de Barrio',
+        subtitle: _esGastronomico
+            ? 'Afiche salón y volante QR'
+            : 'Afiche vitrina y volante QR',
         icon: LucideIcons.megaphone,
         color: const Color(0xFFD97706),
         requiresAdmin: true,
@@ -852,6 +864,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             nombreBodega: _nombreBodega,
             telefono: _telefono.isNotEmpty ? _telefono : null,
             slugOrId: KitMarketingBarrioModal.normalizarSlug(_nombreBodega),
+            giroNegocio: _giroNegocio,
           );
         },
       ),
