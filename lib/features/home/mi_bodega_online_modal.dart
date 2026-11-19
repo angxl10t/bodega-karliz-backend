@@ -86,6 +86,38 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
     return 'Mi Bodega';
   }
 
+  bool get _esGastronomico {
+    final giro = _bodegaInfo?.giroNegocio?.toUpperCase();
+    return giro == 'POLLERIA' ||
+        giro == 'CHIFA' ||
+        giro == 'FASTFOOD' ||
+        giro == 'RESTAURANTE';
+  }
+
+  String get _tituloModal {
+    final giro = _bodegaInfo?.giroNegocio?.toUpperCase();
+    switch (giro) {
+      case 'POLLERIA':
+        return 'Mi Pollería Online';
+      case 'CHIFA':
+        return 'Mi Chifa Online';
+      case 'FASTFOOD':
+        return 'Mi Fast Food Online';
+      case 'RESTAURANTE':
+        return 'Mi Restaurante Online';
+      case 'BODEGA':
+      default:
+        return 'Mi Bodega Online';
+    }
+  }
+
+  String get _subtituloModal {
+    if (_esGastronomico) {
+      return 'Tu carta digital para pedidos de clientes por WhatsApp';
+    }
+    return 'Tu vitrina digital para pedidos de vecinos por WhatsApp';
+  }
+
   String _formatearErrorRed(Object error, String defaultMsg) {
     final str = error.toString();
     if (str.contains('Failed to fetch') ||
@@ -331,11 +363,15 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
     final catalogoUrl =
         'https://cajaya-pos.onrender.com/#/catalogo?tienda=$slug';
 
-    final mensajeWhatsApp =
-        '¡Hola vecino! 👋\n\n'
-        'Ya puedes revisar todos los productos, ofertas y precios actualizados de *${widget.nombreBodega}* en nuestro catálogo digital:\n'
-        '$catalogoUrl\n\n'
-        'Elige tus productos y mándanos tu pedido por aquí para tenerlo listo al instante. ¡Gracias por tu preferencia!';
+    final mensajeWhatsApp = _esGastronomico
+        ? '¡Hola! 👋\n\n'
+              'Ya puedes revisar toda la carta, combos, promociones y platos de *${widget.nombreBodega}* en nuestro menú digital:\n'
+              '$catalogoUrl\n\n'
+              'Haz tu orden y mándanos tu pedido por aquí para prepararlo de inmediato. ¡Gracias por tu preferencia!'
+        : '¡Hola vecino! 👋\n\n'
+              'Ya puedes revisar todos los productos, ofertas y precios actualizados de *${widget.nombreBodega}* en nuestro catálogo digital:\n'
+              '$catalogoUrl\n\n'
+              'Elige tus productos y mándanos tu pedido por aquí para tenerlo listo al instante. ¡Gracias por tu preferencia!';
 
     final isWide = ResponsiveLayout.isTabletOrLarger(context);
     final cardBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
@@ -419,7 +455,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                             Row(
                               children: [
                                 Text(
-                                  'Mi Bodega Online',
+                                  _tituloModal,
                                   style: GoogleFonts.outfit(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w800,
@@ -469,7 +505,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                               ],
                             ),
                             Text(
-                              'Tu vitrina digital para pedidos de vecinos por WhatsApp',
+                              _subtituloModal,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11.5,
                                 color: isDark

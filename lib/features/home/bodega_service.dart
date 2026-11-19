@@ -16,6 +16,7 @@ class BodegaInfo {
   final String? logoUrl;
   final String colorPrimario;
   final String? lemaComercial;
+  final String? giroNegocio;
   final String plan;
   final bool estado;
   final String? fechaVencimientoPlan;
@@ -42,6 +43,7 @@ class BodegaInfo {
     this.logoUrl,
     required this.colorPrimario,
     this.lemaComercial,
+    this.giroNegocio,
     required this.plan,
     required this.estado,
     this.fechaVencimientoPlan,
@@ -69,6 +71,7 @@ class BodegaInfo {
     String? logoUrl,
     String? colorPrimario,
     String? lemaComercial,
+    String? giroNegocio,
     String? plan,
     bool? estado,
     String? fechaVencimientoPlan,
@@ -95,6 +98,7 @@ class BodegaInfo {
       logoUrl: logoUrl ?? this.logoUrl,
       colorPrimario: colorPrimario ?? this.colorPrimario,
       lemaComercial: lemaComercial ?? this.lemaComercial,
+      giroNegocio: giroNegocio ?? this.giroNegocio,
       plan: plan ?? this.plan,
       estado: estado ?? this.estado,
       fechaVencimientoPlan: fechaVencimientoPlan ?? this.fechaVencimientoPlan,
@@ -130,6 +134,7 @@ class BodegaInfo {
       logoUrl: json['logoUrl'],
       colorPrimario: json['colorPrimario'] ?? '#2563EB',
       lemaComercial: json['lemaComercial'],
+      giroNegocio: json['giroNegocio'],
       plan: json['plan'] ?? 'BASICO',
       estado: json['estado'] == true,
       fechaVencimientoPlan: json['fechaVencimientoPlan'],

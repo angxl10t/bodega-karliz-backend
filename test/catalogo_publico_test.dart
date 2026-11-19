@@ -421,5 +421,85 @@ void main() {
         expect(find.text('-20%'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'CatalogoPublicoScreen adapts UI for POLLERIA (Carta Digital, Platos, Ítems)',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        final mockClient = MockClient((request) async {
+          final data = {
+            'esPro': true,
+            'mensaje': null,
+            'giroNegocio': 'POLLERIA',
+            'bodega': {
+              'idBodega': 5,
+              'nombreComercial': 'Pollería El Rey Brasa',
+              'telefono': '987111222',
+              'direccion': 'Av. Los Próceres 789',
+              'lemaComercial': 'El mejor pollo a la leña de Lima',
+              'plan': 'PRO',
+              'esPro': true,
+              'giroNegocio': 'POLLERIA',
+              'deliveryActivo': true,
+            },
+            'categorias': ['Brasas', 'Guarniciones', 'Bebidas'],
+            'productos': [
+              {
+                'idProducto': 501,
+                'codigo': 'POL-01',
+                'nombre': '1 Pollo a la Brasa + Papas + Ensalada',
+                'precioVenta': 65.00,
+                'stockActual': 50.0,
+                'categoria': 'Brasas',
+                'imagenUrl': '',
+                'disponible': true,
+              },
+            ],
+          };
+          return http.Response(
+            jsonEncode(data),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        });
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CatalogoPublicoScreen(
+              tiendaSlug: 'polleria-el-rey-brasa',
+              httpClient: mockClient,
+            ),
+          ),
+        );
+
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(find.text('Pollería El Rey Brasa'), findsWidgets);
+        expect(find.text('Carta Digital Pollería'), findsOneWidget);
+        expect(find.text('POLLERÍA PRO'), findsOneWidget);
+        expect(
+          find.text('1 Pollo a la Brasa + Papas + Ensalada'),
+          findsOneWidget,
+        );
+        expect(find.text('S/ 65.00'), findsOneWidget);
+        expect(find.text('Carta'), findsOneWidget);
+
+        // Tap "Agregar"
+        final agregarBtn = find.text('Agregar').first;
+        await tester.tap(agregarBtn);
+        await tester.pump();
+
+        // Floating bar shows item count adapted for gastronomy
+        expect(find.text('1 ítem'), findsOneWidget);
+        expect(find.text('Pedir por WhatsApp'), findsOneWidget);
+      },
+    );
   });
 }

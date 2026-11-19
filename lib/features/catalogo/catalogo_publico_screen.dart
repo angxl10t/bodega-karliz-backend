@@ -120,6 +120,136 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   final TextEditingController _notasPedidoCtrl = TextEditingController();
   final ScrollController _catScrollCtrl = ScrollController();
 
+  String get _giroNegocio =>
+      (_bodega['giroNegocio']?.toString() ?? 'BODEGA').toUpperCase();
+
+  bool get _esPolleria => _giroNegocio == 'POLLERIA';
+  bool get _esChifa => _giroNegocio == 'CHIFA';
+  bool get _esFastFood => _giroNegocio == 'FASTFOOD';
+  bool get _esRestaurante => _giroNegocio == 'RESTAURANTE';
+  bool get _esGastronomico =>
+      _esPolleria || _esChifa || _esFastFood || _esRestaurante;
+
+  String get _badgeTipoCatalogo {
+    switch (_giroNegocio) {
+      case 'POLLERIA':
+        return 'POLLERÍA PRO';
+      case 'CHIFA':
+        return 'CHIFA PRO';
+      case 'FASTFOOD':
+        return 'FAST FOOD PRO';
+      case 'RESTAURANTE':
+        return 'RESTAURANTE PRO';
+      case 'BODEGA':
+      default:
+        return 'PRO ONLINE';
+    }
+  }
+
+  String get _subtituloEncabezado {
+    switch (_giroNegocio) {
+      case 'POLLERIA':
+        return 'Carta Digital Pollería';
+      case 'CHIFA':
+        return 'Carta Digital Chifa';
+      case 'FASTFOOD':
+        return 'Menú Digital Fast Food';
+      case 'RESTAURANTE':
+        return 'Carta Digital Restaurante';
+      case 'BODEGA':
+      default:
+        return 'Catálogo Online de Productos';
+    }
+  }
+
+  String get _hintBuscador {
+    switch (_giroNegocio) {
+      case 'POLLERIA':
+        return 'Buscar platos, pollos a la brasa, combos, bebidas...';
+      case 'CHIFA':
+        return 'Buscar chaufas, wantanes, combinados, bebidas...';
+      case 'FASTFOOD':
+        return 'Buscar broaster, hamburguesas, salchipapas, bebidas...';
+      case 'RESTAURANTE':
+        return 'Buscar platos, menú ejecutivo, entradas, bebidas...';
+      case 'BODEGA':
+      default:
+        return 'Buscar productos, marcas, bebidas, abarrotes...';
+    }
+  }
+
+  String get _tituloCarrito {
+    if (_esGastronomico) {
+      return 'Mi Orden';
+    }
+    return 'Mi Pedido';
+  }
+
+  String get _tituloOrdenWhatsApp {
+    if (_esGastronomico) {
+      return 'Orden';
+    }
+    return 'Pedido';
+  }
+
+  String get _hintNotasPedido {
+    switch (_giroNegocio) {
+      case 'POLLERIA':
+        return 'Indicaciones (ej. ají y tártara extra, bien doradito, recogeré en 20 min...)';
+      case 'CHIFA':
+        return 'Indicaciones (ej. wantán extra crocante, sin cebollita china, con limón...)';
+      case 'FASTFOOD':
+        return 'Indicaciones (ej. todas las cremas excepto golf, papas crocantes...)';
+      case 'RESTAURANTE':
+        return 'Indicaciones (ej. término medio, sin sal añadida, recogeré a la 1:30pm...)';
+      case 'BODEGA':
+      default:
+        return 'Indicaciones (ej. mi hijo recogerá en 15 min, enviar cambio de S/ 50...)';
+    }
+  }
+
+  String get _textoRetiroLocal {
+    if (_esGastronomico) {
+      return 'Para llevar / Recojo en local';
+    }
+    return 'Retiro en tienda';
+  }
+
+  String get _textoSoloRetiroLocal {
+    if (_esGastronomico) {
+      return 'Solo para llevar / local';
+    }
+    return 'Solo retiro en tienda';
+  }
+
+  String get _textoSeguirExplorando {
+    if (_esGastronomico) {
+      return 'Seguir Viendo la Carta';
+    }
+    return 'Seguir Comprando en el Catálogo';
+  }
+
+  String get _textoVolverCatalogo {
+    if (_esGastronomico) {
+      return 'Volver a la Carta';
+    }
+    return 'Volver al Catálogo';
+  }
+
+  String get _textoCarritoVacio {
+    if (_esGastronomico) {
+      return 'Agrega platos y bebidas desde la carta para enviar tu orden por WhatsApp.';
+    }
+    return 'Agrega productos desde el catálogo para enviar tu pedido por WhatsApp.';
+  }
+
+  String get _textoFooterOficial {
+    if (_esGastronomico) {
+      return 'Carta Digital Oficial';
+    }
+    return 'Catálogo Digital Oficial';
+  }
+
   Color get _colorMarca {
     final hex = _bodega['colorPrimario']?.toString();
     if (hex != null && hex.isNotEmpty) {
@@ -478,7 +608,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           'WEB-${(DateTime.now().millisecondsSinceEpoch % 90000) + 10000}';
 
       final buffer = StringBuffer();
-      buffer.writeln('*Pedido $codigoShort - $nombreBodega*');
+      buffer.writeln('*$_tituloOrdenWhatsApp $codigoShort - $nombreBodega*');
       if (notas != null && notas.trim().isNotEmpty) {
         buffer.writeln('Cliente: ${notas.trim()}');
       }
@@ -546,14 +676,28 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       }
       buffer.writeln('');
       if (_bodega['deliveryActivo'] == false) {
-        buffer.writeln('Modalidad: Retiro en tienda');
-        buffer.writeln(
-          '¿Me confirman disponibilidad para recoger en su local?',
-        );
+        if (_esGastronomico) {
+          buffer.writeln('Modalidad: Para llevar / Recojo en local');
+          buffer.writeln(
+            '¿Me confirman tiempo estimado de preparación para pasar a recoger?',
+          );
+        } else {
+          buffer.writeln('Modalidad: Retiro en tienda');
+          buffer.writeln(
+            '¿Me confirman disponibilidad para recoger en su local?',
+          );
+        }
       } else {
-        buffer.writeln(
-          '¿Me confirman disponibilidad y si tienen delivery para mi zona?',
-        );
+        if (_esGastronomico) {
+          buffer.writeln('Modalidad: Delivery / Envío a domicilio');
+          buffer.writeln(
+            '¿Me confirman cobertura y tiempo estimado de entrega a mi dirección?',
+          );
+        } else {
+          buffer.writeln(
+            '¿Me confirman disponibilidad y si tienen delivery para mi zona?',
+          );
+        }
       }
 
       // Registrar en la bandeja de pedidos web de CajaYa y sincronizar en la nube
@@ -701,7 +845,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     ],
                   ),
                   Text(
-                    'Catálogo Online de Productos',
+                    _subtituloEncabezado,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -969,7 +1113,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                _mensajeNoPro ?? 'El catálogo online "Mi Bodega Online" para recepción de pedidos digitales por WhatsApp está disponible de forma exclusiva para tiendas con Suscripción PRO en CajaYa Cloud POS.',
+                _mensajeNoPro ??
+                    'La vitrina y ${_esGastronomico ? "carta digital" : "catálogo online"} para recepción de pedidos digitales por WhatsApp está disponible de forma exclusiva para negocios con Suscripción PRO en CajaYa Cloud POS.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13.5,
@@ -1674,7 +1819,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  'PRO ONLINE',
+                                                  _badgeTipoCatalogo,
                                                   style: GoogleFonts.outfit(
                                                     fontSize: isTablet
                                                         ? 10.5
@@ -1829,15 +1974,18 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
-                                                    const Icon(
-                                                      LucideIcons.shoppingBag,
+                                                    Icon(
+                                                      _esGastronomico
+                                                          ? LucideIcons.utensils
+                                                          : LucideIcons
+                                                                .shoppingBag,
                                                       size: 12,
                                                       color: Colors.white,
                                                     ),
                                                     const SizedBox(width: 5),
                                                     Flexible(
                                                       child: Text(
-                                                        'Retiro en tienda',
+                                                        _textoRetiroLocal,
                                                         style:
                                                             GoogleFonts.plusJakartaSans(
                                                               fontSize: 11,
@@ -1878,15 +2026,18 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                   mainAxisSize:
                                                       MainAxisSize.min,
                                                   children: [
-                                                    const Icon(
-                                                      LucideIcons.shoppingBag,
+                                                    Icon(
+                                                      _esGastronomico
+                                                          ? LucideIcons.utensils
+                                                          : LucideIcons
+                                                                .shoppingBag,
                                                       size: 12,
                                                       color: Color(0xFFFEF3C7),
                                                     ),
                                                     const SizedBox(width: 5),
                                                     Flexible(
                                                       child: Text(
-                                                        'Solo retiro en tienda',
+                                                        _textoSoloRetiroLocal,
                                                         style:
                                                             GoogleFonts.plusJakartaSans(
                                                               fontSize: 11,
@@ -1924,8 +2075,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  const Icon(
-                                                    LucideIcons.layoutGrid,
+                                                  Icon(
+                                                    _esGastronomico
+                                                        ? LucideIcons.utensils
+                                                        : LucideIcons
+                                                              .layoutGrid,
                                                     size: 11.5,
                                                     color: Colors.white,
                                                   ),
@@ -1933,8 +2087,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                   Flexible(
                                                     child: Text(
                                                       isTablet
-                                                          ? '${_productos.length} productos · ${_categorias.length} categorías'
-                                                          : '${_productos.length} prods · ${_categorias.length} cats',
+                                                          ? '${_productos.length} ${_esGastronomico ? "platos y bebidas" : "productos"} · ${_categorias.length} ${_esGastronomico ? "secciones" : "categorías"}'
+                                                          : '${_productos.length} ${_esGastronomico ? "ítems" : "prods"} · ${_categorias.length} ${_esGastronomico ? "secs" : "cats"}',
                                                       style:
                                                           GoogleFonts.plusJakartaSans(
                                                             fontSize: 11,
@@ -2258,7 +2412,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   : const Color(0xFF0F172A),
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Buscar productos, marcas, bebidas, mascotas...',
+                              hintText: _hintBuscador,
                               hintStyle: GoogleFonts.plusJakartaSans(
                                 fontSize: isTablet ? 14 : 13,
                                 fontWeight: FontWeight.w500,
@@ -2369,7 +2523,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           children: [
                             _buildCategoriaChip(
                               'TODAS',
-                              'Todos',
+                              _esGastronomico ? 'Carta' : 'Todos',
                               isDark,
                               isTablet,
                               count: _productos.length,
@@ -2424,13 +2578,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        LucideIcons.shoppingBag,
+                        _esGastronomico
+                            ? LucideIcons.utensils
+                            : LucideIcons.shoppingBag,
                         size: isTablet ? 48 : 40,
                         color: AppTheme.getAdaptiveMutedText(isDark),
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'No se encontraron productos',
+                        'No se encontraron ${_esGastronomico ? "platos ni bebidas" : "productos"}',
                         style: GoogleFonts.outfit(
                           fontSize: isTablet ? 18 : 16,
                           fontWeight: FontWeight.w800,
@@ -2441,7 +2597,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Prueba con otro término de búsqueda o categoría.',
+                        'Prueba con otro término de búsqueda o ${_esGastronomico ? "sección del menú." : "categoría."}',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: isTablet ? 13 : 12,
                           fontWeight: FontWeight.w600,
@@ -2527,7 +2683,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '$nombreBodega • Catálogo Digital Oficial',
+            '$nombreBodega • $_textoFooterOficial',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -2807,7 +2963,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final bool estaFiltrado =
         _categoriaSeleccionada != 'TODAS' || _filtroBusqueda.trim().isNotEmpty;
     final String tituloActual = _categoriaSeleccionada == 'TODAS'
-        ? 'Catálogo completo'
+        ? (_esGastronomico ? 'Carta completa' : 'Catálogo completo')
         : (_categoriaSeleccionada == 'OFERTAS'
               ? 'Ofertas activas'
               : _categoriaSeleccionada);
@@ -2819,7 +2975,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final IconData activeIcon = _categoriaSeleccionada == 'OFERTAS'
         ? LucideIcons.flame
         : (_categoriaSeleccionada == 'TODAS'
-              ? LucideIcons.layoutGrid
+              ? (_esGastronomico
+                    ? LucideIcons.utensils
+                    : LucideIcons.layoutGrid)
               : CategoryHelper.getIcon(_categoriaSeleccionada));
 
     return Padding(
@@ -3013,7 +3171,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final iconData = esOferta
         ? LucideIcons.flame
         : (key == 'TODAS'
-              ? LucideIcons.layoutGrid
+              ? (_esGastronomico
+                    ? LucideIcons.utensils
+                    : LucideIcons.layoutGrid)
               : CategoryHelper.getIcon(key));
 
     return Padding(
@@ -4456,7 +4616,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                               icon: const Icon(LucideIcons.arrowLeft, size: 16),
                               label: Text(
-                                'Seguir Comprando en el Catálogo',
+                                _textoSeguirExplorando,
                                 style: GoogleFonts.outfit(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
@@ -4522,13 +4682,17 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          LucideIcons.shoppingBag,
+                          _esGastronomico
+                              ? LucideIcons.utensils
+                              : LucideIcons.shoppingBag,
                           size: 48,
                           color: _colorMarca,
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          'Tu pedido está vacío',
+                          _esGastronomico
+                              ? 'Tu orden está vacía'
+                              : 'Tu pedido está vacío',
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
@@ -4536,7 +4700,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Agrega productos desde el catálogo para enviar tu pedido por WhatsApp.',
+                          _textoCarritoVacio,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
@@ -4558,7 +4722,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                             ),
                             onPressed: () => Navigator.pop(modalCtx),
-                            child: const Text('Volver al Catálogo'),
+                            child: Text(_textoVolverCatalogo),
                           ),
                         ),
                       ],
@@ -4651,7 +4815,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     children: [
                                       Flexible(
                                         child: Text(
-                                          'Mi Pedido',
+                                          _tituloCarrito,
                                           style: GoogleFonts.outfit(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w900,
@@ -4676,7 +4840,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           ),
                                         ),
                                         child: Text(
-                                          '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? "prod" : "prods"}',
+                                          '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? (_esGastronomico ? "ítem" : "prod") : (_esGastronomico ? "ítems" : "prods")}',
                                           style: GoogleFonts.outfit(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w800,
@@ -4963,7 +5127,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     size: 16,
                                     color: Color(0xFFEF4444),
                                   ),
-                                  tooltip: 'Quitar del pedido',
+                                  tooltip: _esGastronomico
+                                      ? 'Quitar de la orden'
+                                      : 'Quitar del pedido',
                                   onPressed: () {
                                     _modificarCantidad(id, -cant);
                                     setModalState(() {});
@@ -4988,7 +5154,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                           decoration: InputDecoration(
-                            hintText: 'Indicaciones (ej. mi hijo recogerá en 15 min, paso a las 6pm...)',
+                            hintText: _hintNotasPedido,
                             hintStyle: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               color: isDark
@@ -5296,7 +5462,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   children: [
                                     Flexible(
                                       child: Text(
-                                        '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? 'producto' : 'productos'}',
+                                        '$_totalUnidadesCarrito ${_totalUnidadesCarrito == 1 ? (_esGastronomico ? "ítem" : "producto") : (_esGastronomico ? "ítems" : "productos")}',
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 11.5,
                                           fontWeight: FontWeight.w700,

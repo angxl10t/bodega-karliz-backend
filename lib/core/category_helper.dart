@@ -79,10 +79,56 @@ class CategoryHelper {
         cat.contains('energiz')) {
       return LucideIcons.cupSoda;
     }
+    // Negocios Gastronómicos (Pollerías, Chifas, Fast Food, Restaurantes)
+    if (cat.contains('brasa') ||
+        cat.contains('pollo a la brasa') ||
+        cat.contains('parrill') ||
+        cat.contains('asado') ||
+        cat.contains('anticuch')) {
+      return LucideIcons.flame;
+    }
+    if (cat.contains('chaufa') ||
+        cat.contains('chifa') ||
+        cat.contains('aeropuert') ||
+        cat.contains('tallarin') ||
+        cat.contains('saltead') ||
+        cat.contains('oriental')) {
+      return LucideIcons.utensils;
+    }
+    if (cat.contains('wantan') ||
+        cat.contains('sopa') ||
+        cat.contains('caldo') ||
+        cat.contains('crema')) {
+      return LucideIcons.soup;
+    }
+    if (cat.contains('broaster') ||
+        cat.contains('alita') ||
+        cat.contains('tender') ||
+        cat.contains('crunch')) {
+      return LucideIcons.drumstick;
+    }
+    if (cat.contains('salchipapa') ||
+        cat.contains('guarnicion') ||
+        cat.contains('papas fritas')) {
+      return LucideIcons.popcorn;
+    }
+    if (cat.contains('sandwich') ||
+        cat.contains('sanguch') ||
+        cat.contains('burger') ||
+        (cat.contains('hamburgues') && !cat.contains('congelad'))) {
+      return LucideIcons.sandwich;
+    }
+    if (cat.contains('plato') ||
+        cat.contains('carta') ||
+        cat.contains('menu') ||
+        cat.contains('combo') ||
+        cat.contains('especialid') ||
+        cat.contains('entrada')) {
+      return LucideIcons.utensilsCrossed;
+    }
     if (cat.contains('helad') ||
         cat.contains('congelad') ||
-        cat.contains('nugget') ||
-        cat.contains('hamburgues')) {
+        cat.contains('nugget')) {
       return LucideIcons.snowflake;
     }
     if (cat.contains('mascot') ||
@@ -205,6 +251,34 @@ class CategoryHelper {
         cat.contains('agua') ||
         cat.contains('jugo')) {
       return isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7);
+    }
+    // Negocios Gastronómicos: Brasas, Chifas, Fast Food, Restaurantes
+    if (cat.contains('brasa') ||
+        cat.contains('pollo a la brasa') ||
+        cat.contains('parrill') ||
+        cat.contains('anticuch')) {
+      return isDark ? const Color(0xFFFB923C) : const Color(0xFFEA580C);
+    }
+    if (cat.contains('chaufa') ||
+        cat.contains('chifa') ||
+        cat.contains('aeropuert') ||
+        cat.contains('wantan') ||
+        cat.contains('oriental')) {
+      return isDark ? const Color(0xFFF87171) : const Color(0xFFDC2626);
+    }
+    if (cat.contains('broaster') ||
+        cat.contains('salchipapa') ||
+        cat.contains('burger') ||
+        cat.contains('sandwich') ||
+        cat.contains('sanguch')) {
+      return isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706);
+    }
+    if (cat.contains('plato') ||
+        cat.contains('carta') ||
+        cat.contains('menu') ||
+        cat.contains('combo') ||
+        cat.contains('especialid')) {
+      return isDark ? const Color(0xFFFB7185) : const Color(0xFFE11D48);
     }
     // Helados y Congelados -> Azul Glaciar frío
     if (cat.contains('helad') || cat.contains('congelad')) {
