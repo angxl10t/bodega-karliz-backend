@@ -113,6 +113,7 @@ public class CatalogoPublicoController {
         bodegaData.put("logoUrl", bodega.getLogoUrl() != null ? bodega.getLogoUrl() : "");
         bodegaData.put("colorPrimario", bodega.getColorPrimario() != null ? bodega.getColorPrimario() : "#2563EB");
         bodegaData.put("lemaComercial", bodega.getLemaComercial() != null ? bodega.getLemaComercial() : "");
+        bodegaData.put("giroNegocio", bodega.getGiroNegocio() != null ? bodega.getGiroNegocio() : "BODEGA");
         boolean catalogoAbierto = bodega.getCatalogoAbierto() == null || bodega.getCatalogoAbierto();
         boolean deliveryActivo = bodega.getDeliveryActivo() == null || bodega.getDeliveryActivo();
 
@@ -124,13 +125,14 @@ public class CatalogoPublicoController {
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("bodega", bodegaData);
+        response.put("giroNegocio", bodega.getGiroNegocio() != null ? bodega.getGiroNegocio() : "BODEGA");
         response.put("esPro", esPro);
         response.put("abierto", catalogoAbierto);
         response.put("catalogoAbierto", catalogoAbierto);
         response.put("deliveryActivo", deliveryActivo);
 
         if (!esPro) {
-            response.put("mensaje", "El catálogo digital 'Mi Bodega Online' está disponible exclusivamente para tiendas con Suscripción PRO en CajaYa Cloud POS.");
+            response.put("mensaje", "La vitrina y carta digital online está disponible exclusivamente para negocios con Suscripción PRO en CajaYa Cloud POS.");
             response.put("totalProductos", 0);
             response.put("categorias", List.of());
             response.put("productos", List.of());

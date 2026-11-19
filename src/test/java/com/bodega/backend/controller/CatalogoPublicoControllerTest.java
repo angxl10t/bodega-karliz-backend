@@ -89,9 +89,35 @@ class CatalogoPublicoControllerTest {
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
         assertTrue((Boolean) body.get("esPro"));
+        assertEquals("BODEGA", body.get("giroNegocio"));
+        Map<?, ?> bData = (Map<?, ?>) body.get("bodega");
+        assertNotNull(bData);
+        assertEquals("BODEGA", bData.get("giroNegocio"));
         assertEquals(1, body.get("totalProductos"));
         List<?> prods = (List<?>) body.get("productos");
         assertEquals(1, prods.size());
+    }
+
+    @Test
+    void testCatalogoPolleriaProRetornaGiroNegocioPolleria() {
+        Bodega polleria = new Bodega();
+        polleria.setIdBodega(3L);
+        polleria.setNombreComercial("Pollería Las Brasas");
+        polleria.setPlan("PRO");
+        polleria.setGiroNegocio("POLLERIA");
+        polleria.setEstado(true);
+
+        when(bodegaRepository.findByEstadoTrueOrderByNombreComercialAsc()).thenReturn(List.of(polleria));
+        when(productoRepository.findByBodega_IdBodegaAndEstadoTrue(3L)).thenReturn(List.of(prod1));
+
+        ResponseEntity<Map<String, Object>> response = controller.obtenerCatalogoPorParam("polleria-las-brasas");
+
+        assertEquals(200, response.getStatusCode().value());
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("POLLERIA", body.get("giroNegocio"));
+        Map<?, ?> bData = (Map<?, ?>) body.get("bodega");
+        assertEquals("POLLERIA", bData.get("giroNegocio"));
     }
 
     @Test
