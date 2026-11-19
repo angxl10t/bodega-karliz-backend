@@ -103,6 +103,46 @@ class AppTheme {
       isDark ? textDarkPrimary : textDark;
 
   // ============================================
+  // IDENTIDAD DE MARCA DINÁMICA POR TIENDA (CALMA VISUAL)
+  // Permite que la paleta elegida por el bodeguero personalice
+  // las superficies y controles del sistema de administración sin saturar.
+  // ============================================
+
+  /// Color primario activo configurado para la tienda (o Cobalto por defecto)
+  static Color primaryColorOf(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
+
+  /// Tono oscuro calibrado para degradados y sombras de la marca activa
+  static Color brandDarkOf(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final hsl = HSLColor.fromColor(primary);
+    return hsl
+        .withLightness((hsl.lightness - 0.12).clamp(0.12, 0.65))
+        .withSaturation((hsl.saturation + 0.06).clamp(0.40, 1.0))
+        .toColor();
+  }
+
+  /// Tono luminoso legible para Modo Oscuro de la marca activa (WCAG AAA)
+  static Color brandLightOf(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final hsl = HSLColor.fromColor(primary);
+    return hsl
+        .withLightness((hsl.lightness + 0.22).clamp(0.55, 0.88))
+        .withSaturation((hsl.saturation + 0.05).clamp(0.45, 1.0))
+        .toColor();
+  }
+
+  /// Superficie porcelana suave tintada con la marca activa (fondo de chips y tarjetas activas)
+  static Color surfaceTintOf(BuildContext context) {
+    return Theme.of(context).colorScheme.primary.withValues(alpha: 0.08);
+  }
+
+  /// Micro-borde sutil tintado con la marca activa
+  static Color borderTintOf(BuildContext context) {
+    return Theme.of(context).colorScheme.primary.withValues(alpha: 0.24);
+  }
+
+  // ============================================
   // TIPOGRAFÍA DE MARCA UNIFICADA
   // ============================================
   static TextStyle headingStyle({
@@ -134,21 +174,29 @@ class AppTheme {
   // ============================================
   // TEMA CLARO (LIGHT THEME)
   // ============================================
-  static ThemeData buildLightTheme({Color? primaryColor}) {
+  static ThemeData buildLightTheme({
+    Color? primaryColor,
+    bool highContrast = false,
+  }) {
     final primary = primaryColor ?? brandPrimary;
     final baseFont = GoogleFonts.plusJakartaSans();
+    final effectiveBorder = highContrast
+        ? const Color(0xFF0F172A)
+        : borderLight;
+    final borderWidth = highContrast ? 1.6 : 1.0;
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       fontFamily: baseFont.fontFamily,
-      scaffoldBackgroundColor: bgLight,
+      scaffoldBackgroundColor: highContrast ? Colors.white : bgLight,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         brightness: Brightness.light,
         primary: primary,
         secondary: brandInk,
         surface: cardLight,
+        outline: effectiveBorder,
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: cardLight,
@@ -163,13 +211,16 @@ class AppTheme {
           letterSpacing: -0.4,
         ),
         iconTheme: const IconThemeData(color: Color(0xFF334155)),
+        shape: Border(
+          bottom: BorderSide(color: effectiveBorder, width: borderWidth),
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         color: cardLight,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: borderLight, width: 1),
+          side: BorderSide(color: effectiveBorder, width: borderWidth),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
@@ -285,30 +336,41 @@ class AppTheme {
   // ============================================
   // TEMA OSCURO (DARK THEME - Executive Obsidian & Deep Slate)
   // ============================================
-  static ThemeData buildDarkTheme({Color? primaryColor}) {
+  static ThemeData buildDarkTheme({
+    Color? primaryColor,
+    bool highContrast = false,
+  }) {
     final primary = primaryColor ?? brandPrimary;
     final baseFont = GoogleFonts.plusJakartaSans();
+    final effectiveBg = highContrast ? const Color(0xFF000000) : bgDark;
+    final effectiveCard = highContrast ? const Color(0xFF0D0E15) : cardDark;
+    final effectiveBorder = highContrast ? const Color(0xFFFFFFFF) : borderDark;
+    final borderWidth = highContrast ? 1.6 : 1.0;
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       fontFamily: baseFont.fontFamily,
-      scaffoldBackgroundColor: bgDark,
+      scaffoldBackgroundColor: effectiveBg,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primary,
         brightness: Brightness.dark,
         primary: primary,
         secondary: brandLight,
-        surface: cardDark,
-        surfaceContainer: cardDarkElevated,
-        surfaceContainerHighest: cardDarkHighlight,
+        surface: effectiveCard,
+        surfaceContainer: highContrast
+            ? const Color(0xFF161922)
+            : cardDarkElevated,
+        surfaceContainerHighest: highContrast
+            ? const Color(0xFF222634)
+            : cardDarkHighlight,
         onSurface: textDarkPrimary,
         onSurfaceVariant: textDarkSecondary,
-        outline: borderDark,
-        outlineVariant: borderDarkElevated,
+        outline: effectiveBorder,
+        outlineVariant: highContrast ? Colors.white : borderDarkElevated,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: cardDark,
+        backgroundColor: effectiveCard,
         foregroundColor: textDarkPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -320,14 +382,16 @@ class AppTheme {
           letterSpacing: -0.4,
         ),
         iconTheme: const IconThemeData(color: Colors.white),
-        shape: const Border(bottom: BorderSide(color: borderDark, width: 1)),
+        shape: Border(
+          bottom: BorderSide(color: effectiveBorder, width: borderWidth),
+        ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: cardDark,
+        color: effectiveCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: borderDark, width: 1),
+          side: BorderSide(color: effectiveBorder, width: borderWidth),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),

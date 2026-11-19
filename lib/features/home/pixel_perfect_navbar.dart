@@ -112,12 +112,15 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
     final isDark = widget.isDark;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    // Paleta ejecutiva adaptada al modo claro y oscuro
+    // Paleta ejecutiva adaptada al modo claro y oscuro y a la marca activa de la tienda
     final barBg = isDark ? AppTheme.cardDarkElevated : Colors.white;
     final barBorder = isDark
         ? AppTheme.borderDarkElevated
         : const Color(0xFFE4E4E7);
-    final activeColor = isDark ? AppTheme.brandLight : AppTheme.brandPrimary;
+    final themePrimary = Theme.of(context).colorScheme.primary;
+    final brandLight = AppTheme.brandLightOf(context);
+    final brandDark = AppTheme.brandDarkOf(context);
+    final activeColor = isDark ? brandLight : themePrimary;
     final inactiveColor = isDark
         ? AppTheme.textDarkSecondary
         : const Color(0xFFA1A1AA);
@@ -248,11 +251,8 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: isDark
-                                ? const LinearGradient(
-                                    colors: [
-                                      AppTheme.brandPrimary,
-                                      AppTheme.brandDark,
-                                    ],
+                                ? LinearGradient(
+                                    colors: [themePrimary, brandDark],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
                                   )
@@ -260,17 +260,15 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                             color: isDark ? null : Colors.white,
                             border: Border.all(
                               color: isDark
-                                  ? AppTheme.brandLight
-                                  : const Color(0xFFE4E4E7),
+                                  ? brandLight
+                                  : themePrimary.withValues(alpha: 0.35),
                               width: isDark ? 1.8 : 1.6,
                             ),
                             boxShadow: [
                               BoxShadow(
                                 color: isDark
-                                    ? AppTheme.brandPrimary.withValues(
-                                        alpha: 0.45,
-                                      )
-                                    : Colors.black.withValues(alpha: 0.08),
+                                    ? themePrimary.withValues(alpha: 0.45)
+                                    : themePrimary.withValues(alpha: 0.18),
                                 blurRadius: isDark ? 14 : 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -295,7 +293,7 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
                                       size: 21,
                                       color: isDark
                                           ? Colors.white
-                                          : AppTheme.brandPrimary,
+                                          : themePrimary,
                                     ),
                               ),
                             ),

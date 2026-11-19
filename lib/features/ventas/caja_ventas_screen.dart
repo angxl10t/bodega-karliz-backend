@@ -2855,11 +2855,11 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
 
     final tabBar = TabBar(
       controller: _tabController,
-      labelColor: AppTheme.brandPrimary,
+      labelColor: Theme.of(context).colorScheme.primary,
       unselectedLabelColor: isDark
           ? AppTheme.textDarkSecondary
           : const Color(0xFF64748B),
-      indicatorColor: AppTheme.brandPrimary,
+      indicatorColor: Theme.of(context).colorScheme.primary,
       indicatorWeight: 2.5,
       labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 13),
       unselectedLabelStyle: GoogleFonts.outfit(

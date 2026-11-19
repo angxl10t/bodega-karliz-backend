@@ -22,6 +22,7 @@ import '../../core/widgets/karliz_lock_screen.dart';
 import '../../core/widgets/briefing_turno_modal.dart';
 import '../../core/responsive_layout.dart';
 import '../../core/widgets/adaptive_modal.dart';
+import '../../core/widgets/accessibility_panel_modal.dart';
 import 'bodega_service.dart';
 import 'mi_suscripcion_modal.dart';
 import '../productos/sugerencias_precio_modal.dart';
@@ -268,16 +269,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   _plan = info.plan;
                 }
                 _diasRestantesPlan = dias;
-                final esPlanPro =
-                    info.plan.toUpperCase() == 'PRO' ||
-                    info.plan.toUpperCase() == 'CORPORATIVO';
-                if (esPlanPro && info.colorPrimario.isNotEmpty) {
+                if (info.colorPrimario.isNotEmpty) {
                   context.read<ThemeProvider>().setAccentColorFromHex(
                     info.colorPrimario,
-                  );
-                } else if (!esPlanPro) {
-                  context.read<ThemeProvider>().setAccentColorFromHex(
-                    '#2563EB',
                   );
                 }
               });
@@ -962,6 +956,87 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ],
+
+                        // Acceso a Panel de Accesibilidad y Ergonomía Visual (Disponible para todos los roles)
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(bottomSheetContext);
+                            AccessibilityPanelModal.show(context);
+                          },
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.cardDarkHighlight
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isDark
+                                    ? AppTheme.borderDark
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    LucideIcons.slidersHorizontal,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Accesibilidad & Confort Visual',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Letra grande, alto contraste, colores y beeps',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          color: isDark
+                                              ? AppTheme.textDarkSecondary
+                                              : const Color(0xFF64748B),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 18,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : const Color(0xFF94A3B8),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
 
                         // Acciones de Turno y Seguridad de Mostrador (Fila ergonómica de 2 tarjetas)
                         Row(
@@ -2543,6 +2618,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        IconButton.filledTonal(
+          style: IconButton.styleFrom(
+            backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
+            foregroundColor: isDark ? Colors.white70 : const Color(0xFF475569),
+            padding: const EdgeInsets.all(8),
+            minimumSize: const Size(36, 36),
+            side: BorderSide(
+              color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(11),
+            ),
+          ),
+          tooltip: 'Accesibilidad & Confort Visual',
+          icon: const Icon(LucideIcons.slidersHorizontal, size: 16),
+          onPressed: () => AccessibilityPanelModal.show(context),
+        ),
+        const SizedBox(width: 6),
         WaterDropThemeButton(
           isDark: isDark,
           onToggle: () => context.read<ThemeProvider>().toggleTheme(),
@@ -3382,6 +3475,10 @@ class _HomeScreenState extends State<HomeScreen> {
     String? shortcut,
   }) {
     final bool isSelected = _selectedIndex == index;
+    final brandPrimary = Theme.of(context).colorScheme.primary;
+    final surfaceTint = AppTheme.surfaceTintOf(context);
+    final borderTint = AppTheme.borderTintOf(context);
+    final brandLight = AppTheme.brandLightOf(context);
 
     if (_railCollapsed) {
       return Padding(
@@ -3403,15 +3500,15 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? (isDark
-                          ? AppTheme.brandPrimary.withValues(alpha: 0.16)
-                          : const Color(0xFFEFF6FF))
+                          ? brandPrimary.withValues(alpha: 0.16)
+                          : surfaceTint)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(10),
                 border: isSelected
                     ? Border.all(
                         color: isDark
-                            ? AppTheme.brandPrimary.withValues(alpha: 0.45)
-                            : const Color(0xFFBFDBFE),
+                            ? brandPrimary.withValues(alpha: 0.45)
+                            : borderTint,
                         width: 1,
                       )
                     : null,
@@ -3421,7 +3518,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon,
                   size: 20,
                   color: isSelected
-                      ? AppTheme.brandPrimary
+                      ? (isDark ? brandLight : brandPrimary)
                       : (isDark
                             ? AppTheme.textDarkSecondary
                             : const Color(0xFF475569)),
@@ -3448,16 +3545,14 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8.5),
           decoration: BoxDecoration(
             color: isSelected
-                ? (isDark
-                      ? AppTheme.brandPrimary.withValues(alpha: 0.16)
-                      : const Color(0xFFEFF6FF))
+                ? (isDark ? brandPrimary.withValues(alpha: 0.16) : surfaceTint)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             border: isSelected
                 ? Border.all(
                     color: isDark
-                        ? AppTheme.brandPrimary.withValues(alpha: 0.45)
-                        : const Color(0xFFBFDBFE),
+                        ? brandPrimary.withValues(alpha: 0.45)
+                        : borderTint,
                     width: 1,
                   )
                 : null,
@@ -3468,7 +3563,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon,
                 size: 18,
                 color: isSelected
-                    ? AppTheme.brandPrimary
+                    ? (isDark ? brandLight : brandPrimary)
                     : (isDark
                           ? AppTheme.textDarkSecondary
                           : const Color(0xFF475569)),
@@ -3483,7 +3578,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 13,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
-                        ? (isDark ? Colors.white : AppTheme.brandPrimary)
+                        ? (isDark ? Colors.white : brandPrimary)
                         : (isDark
                               ? AppTheme.textDarkSecondary
                               : const Color(0xFF334155)),
@@ -3773,6 +3868,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       : const Color(0xFF64748B),
                 ),
                 onPressed: () => context.read<ThemeProvider>().toggleTheme(),
+              ),
+              IconButton(
+                tooltip: 'Accesibilidad & Confort Visual',
+                icon: Icon(
+                  LucideIcons.slidersHorizontal,
+                  size: 16,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: () => AccessibilityPanelModal.show(context),
               ),
               if (WindowService.instance.isSupported)
                 ValueListenableBuilder<bool>(

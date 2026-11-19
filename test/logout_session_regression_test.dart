@@ -107,6 +107,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Cerrar Sesión del Terminal'), findsOneWidget);
+        await tester.ensureVisible(find.text('Cerrar Sesión del Terminal'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Cerrar Sesión del Terminal'));
         await tester.pumpAndSettle();
 

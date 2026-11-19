@@ -1436,7 +1436,7 @@ class _ProductosScreenState extends State<ProductosScreen>
       floatingActionButton:
           (_esAdmin || PermisosCajeroService.puedeModificarPrecios)
           ? FloatingActionButton.extended(
-              backgroundColor: AppTheme.brandPrimary,
+              backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Colors.white,
               elevation: 4,
               icon: const Icon(LucideIcons.plus, size: 20),
@@ -1520,12 +1520,15 @@ class _ProductosScreenState extends State<ProductosScreen>
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.brandPrimary : Colors.transparent,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.primary
+                        .withValues(alpha: 0.3),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),

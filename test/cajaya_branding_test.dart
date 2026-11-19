@@ -210,6 +210,36 @@ void main() {
       expect(find.text('Venta Rápida'), findsOneWidget);
     });
 
+    testWidgets('CajaYaLogoMark responds to Theme primary color', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.buildLightTheme(
+            primaryColor: const Color(0xFF0D9488),
+          ),
+          home: Scaffold(
+            body: Builder(
+              builder: (ctx) {
+                expect(AppTheme.primaryColorOf(ctx), const Color(0xFF0D9488));
+                expect(
+                  AppTheme.surfaceTintOf(ctx),
+                  const Color(0xFF0D9488).withValues(alpha: 0.08),
+                );
+                expect(
+                  AppTheme.borderTintOf(ctx),
+                  const Color(0xFF0D9488).withValues(alpha: 0.24),
+                );
+                return const Center(child: CajaYaLogoMark(size: 40));
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(CajaYaLogoMark), findsOneWidget);
+    });
+
     testWidgets('LoginScreen renders compact mobile view on small screens', (
       tester,
     ) async {

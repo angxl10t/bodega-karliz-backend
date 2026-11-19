@@ -567,34 +567,16 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                               final isSelected =
                                   _selectedHex.toUpperCase() ==
                                   preset.hex.toUpperCase();
-                              final isDefault =
-                                  preset.hex.toUpperCase() == '#2563EB';
-                              final isLocked = !widget.isPro && !isDefault;
 
                               return InkWell(
                                 onTap: () {
-                                  if (isLocked) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'La personalización de paleta de colores exclusiva requiere el Plan Minimarket Pro.',
-                                        ),
-                                        backgroundColor: AppTheme.brandPrimary,
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                    return;
-                                  }
                                   setState(() {
                                     _selectedHex = preset.hex;
                                     _customHexCtrl.text = preset.hex;
                                   });
-                                  if (widget.isPro ||
-                                      preset.hex.toUpperCase() == '#2563EB') {
-                                    context
-                                        .read<ThemeProvider>()
-                                        .setAccentColorFromHex(preset.hex);
-                                  }
+                                  context
+                                      .read<ThemeProvider>()
+                                      .setAccentColorFromHex(preset.hex);
                                 },
                                 borderRadius: BorderRadius.circular(12),
                                 child: Container(
@@ -651,16 +633,6 @@ class _ConfiguracionMarcaModalState extends State<ConfiguracionMarcaModal> {
                                               : AppTheme.textDark,
                                         ),
                                       ),
-                                      if (isLocked) ...[
-                                        const SizedBox(width: 6),
-                                        Icon(
-                                          LucideIcons.lock,
-                                          size: 12,
-                                          color: isDark
-                                              ? AppTheme.textDarkSecondary
-                                              : const Color(0xFF64748B),
-                                        ),
-                                      ],
                                     ],
                                   ),
                                 ),

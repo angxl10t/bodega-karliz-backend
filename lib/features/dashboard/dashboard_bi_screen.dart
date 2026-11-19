@@ -506,12 +506,15 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: activo ? AppTheme.brandPrimary : Colors.transparent,
+                  color: activo
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: activo
                       ? [
                           BoxShadow(
-                            color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                            color: Theme.of(context).colorScheme.primary
+                                .withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -732,7 +735,7 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
               top: 0,
               bottom: 0,
               width: 4.5,
-              child: Container(color: const Color(0xFF2563EB)),
+              child: Container(color: Theme.of(context).colorScheme.primary),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
@@ -753,10 +756,10 @@ class _DashboardBiScreenState extends State<DashboardBiScreen> {
                               : const Color(0xFF64748B),
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         LucideIcons.receipt,
                         size: 18,
-                        color: Color(0xFF2563EB),
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),

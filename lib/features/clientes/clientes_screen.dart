@@ -821,17 +821,12 @@ class _ClientesScreenState extends State<ClientesScreen>
         overlayColor: WidgetStateProperty.all(Colors.transparent),
         onTap: (_) => HapticFeedback.selectionClick(),
         indicator: BoxDecoration(
-          color: _tabController.index == 0
-              ? AppTheme.brandPrimary
-              : const Color(0xFF2563EB),
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color:
-                  (_tabController.index == 0
-                          ? AppTheme.brandPrimary
-                          : const Color(0xFF2563EB))
-                      .withValues(alpha: 0.25),
+              color: Theme.of(context).colorScheme.primary
+                  .withValues(alpha: 0.25),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

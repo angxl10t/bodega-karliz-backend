@@ -1200,11 +1200,14 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.20 : 0.08)
+              ? Theme.of(context).colorScheme.primary
+                    .withValues(alpha: isDark ? 0.20 : 0.08)
               : (isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC)),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppTheme.brandPrimary : borderColor,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : borderColor,
             width: isSelected ? 1.6 : 1.0,
           ),
         ),

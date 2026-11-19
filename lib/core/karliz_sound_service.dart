@@ -11,6 +11,9 @@ class KarlizSoundService {
   AudioPlayer? _errorPlayer;
   bool _isInitialized = false;
 
+  /// Control ergonómico de sonido (accesibilidad). Si es falso, silencia el audio POS.
+  bool soundEnabled = true;
+
   /// Inicializa los reproductores de sonido con modo de baja latencia para respuestas inmediatas.
   Future<void> init() async {
     if (_isInitialized) return;
@@ -31,6 +34,7 @@ class KarlizSoundService {
 
   /// Emite el sonido de escáner POS exitoso y retroalimentación háptica.
   Future<void> playBarcodeBeep() async {
+    if (!soundEnabled) return;
     // Retroalimentación háptica y clic del sistema inmediatos
     HapticFeedback.mediumImpact();
     SystemSound.play(SystemSoundType.click);
@@ -51,6 +55,7 @@ class KarlizSoundService {
 
   /// Emite sonido de error o advertencia (producto no encontrado, sin stock, etc.)
   Future<void> playErrorBeep() async {
+    if (!soundEnabled) return;
     HapticFeedback.heavyImpact();
 
     try {
@@ -69,6 +74,7 @@ class KarlizSoundService {
 
   /// Emite sonido y feedback de cobro o confirmación exitosa
   Future<void> playCashChime() async {
+    if (!soundEnabled) return;
     HapticFeedback.heavyImpact();
     SystemSound.play(SystemSoundType.click);
 

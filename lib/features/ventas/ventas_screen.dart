@@ -8192,14 +8192,18 @@ class _VentasScreenState extends State<VentasScreen>
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppTheme.brandPrimary
+                              ? (cat == 'Todos'
+                                    ? Theme.of(context).colorScheme.primary
+                                    : catColor)
                               : (isDark
                                     ? AppTheme.cardDarkHighlight
                                     : const Color(0xFFF8FAFC)),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
-                                ? AppTheme.brandPrimary
+                                ? (cat == 'Todos'
+                                      ? Theme.of(context).colorScheme.primary
+                                      : catColor)
                                 : (isDark
                                       ? AppTheme.borderDark
                                       : const Color(0xFFE2E8F0)),
@@ -8208,9 +8212,13 @@ class _VentasScreenState extends State<VentasScreen>
                           boxShadow: isSelected
                               ? [
                                   BoxShadow(
-                                    color: AppTheme.brandPrimary.withValues(
-                                      alpha: 0.3,
-                                    ),
+                                    color:
+                                        (cat == 'Todos'
+                                                ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                : catColor)
+                                            .withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -11298,7 +11306,7 @@ class _VentasScreenState extends State<VentasScreen>
             ),
           ),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.brandPrimary,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(height / 2),
             ),
@@ -11456,7 +11464,7 @@ class _VentasScreenState extends State<VentasScreen>
     }
 
     // Métodos digitales
-    Color btnColor = AppTheme.brandPrimary;
+    Color btnColor = Theme.of(context).colorScheme.primary;
     String btnLabel =
         'CONFIRMAR Y COBRAR • S/ ${_totalVenta.toStringAsFixed(2)}';
     IconData btnIcon = LucideIcons.checkCheck;

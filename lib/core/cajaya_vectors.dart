@@ -19,10 +19,11 @@ class CajaYaLogoMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = customColor ?? AppTheme.brandPrimary;
+    final themePrimary = Theme.of(context).colorScheme.primary;
+    final primary = customColor ?? themePrimary;
     final dark = customColor != null
         ? customColor!.withValues(alpha: 0.85)
-        : AppTheme.brandDark;
+        : AppTheme.brandDarkOf(context);
 
     return Container(
       width: size,
@@ -106,7 +107,7 @@ class CajaYaHeroGraphic extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = AppTheme.brandPrimary;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return Container(
       width: width,

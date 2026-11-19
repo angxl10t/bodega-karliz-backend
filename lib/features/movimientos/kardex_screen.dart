@@ -1183,12 +1183,13 @@ class _KardexScreenState extends State<KardexScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppTheme.brandPrimary.withValues(alpha: isDark ? 0.2 : 0.08)
+                ? Theme.of(context).colorScheme.primary
+                      .withValues(alpha: isDark ? 0.2 : 0.08)
                 : (isDark ? AppTheme.cardDarkSunken : Colors.white),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isSelected
-                  ? AppTheme.brandPrimary
+                  ? Theme.of(context).colorScheme.primary
                   : (isDark ? AppTheme.borderDark : const Color(0xFFF1F5F9)),
               width: isSelected ? 1.5 : 1.0,
             ),
