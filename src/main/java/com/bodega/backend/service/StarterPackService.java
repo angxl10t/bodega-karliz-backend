@@ -759,7 +759,6 @@ public class StarterPackService {
     public int provisionarStarterPackParaBodega(Bodega bodega, BigDecimal stockInicialNuevos) {
         if (bodega == null || bodega.getIdBodega() == null) return 0;
         Long idBodega = bodega.getIdBodega();
-        BigDecimal stockNuevo = stockInicialNuevos != null ? stockInicialNuevos : BigDecimal.ZERO;
 
         // Asegurar una instancia completamente inicializada de Bodega (nunca proxy lazy)
         Bodega bodegaManaged = bodega;
@@ -768,8 +767,40 @@ public class StarterPackService {
         }
         String nombreBodega = bodegaManaged.getNombreComercial() != null ? bodegaManaged.getNombreComercial() : ("ID " + idBodega);
 
-        log.info("[StarterPackService] Provisionando Starter Pack comercial para Bodega '{}' (ID: {})...",
-                nombreBodega, idBodega);
+        // Determinación robusta del giro comercial
+        String giro = "BODEGA";
+        if (bodegaManaged.getGiroNegocio() != null && !bodegaManaged.getGiroNegocio().isBlank()) {
+            giro = bodegaManaged.getGiroNegocio().trim().toUpperCase(Locale.ROOT);
+        } else if (bodega.getGiroNegocio() != null && !bodega.getGiroNegocio().isBlank()) {
+            giro = bodega.getGiroNegocio().trim().toUpperCase(Locale.ROOT);
+            bodegaManaged.setGiroNegocio(giro);
+        } else {
+            String nom = nombreBodega.toUpperCase(Locale.ROOT);
+            if (nom.contains("POLLER") || nom.contains("BRASA")) {
+                giro = "POLLERIA";
+            } else if (nom.contains("CHIFA") || nom.contains("ORIENTAL")) {
+                giro = "CHIFA";
+            } else if (nom.contains("FAST") || nom.contains("BURGER") || nom.contains("SANGUCH")) {
+                giro = "FASTFOOD";
+            }
+            bodegaManaged.setGiroNegocio(giro);
+        }
+
+        final boolean esGastronomico = !"BODEGA".equals(giro) && !"GENERAL".equals(giro);
+
+        // Para rubros gastronómicos (Pollería, Chifa, FastFood), inicializar con 20 raciones operativas
+        // listas para venta en salón y mostrador, evitando falsas alertas de desabastecimiento.
+        final BigDecimal stockNuevo;
+        if (esGastronomico) {
+            stockNuevo = stockInicialNuevos != null && stockInicialNuevos.compareTo(BigDecimal.ZERO) > 0
+                    ? stockInicialNuevos
+                    : new BigDecimal("20.000");
+        } else {
+            stockNuevo = stockInicialNuevos != null ? stockInicialNuevos : BigDecimal.ZERO;
+        }
+
+        log.info("[StarterPackService] Provisionando Starter Pack para negocio '{}' (ID: {}, Giro: {}, StockInicial: {})...",
+                nombreBodega, idBodega, giro, stockNuevo);
 
         Map<String, Categoria> categoriasMap = asegurarCategoriasCanonicas(bodegaManaged);
 
@@ -800,37 +831,11 @@ public class StarterPackService {
             }
         }
 
-        // Unir presets activos de BD + catálogo canónico en memoria (garantiza que las nuevas olas siempre estén presentes)
         Map<String, StarterPackItemRecord> itemsPorEan = new LinkedHashMap<>();
-        try {
-            if (starterPackPresetRepository != null) {
-                List<StarterPackPreset> dbPresets = starterPackPresetRepository.findByActivoTrueOrderByIdPresetAsc();
-                if (dbPresets != null) {
-                    for (StarterPackPreset p : dbPresets) {
-                        if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {
-                            itemsPorEan.putIfAbsent(p.getCodigoBarras().trim(), new StarterPackItemRecord(
-                                    p.getCodigoBarras().trim(),
-                                    p.getNombre(),
-                                    p.getMarca(),
-                                    p.getCategoria(),
-                                    p.getPrecioVenta(),
-                                    p.getPrecioCosto(),
-                                    p.getImagenUrl()
-                            ));
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("[StarterPackService] Error al consultar preset global en BD, usando memoria: {}", e.getMessage());
-        }
 
-        String giro = bodegaManaged.getGiroNegocio() != null ? bodegaManaged.getGiroNegocio() : "BODEGA";
-        String[][] productosGiro = obtenerProductosParaGiro(giro);
-
-        if (!"BODEGA".equalsIgnoreCase(giro) && !"GENERAL".equalsIgnoreCase(giro)) {
-            // Catálogo inicial enfocado exclusivamente en el rubro gastronómico seleccionado
-            itemsPorEan.clear();
+        if (esGastronomico) {
+            // Rubro gastronómico: ÚNICAMENTE platos, combos y bebidas del giro correspondiente (CERO catálogo masivo de bodega)
+            String[][] productosGiro = obtenerProductosParaGiro(giro);
             for (String[] pData : productosGiro) {
                 String ean = pData[0].trim();
                 itemsPorEan.put(ean, new StarterPackItemRecord(
@@ -839,6 +844,30 @@ public class StarterPackService {
                 ));
             }
         } else {
+            // Bodegas / Minimarkets tradicionales: Preset global + catálogo canónico expandido
+            try {
+                if (starterPackPresetRepository != null) {
+                    List<StarterPackPreset> dbPresets = starterPackPresetRepository.findByActivoTrueOrderByIdPresetAsc();
+                    if (dbPresets != null) {
+                        for (StarterPackPreset p : dbPresets) {
+                            if (p.getCodigoBarras() != null && !p.getCodigoBarras().isBlank()) {
+                                itemsPorEan.putIfAbsent(p.getCodigoBarras().trim(), new StarterPackItemRecord(
+                                        p.getCodigoBarras().trim(),
+                                        p.getNombre(),
+                                        p.getMarca(),
+                                        p.getCategoria(),
+                                        p.getPrecioVenta(),
+                                        p.getPrecioCosto(),
+                                        p.getImagenUrl()
+                                ));
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("[StarterPackService] Error al consultar preset global en BD, usando memoria: {}", e.getMessage());
+            }
+
             for (String[] pData : PRODUCTOS_STARTER_PACK) {
                 String ean = pData[0].trim();
                 itemsPorEan.putIfAbsent(ean, new StarterPackItemRecord(
@@ -907,7 +936,7 @@ public class StarterPackService {
             p.setPrecioVenta(venta);
             p.setPrecioCosto(costo);
             p.setStockActual(stockNuevo);
-            p.setStockMinimo(new BigDecimal("5.000"));
+            p.setStockMinimo(esGastronomico ? new BigDecimal("2.000") : new BigDecimal("5.000"));
             p.setControlaVencimiento(false);
             p.setImagenUrl(imagenUrl);
             p.setCategoria(categoria);
@@ -1085,7 +1114,19 @@ public class StarterPackService {
                     continue;
                 }
                 String nombre = b.getNombreComercial() != null ? b.getNombreComercial().trim() : "";
-                boolean esKarliz = nombre.toUpperCase(Locale.ROOT).contains("KARLIZ")
+                String nomUpper = nombre.toUpperCase(Locale.ROOT);
+                String giro = b.getGiroNegocio() != null ? b.getGiroNegocio().trim().toUpperCase(Locale.ROOT) : "";
+                if (giro.isEmpty()) {
+                    if (nomUpper.contains("POLLER") || nomUpper.contains("BRASA")) giro = "POLLERIA";
+                    else if (nomUpper.contains("CHIFA") || nomUpper.contains("ORIENTAL")) giro = "CHIFA";
+                    else if (nomUpper.contains("FAST") || nomUpper.contains("BURGER") || nomUpper.contains("SANGUCH")) giro = "FASTFOOD";
+                }
+                // Si el giro es gastronómico, NO enriquecer con el catálogo masivo de 407 abarrotes de bodega
+                if (!giro.isEmpty() && !"BODEGA".equals(giro) && !"GENERAL".equals(giro)) {
+                    continue;
+                }
+
+                boolean esKarliz = nomUpper.contains("KARLIZ")
                         || (bodegaKarliz != null && b.getIdBodega().equals(bodegaKarliz.getIdBodega()));
 
                 BigDecimal stockIni = esKarliz ? new BigDecimal("18.000") : BigDecimal.ZERO;
@@ -1108,6 +1149,65 @@ public class StarterPackService {
         } catch (Exception e) {
             ultimoResumenSincronizacion = "ERR:" + e.getClass().getSimpleName() + ":" + e.getMessage();
             log.warn("[StarterPackService] Error en enriquecerCatalogoBodegaKarliz: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Limpia productos de bodega (abarrotes de supermercado) inyectados erróneamente en negocios gastronómicos
+     * (Pollerías, Chifas, Fast Food), preservando siempre cualquier producto que ya tenga historial de ventas o compras.
+     * Luego garantiza que cada negocio gastronómico tenga sus platos y bebidas oficiales con stock operativo (20 unid).
+     */
+    @Transactional
+    public void limpiarProductosAjenosDeGirosGastronomicos() {
+        if (jdbcTemplate == null || bodegaRepository == null) return;
+        try {
+            log.info("[StarterPackService] Verificando y limpiando productos ajenos en negocios gastronómicos...");
+
+            // 1. Purgar productos de bodega sin movimientos en negocios gastronómicos
+            int eliminados = jdbcTemplate.update(
+                "DELETE FROM productos " +
+                "WHERE id_bodega IN (SELECT id_bodega FROM bodegas WHERE UPPER(COALESCE(giro_negocio, '')) IN ('POLLERIA', 'CHIFA', 'FASTFOOD')) " +
+                "  AND (codigo_barras IN (SELECT codigo_barras FROM catalogo_starter_pack_global) " +
+                "       OR (codigo_barras NOT LIKE 'POL%' AND codigo_barras NOT LIKE 'CHF%' AND codigo_barras NOT LIKE 'FF%')) " +
+                "  AND id_producto NOT IN (SELECT id_producto FROM ventas_detalles WHERE id_producto IS NOT NULL) " +
+                "  AND id_producto NOT IN (SELECT id_producto FROM compras_detalles WHERE id_producto IS NOT NULL) " +
+                "  AND id_producto NOT IN (SELECT id_producto FROM movimientos_inventario WHERE id_producto IS NOT NULL)"
+            );
+
+            if (eliminados > 0) {
+                log.info("[StarterPackService] Purgados {} productos ajenos de bodega en negocios gastronómicos.", eliminados);
+            }
+
+            // 2. Eliminar categorías vacías de bodega en locales gastronómicos
+            jdbcTemplate.execute(
+                "DELETE FROM categorias " +
+                "WHERE id_bodega IN (SELECT id_bodega FROM bodegas WHERE UPPER(COALESCE(giro_negocio, '')) IN ('POLLERIA', 'CHIFA', 'FASTFOOD')) " +
+                "  AND nombre IN (" +
+                "    'Abarrotes y Despensa', 'Lácteos y Derivados', 'Snacks y Piqueos', 'Panadería y Desayuno', " +
+                "    'Limpieza y Cuidado del Hogar', 'Cuidado Personal y Dental', 'Helados y Congelados', " +
+                "    'Bebidas Alcohólicas', 'Cigarrillos y Tabaco', 'Golosinas y Dulces', 'Embutidos y Fiambres' " +
+                "  ) " +
+                "  AND id_categoria NOT IN (SELECT DISTINCT id_categoria FROM productos WHERE id_categoria IS NOT NULL)"
+            );
+
+            // 3. Re-provisionar catálogo gastronómico oficial para cada negocio gastronómico activo
+            List<Bodega> bodegas = bodegaRepository.findAll();
+            for (Bodega b : bodegas) {
+                if (b == null || b.getIdBodega() == null || !Boolean.TRUE.equals(b.getEstado())) continue;
+                String giro = b.getGiroNegocio() != null ? b.getGiroNegocio().toUpperCase(Locale.ROOT) : "";
+                String nom = b.getNombreComercial() != null ? b.getNombreComercial().toUpperCase(Locale.ROOT) : "";
+                if (giro.isEmpty()) {
+                    if (nom.contains("POLLER") || nom.contains("BRASA")) giro = "POLLERIA";
+                    else if (nom.contains("CHIFA") || nom.contains("ORIENTAL")) giro = "CHIFA";
+                    else if (nom.contains("FAST") || nom.contains("BURGER") || nom.contains("SANGUCH")) giro = "FASTFOOD";
+                }
+                if ("POLLERIA".equals(giro) || "CHIFA".equals(giro) || "FASTFOOD".equals(giro)) {
+                    b.setGiroNegocio(giro);
+                    provisionarStarterPackParaBodega(b, new BigDecimal("20.000"));
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[StarterPackService] Aviso en limpiarProductosAjenosDeGirosGastronomicos: {}", e.getMessage());
         }
     }
 

@@ -194,7 +194,8 @@ public class UsuarioServiceTest {
         assertNotNull(resultado);
         assertEquals("cajero_pin", resultado.getUsername());
         assertEquals("CAJERO", resultado.getRol());
-        verify(passwordEncoder, times(1)).encode("1234");
+        // Se codifica tanto la contraseña como el PIN derivado de 4 dígitos
+        verify(passwordEncoder, times(2)).encode("1234");
     }
 
     @Test

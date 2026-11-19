@@ -505,13 +505,11 @@ public class BodegaService {
 
 
         if (dto.getRegimenTributario() != null && !dto.getRegimenTributario().isBlank()) {
-
-
-
             bodega.setRegimenTributario(dto.getRegimenTributario().trim().toUpperCase());
+        }
 
-
-
+        if (dto.getGiroNegocio() != null && !dto.getGiroNegocio().isBlank()) {
+            bodega.setGiroNegocio(dto.getGiroNegocio().trim().toUpperCase());
         }
 
 
@@ -1017,20 +1015,8 @@ public class BodegaService {
 
 
         if (dto.getRegimenTributario() != null && !dto.getRegimenTributario().isBlank()) {
-
-
-
             bodega.setRegimenTributario(dto.getRegimenTributario().trim().toUpperCase());
-
-
-
         }
-
-
-
-
-
-
 
         if (dto.getFacturacionSunatActiva() != null) {
 
@@ -1286,6 +1272,7 @@ public class BodegaService {
 
         dto.setRegimenTributario(b.getRegimenTributario() != null ? b.getRegimenTributario() : "NUEVO_RUS");
         dto.setEsNuevoRus(b.getRegimenTributario() == null || "NUEVO_RUS".equalsIgnoreCase(b.getRegimenTributario()));
+        dto.setGiroNegocio(b.getGiroNegocio() != null ? b.getGiroNegocio() : "BODEGA");
 
 
 
@@ -1813,11 +1800,9 @@ public class BodegaService {
 
         bodega.setRegimenTributario(regimen);
 
-
-
-
-
-
+        String giro = (dto.getGiroNegocio() != null && !dto.getGiroNegocio().isBlank())
+                ? dto.getGiroNegocio().trim().toUpperCase() : "BODEGA";
+        bodega.setGiroNegocio(giro);
 
         String plan = (dto.getPlan() != null && !dto.getPlan().isBlank()) ? dto.getPlan().trim().toUpperCase() : "PRO";
 

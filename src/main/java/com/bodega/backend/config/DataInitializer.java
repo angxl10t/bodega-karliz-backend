@@ -100,11 +100,12 @@ public class DataInitializer implements ApplicationRunner {
             }
 
             // 5. Sincronizar catálogo comercial expandido (Olas 1-7: 407 productos y 13 categorías)
-            // en el preset global, Bodega KARLIZ (con stock visible) y demás bodegas activas
+            // en el preset global, Bodega KARLIZ (con stock visible) y demás bodegas activas (solo rubro bodega/abarrotes)
             try {
                 starterPackService.enriquecerCatalogoBodegaKarliz(bodegaKarliz);
+                starterPackService.limpiarProductosAjenosDeGirosGastronomicos();
             } catch (Exception syncEx) {
-                log.warn("[DataInitializer] Error en sincronización del catálogo comercial: {}", syncEx.getMessage());
+                log.warn("[DataInitializer] Error en sincronización/limpieza del catálogo comercial: {}", syncEx.getMessage());
             }
 
             // 6. Normalizar y canonicizar marcas de productos en base de datos

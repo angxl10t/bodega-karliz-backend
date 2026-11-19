@@ -18,6 +18,9 @@ public class BodegaDTO {
     private OffsetDateTime fechaRegistro;
     private OffsetDateTime fechaVencimientoPlan;
 
+    // Giro de Negocio Comercial: BODEGA, POLLERIA, CHIFA, FASTFOOD, RESTAURANTE, GENERAL
+    private String giroNegocio;
+
     // Régimen Tributario SUNAT: NUEVO_RUS, RER, MYPE_TRIBUTARIO, REGIMEN_GENERAL
     private String regimenTributario;
     private Boolean esNuevoRus;

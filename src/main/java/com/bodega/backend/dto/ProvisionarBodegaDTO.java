@@ -26,6 +26,7 @@ public class ProvisionarBodegaDTO {
     private String adminPassword;
 
     private String regimenTributario = "NUEVO_RUS";
+    private String giroNegocio = "BODEGA";
     private String colorPrimario = "#2563EB";
     private String lemaComercial;
 }
