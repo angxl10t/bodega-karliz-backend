@@ -51,12 +51,16 @@ class CartItem {
   double cantidad;
   double descuentoManual;
   String? descuentoMotivo;
+  String? variante; // Ej: "Pecho (con ala)", "Pierna (con encuentro)"
+  String? notas; // Indicaciones de preparación de cocina
 
   CartItem({
     required this.producto,
     this.cantidad = 1.0,
     this.descuentoManual = 0.0,
     this.descuentoMotivo,
+    this.variante,
+    this.notas,
   });
 
   double get subtotalBruto =>
@@ -73,6 +77,8 @@ class CartItem {
     'cantidad': cantidad,
     'descuentoManual': descuentoManual,
     if (descuentoMotivo != null) 'descuentoMotivo': descuentoMotivo,
+    if (variante != null) 'variante': variante,
+    if (notas != null) 'notas': notas,
   };
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
@@ -82,6 +88,8 @@ class CartItem {
     cantidad: (json['cantidad'] as num?)?.toDouble() ?? 1.0,
     descuentoManual: (json['descuentoManual'] as num?)?.toDouble() ?? 0.0,
     descuentoMotivo: json['descuentoMotivo']?.toString(),
+    variante: json['variante']?.toString(),
+    notas: json['notas']?.toString(),
   );
 }
 

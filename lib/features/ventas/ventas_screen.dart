@@ -20,6 +20,8 @@ import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/widgets/product_image_widget.dart';
 import '../../core/marca_detector_service.dart';
+import '../../core/gastronomia_helper.dart';
+import 'widgets/selector_presa_modal.dart';
 
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -872,12 +874,18 @@ class _VentasScreenState extends State<VentasScreen>
     Producto p, {
     bool playSound = true,
     double cantidad = 1.0,
+    String? variante,
+    String? notas,
   }) {
     final idx = _carrito.indexWhere(
-      (item) => item.producto.idProducto == p.idProducto,
+      (item) =>
+          item.producto.idProducto == p.idProducto && item.variante == variante,
     );
-    final cantidadActual = idx != -1 ? _carrito[idx].cantidad : 0.0;
-    if (cantidadActual + cantidad > p.stockActual) {
+    final totalActualProducto = _carrito
+        .where((item) => item.producto.idProducto == p.idProducto)
+        .fold<double>(0.0, (acc, item) => acc + item.cantidad);
+
+    if (totalActualProducto + cantidad > p.stockActual) {
       KarlizSoundService.instance.playErrorBeep();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -900,11 +908,42 @@ class _VentasScreenState extends State<VentasScreen>
     setState(() {
       if (idx != -1) {
         _carrito[idx].cantidad += cantidad;
+        if (notas != null && notas.isNotEmpty) {
+          _carrito[idx].notas = notas;
+        }
       } else {
-        _carrito.add(CartItem(producto: p, cantidad: cantidad));
+        _carrito.add(
+          CartItem(
+            producto: p,
+            cantidad: cantidad,
+            variante: variante,
+            notas: notas,
+          ),
+        );
       }
       _actualizarMontoExactoSiCorresponde(totalAnterior);
     });
+  }
+
+  Future<void> _verificarYAgregarAlCarrito(
+    Producto p, {
+    bool playSound = true,
+    double cantidad = 1.0,
+  }) async {
+    if (GastronomiaHelper.esProductoConPresa(p.nombre, p.nombreCategoria)) {
+      final res = await SelectorPresaModal.show(context, producto: p);
+      if (res != null) {
+        _agregarAlCarrito(
+          p,
+          playSound: playSound,
+          cantidad: cantidad,
+          variante: res.textoVariante,
+          notas: res.textoNotasConsolidadas,
+        );
+      }
+      return;
+    }
+    _agregarAlCarrito(p, playSound: playSound, cantidad: cantidad);
   }
 
   void _abrirModalBalanzaOEditar(Producto p) {
@@ -915,7 +954,7 @@ class _VentasScreenState extends State<VentasScreen>
     if (cartIdx != -1) {
       _editarCantidadDirecta(cartIdx);
     } else {
-      _agregarAlCarrito(p, cantidad: 1.0);
+      _verificarYAgregarAlCarrito(p, cantidad: 1.0);
       final newIdx = _carrito.indexWhere(
         (it) => it.producto.idProducto == p.idProducto,
       );
@@ -928,7 +967,10 @@ class _VentasScreenState extends State<VentasScreen>
   void _incrementarCantidad(int index) {
     final item = _carrito[index];
     final inc = item.producto.esPesableOGranel ? 0.25 : 1.0;
-    if (item.cantidad + inc <= item.producto.stockActual) {
+    final totalActualProducto = _carrito
+        .where((it) => it.producto.idProducto == item.producto.idProducto)
+        .fold<double>(0.0, (acc, it) => acc + it.cantidad);
+    if (totalActualProducto + inc <= item.producto.stockActual) {
       HapticFeedback.selectionClick();
       final totalAnterior = _totalVenta;
       setState(() {
@@ -2134,6 +2176,10 @@ class _VentasScreenState extends State<VentasScreen>
                                                               playSound: false,
                                                               cantidad: itemWeb
                                                                   .cantidad,
+                                                              variante: itemWeb
+                                                                  .variante,
+                                                              notas:
+                                                                  itemWeb.notas,
                                                             );
                                                             itemsCargados++;
                                                           }
@@ -3201,7 +3247,7 @@ class _VentasScreenState extends State<VentasScreen>
       }
 
       // Añadir directamente a la canasta con audio de éxito
-      _agregarAlCarrito(
+      _verificarYAgregarAlCarrito(
         productoEncontrado,
         playSound: true,
         cantidad: cantidadPesada,
@@ -4492,12 +4538,12 @@ class _VentasScreenState extends State<VentasScreen>
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             HapticFeedback.selectionClick();
-                            setState(() {
-                              _agregarAlCarrito(p);
-                            });
-                            setModalState(() {});
+                            await _verificarYAgregarAlCarrito(p);
+                            if (mounted) {
+                              setModalState(() {});
+                            }
                           },
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -5082,25 +5128,31 @@ class _VentasScreenState extends State<VentasScreen>
                                                 : LucideIcons.plus,
                                             size: 16,
                                           ),
-                                          onPressed: () {
+                                          onPressed: () async {
                                             if (p.esPesableOGranel) {
                                               Navigator.pop(ctx);
                                               _abrirModalBalanzaOEditar(p);
                                             } else {
-                                              _agregarAlCarrito(p);
-                                              setModalState(() {});
+                                              await _verificarYAgregarAlCarrito(
+                                                p,
+                                              );
+                                              if (mounted) {
+                                                setModalState(() {});
+                                              }
                                             }
                                           },
                                         ),
                                       ],
                                     ),
-                                    onTap: () {
+                                    onTap: () async {
                                       if (p.esPesableOGranel) {
                                         Navigator.pop(ctx);
                                         _abrirModalBalanzaOEditar(p);
                                       } else {
-                                        _agregarAlCarrito(p);
-                                        setModalState(() {});
+                                        await _verificarYAgregarAlCarrito(p);
+                                        if (mounted) {
+                                          setModalState(() {});
+                                        }
                                       }
                                     },
                                   );
@@ -5169,9 +5221,12 @@ class _VentasScreenState extends State<VentasScreen>
     final localTicket = UuidHelper.generateLocalTicket(idBodega);
 
     final offlineDetalles = _carrito.map((item) {
+      final nombreConVariante = item.variante != null
+          ? '${item.producto.nombre} (${item.variante})'
+          : item.producto.nombre;
       return OfflineVentaDetalle(
         idProducto: item.producto.idProducto!,
-        nombreProducto: item.producto.nombre,
+        nombreProducto: nombreConVariante,
         cantidad: item.cantidad,
         precioUnitario: item.producto.precioVenta,
         subtotal: item.subtotal,
@@ -6378,11 +6433,16 @@ class _VentasScreenState extends State<VentasScreen>
   }) async {
     final cfg = ConfiguracionTicketService.actual;
     final ticketItems = items.map((it) {
+      final nombreConVariante = it.variante != null
+          ? '${it.producto.nombre} (${it.variante})'
+          : it.producto.nombre;
       return TicketItem(
-        nombre: it.producto.nombre,
+        nombre: nombreConVariante,
         cantidad: it.cantidad,
         precioUnitario: it.producto.precioVenta,
         subtotal: it.subtotal,
+        variante: it.variante,
+        notas: it.notas,
       );
     }).toList();
 
@@ -6474,11 +6534,16 @@ class _VentasScreenState extends State<VentasScreen>
     double? descuento,
   }) {
     final ticketItems = items.map((it) {
+      final nombreConVariante = it.variante != null
+          ? '${it.producto.nombre} (${it.variante})'
+          : it.producto.nombre;
       return TicketItem(
-        nombre: it.producto.nombre,
+        nombre: nombreConVariante,
         cantidad: it.cantidad,
         precioUnitario: it.producto.precioVenta,
         subtotal: it.subtotal,
+        variante: it.variante,
+        notas: it.notas,
       );
     }).toList();
 
@@ -7331,6 +7396,94 @@ class _VentasScreenState extends State<VentasScreen>
                                         color: labelColor,
                                       ),
                                     ),
+                                    if (item.variante != null ||
+                                        (item.notas != null &&
+                                            item.notas!.isNotEmpty)) ...[
+                                      const SizedBox(height: 3),
+                                      Wrap(
+                                        spacing: 4,
+                                        runSpacing: 2,
+                                        children: [
+                                          if (item.variante != null)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 1.5,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFD97706)
+                                                    .withValues(
+                                                      alpha: isDark
+                                                          ? 0.25
+                                                          : 0.15,
+                                                    ),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                                border: Border.all(
+                                                  color: const Color(0xFFD97706)
+                                                      .withValues(alpha: 0.5),
+                                                  width: 0.8,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.drumstick,
+                                                    size: 10,
+                                                    color: Color(0xFFD97706),
+                                                  ),
+                                                  const SizedBox(width: 3),
+                                                  Text(
+                                                    item.variante!,
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color: const Color(
+                                                            0xFFD97706,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          if (item.notas != null &&
+                                              item.notas!.isNotEmpty)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 5,
+                                                    vertical: 1.5,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: (isDark
+                                                    ? Colors.grey[800]
+                                                    : Colors.grey[200])!,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                item.notas!,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 9.5,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: isDark
+                                                          ? Colors.grey[300]
+                                                          : Colors.grey[700],
+                                                    ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                    ],
                                     Text(
                                       'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u • Disp: ${_formatStock(item.producto.stockActual)}',
                                       maxLines: 1,
@@ -8415,14 +8568,14 @@ class _VentasScreenState extends State<VentasScreen>
                             if (p.esPesableOGranel) {
                               _abrirModalBalanzaOEditar(p);
                             } else {
-                              _agregarAlCarrito(p);
+                              _verificarYAgregarAlCarrito(p);
                             }
                           },
                           onLongPress: () {
                             if (cartIdx != -1) {
                               _editarCantidadDirecta(cartIdx);
                             } else {
-                              _agregarAlCarrito(p);
+                              _verificarYAgregarAlCarrito(p);
                               final newIdx = _carrito.indexWhere(
                                 (it) => it.producto.idProducto == p.idProducto,
                               );
@@ -9074,6 +9227,90 @@ class _VentasScreenState extends State<VentasScreen>
                                     color: labelColor,
                                   ),
                                 ),
+                                if (item.variante != null ||
+                                    (item.notas != null &&
+                                        item.notas!.isNotEmpty)) ...[
+                                  const SizedBox(height: 2),
+                                  Wrap(
+                                    spacing: 4,
+                                    runSpacing: 2,
+                                    children: [
+                                      if (item.variante != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5,
+                                            vertical: 1.5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFD97706)
+                                                .withValues(
+                                                  alpha: isDark ? 0.25 : 0.15,
+                                                ),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: const Color(0xFFD97706)
+                                                  .withValues(alpha: 0.5),
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.drumstick,
+                                                size: 9.5,
+                                                color: Color(0xFFD97706),
+                                              ),
+                                              const SizedBox(width: 2.5),
+                                              Text(
+                                                item.variante!,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 9.5,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: const Color(
+                                                        0xFFD97706,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      if (item.notas != null &&
+                                          item.notas!.isNotEmpty)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4.5,
+                                            vertical: 1.5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: (isDark
+                                                ? Colors.grey[800]
+                                                : Colors.grey[200])!,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            item.notas!,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark
+                                                  ? Colors.grey[300]
+                                                  : Colors.grey[700],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                ],
                                 Text(
                                   'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u',
                                   style: GoogleFonts.plusJakartaSans(

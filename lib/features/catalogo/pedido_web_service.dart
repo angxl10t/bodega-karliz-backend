@@ -18,6 +18,8 @@ class PedidoWebItem {
   final double precioUnitario;
   final double subtotal;
   final String? badge;
+  final String? variante;
+  final String? notas;
 
   const PedidoWebItem({
     this.idDetallePedidoWeb,
@@ -27,6 +29,8 @@ class PedidoWebItem {
     required this.precioUnitario,
     required this.subtotal,
     this.badge,
+    this.variante,
+    this.notas,
   });
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +41,8 @@ class PedidoWebItem {
     'precioUnitario': precioUnitario,
     'subtotal': subtotal,
     if (badge != null) 'badge': badge,
+    if (variante != null) 'variante': variante,
+    if (notas != null) 'notas': notas,
   };
 
   factory PedidoWebItem.fromJson(Map<String, dynamic> json) => PedidoWebItem(
@@ -48,6 +54,8 @@ class PedidoWebItem {
     precioUnitario: (json['precioUnitario'] as num?)?.toDouble() ?? 0.0,
     subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
     badge: json['badge']?.toString(),
+    variante: json['variante']?.toString(),
+    notas: json['notas']?.toString(),
   );
 }
 

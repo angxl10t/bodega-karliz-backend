@@ -1276,11 +1276,15 @@ class TicketItem {
   final double cantidad;
   final double precioUnitario;
   final double subtotal;
+  final String? variante;
+  final String? notas;
 
   TicketItem({
     required this.nombre,
     required this.cantidad,
     required this.precioUnitario,
     required this.subtotal,
+    this.variante,
+    this.notas,
   });
 }

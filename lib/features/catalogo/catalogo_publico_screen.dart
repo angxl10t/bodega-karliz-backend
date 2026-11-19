@@ -25,7 +25,26 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme_provider.dart';
 import '../../core/widgets/water_drop_theme_transition.dart';
+import '../../core/gastronomia_helper.dart';
 import 'pedido_web_service.dart';
+
+class ItemCarritoPublico {
+  final int idProducto;
+  int cantidad;
+  final String? variante;
+  final String? notas;
+
+  ItemCarritoPublico({
+    required this.idProducto,
+    required this.cantidad,
+    this.variante,
+    this.notas,
+  });
+
+  String get cartKey => (variante != null && variante!.isNotEmpty)
+      ? '$idProducto#$variante'
+      : '$idProducto';
+}
 
 class CatalogoPublicoScreen extends StatefulWidget {
   final String tiendaSlug;
@@ -113,8 +132,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   Timer? _searchDebounce;
   Timer? _autoRetryTimer;
 
-  // Carrito de compras: {idProducto: cantidad}
-  final Map<int, int> _carrito = {};
+  // Carrito de compras: {cartKey: ItemCarritoPublico}
+  final Map<String, ItemCarritoPublico> _carrito = {};
+
+  int _cantidadDeProductoEnCarrito(int idProducto) {
+    return _carrito.values
+        .where((it) => it.idProducto == idProducto)
+        .fold(0, (acc, it) => acc + it.cantidad);
+  }
+
   bool _isEnviandoPedido = false;
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _notasPedidoCtrl = TextEditingController();
@@ -526,8 +552,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   double get _totalAhorroCarrito {
     double ahorro = 0.0;
-    _carrito.forEach((id, cant) {
-      final prod = _productosPorId[id.toString()] ?? const <String, dynamic>{};
+    for (final item in _carrito.values) {
+      final prod =
+          _productosPorId[item.idProducto.toString()] ??
+          const <String, dynamic>{};
       if (prod['tienePromocion'] == true) {
         final double regular = (prod['precioVenta'] is num)
             ? (prod['precioVenta'] as num).toDouble()
@@ -536,21 +564,23 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             ? (prod['precioPromocional'] as num).toDouble()
             : regular;
         if (regular > promo) {
-          ahorro += ((regular - promo) * cant);
+          ahorro += ((regular - promo) * item.cantidad);
         }
       }
-    });
+    }
     return ahorro;
   }
 
   int get _totalUnidadesCarrito {
-    return _carrito.values.fold(0, (acc, c) => acc + c);
+    return _carrito.values.fold(0, (acc, c) => acc + c.cantidad);
   }
 
   double get _totalMontoCarrito {
     double total = 0.0;
-    _carrito.forEach((id, cant) {
-      final prod = _productosPorId[id.toString()] ?? const <String, dynamic>{};
+    for (final item in _carrito.values) {
+      final prod =
+          _productosPorId[item.idProducto.toString()] ??
+          const <String, dynamic>{};
       final double regular = (prod['precioVenta'] is num)
           ? (prod['precioVenta'] as num).toDouble()
           : 0.0;
@@ -560,20 +590,52 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       final double precio = (prod['tienePromocion'] == true && promo > 0)
           ? promo
           : regular;
-      total += (precio * cant);
-    });
+      total += (precio * item.cantidad);
+    }
     return total;
   }
 
-  void _modificarCantidad(int idProducto, int delta) {
+  void _modificarCantidad(
+    int idProducto,
+    int delta, {
+    String? variante,
+    String? notas,
+  }) {
     HapticFeedback.lightImpact();
     setState(() {
-      final actual = _carrito[idProducto] ?? 0;
-      final nuevo = actual + delta;
-      if (nuevo <= 0) {
-        _carrito.remove(idProducto);
-      } else {
-        _carrito[idProducto] = nuevo;
+      final key = (variante != null && variante.isNotEmpty)
+          ? '$idProducto#$variante'
+          : '$idProducto';
+
+      if (_carrito.containsKey(key)) {
+        final item = _carrito[key]!;
+        final nuevo = item.cantidad + delta;
+        if (nuevo <= 0) {
+          _carrito.remove(key);
+        } else {
+          item.cantidad = nuevo;
+        }
+      } else if (delta > 0) {
+        _carrito[key] = ItemCarritoPublico(
+          idProducto: idProducto,
+          cantidad: delta,
+          variante: variante,
+          notas: notas,
+        );
+      } else if (delta < 0) {
+        final matchingKey = _carrito.keys.firstWhere(
+          (k) => _carrito[k]?.idProducto == idProducto,
+          orElse: () => '',
+        );
+        if (matchingKey.isNotEmpty) {
+          final item = _carrito[matchingKey]!;
+          final nuevo = item.cantidad + delta;
+          if (nuevo <= 0) {
+            _carrito.remove(matchingKey);
+          } else {
+            item.cantidad = nuevo;
+          }
+        }
       }
     });
   }
@@ -616,9 +678,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
       final List<PedidoWebItem> itemsParaBandeja = [];
 
-      _carrito.forEach((id, cant) {
+      for (final item in _carrito.values) {
         final prod =
-            _productosPorId[id.toString()] ?? const <String, dynamic>{};
+            _productosPorId[item.idProducto.toString()] ??
+            const <String, dynamic>{};
         final nombre = prod['nombre']?.toString() ?? 'Producto';
         final double regular = (prod['precioVenta'] is num)
             ? (prod['precioVenta'] as num).toDouble()
@@ -628,35 +691,42 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             : regular;
         final bool tienePromo = prod['tienePromocion'] == true && promo > 0;
         final double precioFinal = tienePromo ? promo : regular;
-        final subtotal = precioFinal * cant;
+        final subtotal = precioFinal * item.cantidad;
         final badge = tienePromo
             ? (prod['badgePromocion']?.toString() ?? 'PROMO')
             : null;
 
+        final nombreDetallado = item.variante != null
+            ? '$nombre (${item.variante})'
+            : nombre;
+
         itemsParaBandeja.add(
           PedidoWebItem(
             idProducto:
-                (prod['idProducto'] as num?)?.toInt() ??
-                int.tryParse(id.toString()) ??
-                0,
-            nombre: nombre,
-            cantidad: cant.toDouble(),
+                (prod['idProducto'] as num?)?.toInt() ?? item.idProducto,
+            nombre: nombreDetallado,
+            cantidad: item.cantidad.toDouble(),
             precioUnitario: precioFinal,
             subtotal: subtotal,
             badge: badge,
+            variante: item.variante,
+            notas: item.notas,
           ),
         );
 
         if (tienePromo) {
           buffer.writeln(
-            '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)} ($badge)',
+            '• ${item.cantidad}x $nombreDetallado - S/ ${subtotal.toStringAsFixed(2)} ($badge)',
           );
         } else {
           buffer.writeln(
-            '• ${cant}x $nombre - S/ ${subtotal.toStringAsFixed(2)}',
+            '• ${item.cantidad}x $nombreDetallado - S/ ${subtotal.toStringAsFixed(2)}',
           );
         }
-      });
+        if (item.notas != null && item.notas!.isNotEmpty) {
+          buffer.writeln('  ↳ Detalle: ${item.notas}');
+        }
+      }
 
       buffer.writeln('--------------------------------');
       buffer.writeln(
@@ -667,8 +737,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           'Descuento web aplicado: -S/ ${_totalAhorroCarrito.toStringAsFixed(2)}',
         );
       }
-      final bool incluyeRetornables = _carrito.keys.any((id) {
-        final p = _productosPorId[id.toString()] ?? const <String, dynamic>{};
+      final bool incluyeRetornables = _carrito.values.any((item) {
+        final p =
+            _productosPorId[item.idProducto.toString()] ??
+            const <String, dynamic>{};
         return _esProductoRetornable(p);
       });
       if (incluyeRetornables) {
@@ -3371,7 +3443,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     final int descuentoPct = (tienePromoValida && precio > 0)
         ? (((precio - promoPrice) / precio) * 100).round()
         : 0;
-    final int cantidadEnCarrito = _carrito[id] ?? 0;
+    final int cantidadEnCarrito = _cantidadDeProductoEnCarrito(id);
     final bool isTablet = config.isTablet;
     final catColor = CategoryHelper.getColor(categoria, isDark);
     final catIcon = CategoryHelper.getIcon(categoria);
@@ -3854,7 +3926,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           ),
                         ),
                       ),
-                      onPressed: () => _modificarCantidad(id, 1),
+                      onPressed: () {
+                        if (GastronomiaHelper.esProductoConPresa(
+                          nombre,
+                          categoria,
+                        )) {
+                          _mostrarDetalleProductoOnline(prod);
+                        } else {
+                          _modificarCantidad(id, 1);
+                        }
+                      },
                       icon: Icon(LucideIcons.plus, size: config.botonIconSize),
                       label: Text(
                         'Agregar',
@@ -3913,7 +3994,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             size: config.botonIconSize,
                             color: _colorMarcaTexto(isDark),
                           ),
-                          onPressed: () => _modificarCantidad(id, 1),
+                          onPressed: () {
+                            if (GastronomiaHelper.esProductoConPresa(
+                              nombre,
+                              categoria,
+                            )) {
+                              _mostrarDetalleProductoOnline(prod);
+                            } else {
+                              _modificarCantidad(id, 1);
+                            }
+                          },
                         ),
                       ],
                     ),
@@ -3949,6 +4039,15 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         : 0;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final bool esPolloConPresa = GastronomiaHelper.esProductoConPresa(
+      nombre,
+      categoria,
+    );
+    String seleccionPresa = GastronomiaHelper.opcionesPresa(nombre).first;
+    String seleccionEnsalada = GastronomiaHelper.opcionesEnsalada().first;
+    String seleccionPapas = GastronomiaHelper.opcionesPapas().first;
+    final TextEditingController notasCtrl = TextEditingController();
+
     AdaptiveModal.show(
       context: context,
       maxWidth: 540,
@@ -3956,7 +4055,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         return StatefulBuilder(
           builder: (modalCtx, setModalState) {
             final isWide = ResponsiveLayout.isTabletOrLarger(modalCtx);
-            final int cantActual = _carrito[id] ?? 0;
+            final String cartKeyActual = esPolloConPresa
+                ? '$id#$seleccionPresa'
+                : '$id';
+            final int cantActual = _carrito[cartKeyActual]?.cantidad ?? 0;
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
@@ -4386,6 +4488,275 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         ],
                         const SizedBox(height: 20),
 
+                        if (esPolloConPresa) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFD97706)
+                                    .withValues(alpha: isDark ? 0.35 : 0.25),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.drumstick,
+                                      size: 16,
+                                      color: Color(0xFFD97706),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'SELECCIONA TU PRESA FAVORITA',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFFD97706),
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children:
+                                      GastronomiaHelper.opcionesPresa(
+                                        nombre,
+                                      ).map((opt) {
+                                        final isSel = seleccionPresa == opt;
+                                        return Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                            ),
+                                            child: InkWell(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              onTap: () {
+                                                HapticFeedback.selectionClick();
+                                                setModalState(
+                                                  () => seleccionPresa = opt,
+                                                );
+                                              },
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 10,
+                                                      horizontal: 8,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: isSel
+                                                      ? const Color(0xFFD97706)
+                                                      : (isDark
+                                                            ? const Color(
+                                                                0xFF1E293B,
+                                                              )
+                                                            : Colors.white),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: isSel
+                                                        ? const Color(
+                                                            0xFFD97706,
+                                                          )
+                                                        : (isDark
+                                                              ? Colors.white12
+                                                              : const Color(
+                                                                  0xFFCBD5E1,
+                                                                )),
+                                                    width: isSel ? 1.8 : 1.0,
+                                                  ),
+                                                ),
+                                                child: Column(
+                                                  children: [
+                                                    Icon(
+                                                      LucideIcons.utensils,
+                                                      size: 16,
+                                                      color: isSel
+                                                          ? Colors.white
+                                                          : (isDark
+                                                                ? Colors.white70
+                                                                : const Color(
+                                                                    0xFF475569,
+                                                                  )),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      opt,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: GoogleFonts.plusJakartaSans(
+                                                        fontSize: 11.5,
+                                                        fontWeight: isSel
+                                                            ? FontWeight.w800
+                                                            : FontWeight.w600,
+                                                        color: isSel
+                                                            ? Colors.white
+                                                            : (isDark
+                                                                  ? Colors.white
+                                                                  : const Color(
+                                                                      0xFF1E293B,
+                                                                    )),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  'Elección de Ensalada',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: GastronomiaHelper.opcionesEnsalada()
+                                      .map((ens) {
+                                        final isSel = seleccionEnsalada == ens;
+                                        return ChoiceChip(
+                                          label: Text(
+                                            ens,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: isSel
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: isSel
+                                                  ? Colors.white
+                                                  : (isDark
+                                                        ? Colors.white70
+                                                        : const Color(
+                                                            0xFF334155,
+                                                          )),
+                                            ),
+                                          ),
+                                          selected: isSel,
+                                          selectedColor: const Color(
+                                            0xFF059669,
+                                          ),
+                                          backgroundColor: isDark
+                                              ? const Color(0xFF1E293B)
+                                              : Colors.white,
+                                          onSelected: (val) {
+                                            if (val) {
+                                              setModalState(
+                                                () => seleccionEnsalada = ens,
+                                              );
+                                            }
+                                          },
+                                        );
+                                      })
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Guarnición de Papas',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: GastronomiaHelper.opcionesPapas()
+                                      .map((pap) {
+                                        final isSel = seleccionPapas == pap;
+                                        return ChoiceChip(
+                                          label: Text(
+                                            pap,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: isSel
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: isSel
+                                                  ? Colors.white
+                                                  : (isDark
+                                                        ? Colors.white70
+                                                        : const Color(
+                                                            0xFF334155,
+                                                          )),
+                                            ),
+                                          ),
+                                          selected: isSel,
+                                          selectedColor: const Color(
+                                            0xFFD97706,
+                                          ),
+                                          backgroundColor: isDark
+                                              ? const Color(0xFF1E293B)
+                                              : Colors.white,
+                                          onSelected: (val) {
+                                            if (val) {
+                                              setModalState(
+                                                () => seleccionPapas = pap,
+                                              );
+                                            }
+                                          },
+                                        );
+                                      })
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: notasCtrl,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    hintText: 'Indicaciones para cocina (ej. Piel crocante, ají extra)...',
+                                    hintStyle: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? const Color(0xFF64748B)
+                                          : const Color(0xFF94A3B8),
+                                    ),
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: isDark
+                                            ? Colors.white12
+                                            : const Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
                         // Controles de Carrito y Selección
                         if (cantActual == 0) ...[
                           SizedBox(
@@ -4404,14 +4775,31 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 size: 20,
                               ),
                               label: Text(
-                                'Agregar al Pedido',
+                                esPolloConPresa
+                                    ? 'Agregar $seleccionPresa'
+                                    : 'Agregar al Pedido',
                                 style: GoogleFonts.outfit(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
                               onPressed: () {
-                                _modificarCantidad(id, 1);
+                                final notasFinal = esPolloConPresa
+                                    ? [
+                                        seleccionEnsalada,
+                                        seleccionPapas,
+                                        if (notasCtrl.text.trim().isNotEmpty)
+                                          notasCtrl.text.trim(),
+                                      ].join(' • ')
+                                    : null;
+                                _modificarCantidad(
+                                  id,
+                                  1,
+                                  variante: esPolloConPresa
+                                      ? seleccionPresa
+                                      : null,
+                                  notas: notasFinal,
+                                );
                                 setModalState(() {});
                               },
                             ),
@@ -4442,7 +4830,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'En tu pedido ($cantActual ${cantActual == 1 ? "unidad" : "unidades"})',
+                                    esPolloConPresa
+                                        ? 'En tu pedido ($seleccionPresa): $cantActual u.'
+                                        : 'En tu pedido ($cantActual ${cantActual == 1 ? "unidad" : "unidades"})',
                                     style: GoogleFonts.outfit(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
@@ -4475,7 +4865,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     ),
                                   ),
                                   onPressed: () {
-                                    _modificarCantidad(id, -cantActual);
+                                    _modificarCantidad(
+                                      id,
+                                      -cantActual,
+                                      variante: esPolloConPresa
+                                          ? seleccionPresa
+                                          : null,
+                                    );
                                     setModalState(() {});
                                   },
                                 ),
@@ -4518,7 +4914,13 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       ),
                                       tooltip: 'Disminuir',
                                       onPressed: () {
-                                        _modificarCantidad(id, -1);
+                                        _modificarCantidad(
+                                          id,
+                                          -1,
+                                          variante: esPolloConPresa
+                                              ? seleccionPresa
+                                              : null,
+                                        );
                                         setModalState(() {});
                                       },
                                     ),
@@ -4549,7 +4951,24 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       ),
                                       tooltip: 'Aumentar',
                                       onPressed: () {
-                                        _modificarCantidad(id, 1);
+                                        final notasFinal = esPolloConPresa
+                                            ? [
+                                                seleccionEnsalada,
+                                                seleccionPapas,
+                                                if (notasCtrl.text
+                                                    .trim()
+                                                    .isNotEmpty)
+                                                  notasCtrl.text.trim(),
+                                              ].join(' • ')
+                                            : null;
+                                        _modificarCantidad(
+                                          id,
+                                          1,
+                                          variante: esPolloConPresa
+                                              ? seleccionPresa
+                                              : null,
+                                          notas: notasFinal,
+                                        );
                                         setModalState(() {});
                                       },
                                     ),
@@ -4909,8 +5328,10 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           itemCount: cartItemIds.length,
                           separatorBuilder: (_, _) => const Divider(height: 16),
                           itemBuilder: (context, idx) {
-                            final id = cartItemIds[idx];
-                            final cant = _carrito[id] ?? 0;
+                            final key = cartItemIds[idx];
+                            final item = _carrito[key]!;
+                            final id = item.idProducto;
+                            final cant = item.cantidad;
                             final prod =
                                 _productosPorId[id.toString()] ??
                                 const <String, dynamic>{};
@@ -4973,6 +5394,96 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
+                                      if (item.variante != null ||
+                                          (item.notas != null &&
+                                              item.notas!.isNotEmpty)) ...[
+                                        const SizedBox(height: 2),
+                                        Wrap(
+                                          spacing: 4,
+                                          runSpacing: 2,
+                                          children: [
+                                            if (item.variante != null)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 1.5,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFD97706)
+                                                      .withValues(
+                                                        alpha: isDark
+                                                            ? 0.25
+                                                            : 0.15,
+                                                      ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: const Color(
+                                                      0xFFD97706,
+                                                    ).withValues(alpha: 0.5),
+                                                    width: 0.8,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.drumstick,
+                                                      size: 10,
+                                                      color: Color(0xFFD97706),
+                                                    ),
+                                                    const SizedBox(width: 3),
+                                                    Text(
+                                                      item.variante!,
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: const Color(
+                                                              0xFFD97706,
+                                                            ),
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            if (item.notas != null &&
+                                                item.notas!.isNotEmpty)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 5,
+                                                      vertical: 1.5,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: (isDark
+                                                      ? Colors.grey[800]
+                                                      : Colors.grey[200])!,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  item.notas!,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: 9.5,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: isDark
+                                                            ? Colors.grey[300]
+                                                            : Colors.grey[700],
+                                                      ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
                                       const SizedBox(height: 2),
                                       Wrap(
                                         spacing: 4,
@@ -5084,7 +5595,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           size: 14,
                                         ),
                                         onPressed: () {
-                                          _modificarCantidad(id, -1);
+                                          _modificarCantidad(
+                                            id,
+                                            -1,
+                                            variante: item.variante,
+                                          );
                                           setModalState(() {});
                                         },
                                       ),
@@ -5106,7 +5621,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           size: 14,
                                         ),
                                         onPressed: () {
-                                          _modificarCantidad(id, 1);
+                                          _modificarCantidad(
+                                            id,
+                                            1,
+                                            variante: item.variante,
+                                          );
                                           setModalState(() {});
                                         },
                                       ),
@@ -5131,7 +5650,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                       ? 'Quitar de la orden'
                                       : 'Quitar del pedido',
                                   onPressed: () {
-                                    _modificarCantidad(id, -cant);
+                                    _modificarCantidad(
+                                      id,
+                                      -cant,
+                                      variante: item.variante,
+                                    );
                                     setModalState(() {});
                                   },
                                 ),
