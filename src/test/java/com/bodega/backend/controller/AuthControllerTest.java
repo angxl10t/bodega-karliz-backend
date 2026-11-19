@@ -227,4 +227,118 @@ public class AuthControllerTest {
         verify(starterPackService).provisionarStarterPackParaBodega(nuevaBodega);
         verify(usuarioRepository).save(any(Usuario.class));
     }
+
+    @Test
+    void testRegistrarBodega_ConGiroPolleria_GuardaGiroYRetornaEnRespuesta() {
+        com.bodega.backend.dto.RegistroBodegaDTO dto = new com.bodega.backend.dto.RegistroBodegaDTO();
+        dto.setNombreComercial("Pollería & Brasas El Carbón");
+        dto.setUsername("carbon_admin");
+        dto.setPassword("polleria123");
+        dto.setGiroNegocio("POLLERIA");
+
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(loginRateLimiterService.isBlocked(anyString(), eq("carbon_admin"))).thenReturn(false);
+        when(usuarioRepository.existsByUsernameIgnoreCase("carbon_admin")).thenReturn(false);
+
+        Bodega nuevaBodega = new Bodega();
+        nuevaBodega.setIdBodega(20L);
+        nuevaBodega.setNombreComercial("Pollería & Brasas El Carbón");
+        nuevaBodega.setGiroNegocio("POLLERIA");
+        nuevaBodega.setPlan("PRO");
+
+        when(bodegaRepository.save(any(Bodega.class))).thenReturn(nuevaBodega);
+        when(passwordEncoder.encode("polleria123")).thenReturn("$2a$10$hashed");
+        when(jwtUtil.generateToken("carbon_admin", "ADMIN", 20L, "PRO")).thenReturn("jwt.token.polleria");
+
+        ResponseEntity<Map<String, String>> response = authController.registrarBodega(dto, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("POLLERIA", response.getBody().get("giroNegocio"));
+        assertEquals("Pollería & Brasas El Carbón", response.getBody().get("nombreBodega"));
+    }
+
+    @Test
+    void testLoginCajero_ConPinCorrecto_RetornaTokenYDatosTienda() {
+        com.bodega.backend.dto.LoginCajeroPinDTO dto = new com.bodega.backend.dto.LoginCajeroPinDTO();
+        dto.setIdBodega(1L);
+        dto.setPin("1234");
+
+        Usuario cajero = new Usuario();
+        cajero.setIdUsuario(5L);
+        cajero.setUsername("cajero_carlos");
+        cajero.setNombreCompleto("Carlos Morales");
+        cajero.setRol("CAJERO");
+        cajero.setEstado(true);
+        cajero.setPin("$2a$10$pinHashed");
+        cajero.setBodega(bodega);
+
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(loginRateLimiterService.isBlocked(anyString(), anyString())).thenReturn(false);
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+        when(usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(1L)).thenReturn(java.util.List.of(cajero));
+        when(passwordEncoder.matches("1234", "$2a$10$pinHashed")).thenReturn(true);
+        when(jwtUtil.generateToken("cajero_carlos", "CAJERO", 1L, "PRO")).thenReturn("jwt.token.cajero.carlos");
+
+        ResponseEntity<Map<String, String>> response = authController.loginCajero(dto, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("jwt.token.cajero.carlos", response.getBody().get("token"));
+        assertEquals("CAJERO", response.getBody().get("rol"));
+        assertEquals("Carlos Morales", response.getBody().get("nombreCompleto"));
+        assertEquals("Bodega Central", response.getBody().get("nombreBodega"));
+    }
+
+    @Test
+    void testLoginCajero_ConPinIncorrecto_RetornaUnauthorized() {
+        com.bodega.backend.dto.LoginCajeroPinDTO dto = new com.bodega.backend.dto.LoginCajeroPinDTO();
+        dto.setIdBodega(1L);
+        dto.setPin("9999");
+
+        Usuario cajero = new Usuario();
+        cajero.setIdUsuario(5L);
+        cajero.setUsername("cajero_carlos");
+        cajero.setPin("$2a$10$pinHashed");
+        cajero.setEstado(true);
+        cajero.setBodega(bodega);
+
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(loginRateLimiterService.isBlocked(anyString(), anyString())).thenReturn(false);
+        when(bodegaRepository.findById(1L)).thenReturn(Optional.of(bodega));
+        when(usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(1L)).thenReturn(java.util.List.of(cajero));
+        when(passwordEncoder.matches("9999", "$2a$10$pinHashed")).thenReturn(false);
+
+        ResponseEntity<Map<String, String>> response = authController.loginCajero(dto, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertTrue(response.getBody().get("error").contains("PIN incorrecto"));
+    }
+
+    @Test
+    void testListarCajerosTerminal_RetornaAvataresEIniciales() {
+        Usuario c1 = new Usuario();
+        c1.setIdUsuario(10L);
+        c1.setNombreCompleto("Carlos Morales");
+        c1.setUsername("carlos");
+        c1.setRol("CAJERO");
+
+        Usuario c2 = new Usuario();
+        c2.setIdUsuario(11L);
+        c2.setNombreCompleto("Lucía Romero");
+        c2.setUsername("lucia");
+        c2.setRol("CAJERO");
+
+        when(usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(1L)).thenReturn(java.util.List.of(c1, c2));
+
+        ResponseEntity<java.util.List<com.bodega.backend.dto.CajeroTerminalDTO>> response = authController.listarCajerosTerminal(1L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(2, response.getBody().size());
+        assertEquals("CM", response.getBody().get(0).getIniciales());
+        assertEquals("Carlos Morales", response.getBody().get(0).getNombreCompleto());
+        assertEquals("LR", response.getBody().get(1).getIniciales());
+    }
 }

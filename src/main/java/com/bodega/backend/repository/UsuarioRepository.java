@@ -33,5 +33,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     @EntityGraph(attributePaths = {"bodega"})
     List<Usuario> findByBodega_IdBodegaOrderByRolAscUsernameAsc(Long idBodega);
 
+    @EntityGraph(attributePaths = {"bodega"})
+    List<Usuario> findByBodega_IdBodegaAndEstadoTrue(Long idBodega);
+
     long countByBodega_IdBodegaAndEstadoTrue(Long idBodega);
 }

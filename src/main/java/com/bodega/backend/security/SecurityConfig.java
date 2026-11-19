@@ -115,9 +115,9 @@ public class SecurityConfig {
 
                 // Inicio de sesión y registro de nueva bodega son públicos en /api/auth
 
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/registrar-bodega").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/login", "/api/auth/login-cajero", "/api/auth/registrar-bodega").permitAll()
 
-                .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**", "/api/auth/recuperar-password/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/login/**", "/api/auth/login-cajero", "/api/auth/terminal/**", "/api/auth/registrar-bodega", "/api/auth/registrar-bodega/**", "/api/auth/recuperar-password/**").permitAll()
 
                 // Health check ultraligero público para monitor de Render (diagnóstico restringido a SUPERADMIN)
 

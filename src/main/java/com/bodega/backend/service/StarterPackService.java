@@ -516,8 +516,91 @@ public class StarterPackService {
         {"2050000299698", "Limpiavidrios Sapolio Aroma Lavanda 650ml", "Sapolio", "Limpieza y Cuidado del Hogar", "11.90", "9.50", "packshots/limpiavidrios_sapolio_650ml.png"}
     };
 
+    // --- CATÁLOGOS ESPECIALIZADOS PARA OTROS GIROS DE NEGOCIO ---
+    public static final String[][] CATEGORIAS_POLLERIA = {
+        {"Brasas y Pollos", "1/4, 1/2 y Pollo entero a la brasa, pechugas y piernas"},
+        {"Porciones y Guarniciones", "Papas fritas amarillas, ensaladas fresca y cocida, arroz chaufa"},
+        {"Bebidas y Gaseosas", "Gaseosas familiares, personales, chicha morada y maracuyá"},
+        {"Salsas y Cremas", "Ají pollero de la casa, mayonesa, tártara, vinagreta y mostaza"},
+        {"Combos Familiares", "Combos de pollo + papas + ensalada + gaseosa de 1.5L"}
+    };
+
+    public static final String[][] PRODUCTOS_POLLERIA = {
+        {"POL001", "1/4 Pollo a la Brasa con Papas y Ensalada", "La Brasa", "Brasas y Pollos", "18.50", "12.00", "packshots/pollo_brasa_cuarto.png"},
+        {"POL002", "1/2 Pollo a la Brasa con Papas y Ensalada", "La Brasa", "Brasas y Pollos", "34.00", "22.00", "packshots/pollo_brasa_medio.png"},
+        {"POL003", "1 Pollo Entero a la Brasa con Papas y Ensalada", "La Brasa", "Brasas y Pollos", "64.00", "42.00", "packshots/pollo_brasa_entero.png"},
+        {"POL004", "1 Pollo a la Brasa Solo (Sin Papas ni Ensalada)", "La Brasa", "Brasas y Pollos", "48.00", "32.00", "packshots/pollo_brasa_solo.png"},
+        {"POL005", "Mostrito Especial (1/4 Pollo + Chaufa + Papas)", "La Brasa", "Brasas y Pollos", "22.00", "14.50", "packshots/mostrito_especial.png"},
+        {"POL006", "Porción de Papas Fritas Amarillas", "La Brasa", "Porciones y Guarniciones", "8.00", "4.50", "packshots/papas_fritas_porcion.png"},
+        {"POL007", "Porción de Ensalada Fresca Clásica", "La Brasa", "Porciones y Guarniciones", "6.00", "3.00", "packshots/ensalada_porcion.png"},
+        {"POL008", "Porción de Arroz Chaufa Pollero", "La Brasa", "Porciones y Guarniciones", "7.00", "3.80", "packshots/arroz_chaufa_porcion.png"},
+        {"POL009", "Jarra de Chicha Morada Casera 1 Litro", "La Brasa", "Bebidas y Gaseosas", "9.00", "4.00", "packshots/chicha_morada_jarra.png"},
+        {"POL010", "Inca Kola Sabor Original 1.5 Litros", "Inca Kola", "Bebidas y Gaseosas", "7.50", "5.20", "packshots/inka_kola.png"},
+        {"POL011", "Coca Cola Sabor Original 1.5 Litros", "Coca Cola", "Bebidas y Gaseosas", "7.50", "5.20", "packshots/coca_cola.png"},
+        {"POL012", "Inca Kola Personal 500ml", "Inca Kola", "Bebidas y Gaseosas", "3.50", "2.30", "packshots/inka_kola_500ml.png"},
+        {"POL013", "Porción de Crema de Ají Pollero Extra", "La Brasa", "Salsas y Cremas", "2.00", "0.80", "packshots/salsas_aji_pollero.png"},
+        {"POL014", "Combo Banquete Familiar (1 Pollo + Papas + Ensalada + Gaseosa 1.5L)", "La Brasa", "Combos Familiares", "69.90", "46.00", "packshots/combo_familiar_polleria.png"}
+    };
+
+    public static final String[][] CATEGORIAS_CHIFA = {
+        {"Arroces y Salteados", "Chaufas de pollo, carne, chancho, mariscos y aeropuertos"},
+        {"Sopas y Wantanes", "Sopa wantán, fuchifú, wantán frito y siu mai"},
+        {"Especialidades y Platos Fuertes", "Chi Jau Kay, Ti Pa Kay, Kam Lu Wantán, lomo saltado"},
+        {"Bebidas y Refrescos", "Gaseosas, té helado jazmín, chicha y cervezas"}
+    };
+
+    public static final String[][] PRODUCTOS_CHIFA = {
+        {"CHF001", "Arroz Chaufa de Pollo Clásico", "Chifa Express", "Arroces y Salteados", "16.00", "9.50", "packshots/chifa_chaufa_pollo.png"},
+        {"CHF002", "Arroz Chaufa de Carne de Res", "Chifa Express", "Arroces y Salteados", "19.00", "11.50", "packshots/chifa_chaufa_carne.png"},
+        {"CHF003", "Aeropuerto Especial de Pollo", "Chifa Express", "Arroces y Salteados", "20.00", "12.00", "packshots/chifa_aeropuerto.png"},
+        {"CHF004", "Tallarín Saltado de Pollo en Trozos", "Chifa Express", "Arroces y Salteados", "18.00", "10.80", "packshots/chifa_tallarin_saltado.png"},
+        {"CHF005", "Pollo Chi Jau Kay con Arroz Chaufa", "Chifa Express", "Especialidades y Platos Fuertes", "22.00", "13.50", "packshots/chifa_chi_jau_kay.png"},
+        {"CHF006", "Pollo Ti Pa Kay con Salsa de Tamarindo y Chaufa", "Chifa Express", "Especialidades y Platos Fuertes", "22.00", "13.50", "packshots/chifa_tipakay.png"},
+        {"CHF007", "Kam Lu Wantán Agridulce Especial", "Chifa Express", "Especialidades y Platos Fuertes", "26.00", "15.00", "packshots/chifa_kam_lu_wantan.png"},
+        {"CHF008", "Wantán Frito x 6 unidades con Salsa Tamarindo", "Chifa Express", "Sopas y Wantanes", "8.00", "3.80", "packshots/chifa_wantan_frito.png"},
+        {"CHF009", "Sopa Wantán Especial con Fideos y Pollo", "Chifa Express", "Sopas y Wantanes", "14.00", "7.50", "packshots/chifa_sopa_wantan.png"},
+        {"CHF010", "Sopa Fuchifú de Pollo", "Chifa Express", "Sopas y Wantanes", "14.00", "7.50", "packshots/chifa_sopa_fuchifu.png"},
+        {"CHF011", "Jarra de Té Helado Chifa con Limón 1 Litro", "Chifa Express", "Bebidas y Refrescos", "8.00", "3.00", "packshots/chifa_te_helado.png"},
+        {"CHF012", "Inca Kola Sabor Original 1.5 Litros", "Inca Kola", "Bebidas y Refrescos", "7.50", "5.20", "packshots/inka_kola.png"}
+    };
+
+    public static final String[][] CATEGORIAS_FASTFOOD = {
+        {"Pollo Broaster y Frito", "Piezas de pollo broaster crujiente, alitas bbq y nuggets"},
+        {"Hamburguesas y Sánguches", "Hamburguesas a la parrilla, royal, clásicas y sánguches de pollo"},
+        {"Salchipapas y Piqueos", "Salchipapas clásicas, especiales, mixtas y tequeños"},
+        {"Jugos y Bebidas", "Jugos naturales de fruta fresca, batidos y gaseosas"}
+    };
+
+    public static final String[][] PRODUCTOS_FASTFOOD = {
+        {"FF001", "1/4 Pollo Broaster Crujiente con Papas y Ensalada", "Burger & Broaster", "Pollo Broaster y Frito", "14.50", "9.00", "packshots/fastfood_broaster.png"},
+        {"FF002", "Alitas Broaster x 6 unidades con Papas Fritas", "Burger & Broaster", "Pollo Broaster y Frito", "16.00", "9.80", "packshots/fastfood_alitas.png"},
+        {"FF003", "Salchipapa Clásica con Papas Fritas y Hot Dog", "Burger & Broaster", "Salchipapas y Piqueos", "11.00", "6.20", "packshots/fastfood_salchipapa_clasica.png"},
+        {"FF004", "Salchipapa Especial con Huevo Frito y Queso", "Burger & Broaster", "Salchipapas y Piqueos", "14.00", "8.00", "packshots/fastfood_salchipapa_especial.png"},
+        {"FF005", "Hamburguesa Clásica a la Plancha con Papas", "Burger & Broaster", "Hamburguesas y Sánguches", "10.00", "5.80", "packshots/fastfood_burger_clasica.png"},
+        {"FF006", "Hamburguesa Royal con Queso, Jamón y Huevo", "Burger & Broaster", "Hamburguesas y Sánguches", "15.00", "8.50", "packshots/fastfood_burger_royal.png"},
+        {"FF007", "Sánguche de Pollo Deshilachado Especial", "Burger & Broaster", "Hamburguesas y Sánguches", "8.50", "4.80", "packshots/fastfood_sanguche_pollo.png"},
+        {"FF008", "Tequeños Rellenos de Queso x 8 con Guacamole", "Burger & Broaster", "Salchipapas y Piqueos", "12.00", "6.50", "packshots/fastfood_tequenos.png"},
+        {"FF009", "Jugo Especial de Fresa con Leche Vaso 500ml", "Burger & Broaster", "Jugos y Bebidas", "8.50", "4.20", "packshots/fastfood_jugo_fresa.png"},
+        {"FF010", "Chicha Morada Casera Vaso 500ml", "Burger & Broaster", "Jugos y Bebidas", "4.00", "1.80", "packshots/fastfood_chicha_vaso.png"},
+        {"FF011", "Inca Kola Personal 500ml", "Inca Kola", "Jugos y Bebidas", "3.00", "2.30", "packshots/inka_kola_500ml.png"}
+    };
+
+    public static String[][] obtenerCategoriasParaGiro(String giro) {
+        if ("POLLERIA".equalsIgnoreCase(giro)) return CATEGORIAS_POLLERIA;
+        if ("CHIFA".equalsIgnoreCase(giro)) return CATEGORIAS_CHIFA;
+        if ("FASTFOOD".equalsIgnoreCase(giro)) return CATEGORIAS_FASTFOOD;
+        return CATEGORIAS_CANONICAS;
+    }
+
+    public static String[][] obtenerProductosParaGiro(String giro) {
+        if ("POLLERIA".equalsIgnoreCase(giro)) return PRODUCTOS_POLLERIA;
+        if ("CHIFA".equalsIgnoreCase(giro)) return PRODUCTOS_CHIFA;
+        if ("FASTFOOD".equalsIgnoreCase(giro)) return PRODUCTOS_FASTFOOD;
+        return PRODUCTOS_STARTER_PACK;
+    }
+
     /**
-     * Asegura que existan las 12 categorías canónicas oficiales para la bodega indicada.
+     * Asegura que existan las categorías oficiales para el giro de la bodega indicada.
      */
     @Transactional
     public Map<String, Categoria> asegurarCategoriasCanonicas(Bodega bodega) {
@@ -525,7 +608,10 @@ public class StarterPackService {
         if (bodega == null || bodega.getIdBodega() == null) return map;
 
         Long idBodega = bodega.getIdBodega();
-        for (String[] def : CATEGORIAS_CANONICAS) {
+        String giro = bodega.getGiroNegocio() != null ? bodega.getGiroNegocio() : "BODEGA";
+        String[][] categorias = obtenerCategoriasParaGiro(giro);
+
+        for (String[] def : categorias) {
             String nombre = def[0];
             String descripcion = def[1];
 
@@ -739,12 +825,27 @@ public class StarterPackService {
             log.warn("[StarterPackService] Error al consultar preset global en BD, usando memoria: {}", e.getMessage());
         }
 
-        for (String[] pData : PRODUCTOS_STARTER_PACK) {
-            String ean = pData[0].trim();
-            itemsPorEan.putIfAbsent(ean, new StarterPackItemRecord(
-                    ean, pData[1], pData[2], pData[3],
-                    new BigDecimal(pData[4]), new BigDecimal(pData[5]), pData[6]
-            ));
+        String giro = bodegaManaged.getGiroNegocio() != null ? bodegaManaged.getGiroNegocio() : "BODEGA";
+        String[][] productosGiro = obtenerProductosParaGiro(giro);
+
+        if (!"BODEGA".equalsIgnoreCase(giro) && !"GENERAL".equalsIgnoreCase(giro)) {
+            // Catálogo inicial enfocado exclusivamente en el rubro gastronómico seleccionado
+            itemsPorEan.clear();
+            for (String[] pData : productosGiro) {
+                String ean = pData[0].trim();
+                itemsPorEan.put(ean, new StarterPackItemRecord(
+                        ean, pData[1], pData[2], pData[3],
+                        new BigDecimal(pData[4]), new BigDecimal(pData[5]), pData[6]
+                ));
+            }
+        } else {
+            for (String[] pData : PRODUCTOS_STARTER_PACK) {
+                String ean = pData[0].trim();
+                itemsPorEan.putIfAbsent(ean, new StarterPackItemRecord(
+                        ean, pData[1], pData[2], pData[3],
+                        new BigDecimal(pData[4]), new BigDecimal(pData[5]), pData[6]
+                ));
+            }
         }
 
         List<Producto> nuevosPorGuardar = new ArrayList<>();

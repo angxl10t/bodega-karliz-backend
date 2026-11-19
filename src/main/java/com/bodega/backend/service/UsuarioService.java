@@ -106,6 +106,12 @@ public class UsuarioService {
                 if (!usuarioExistente.getEstado()) {
                     usuarioExistente.setEstado(true);
                     usuarioExistente.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
+                    String pinExistente = dto.getPin() != null && !dto.getPin().isBlank()
+                            ? dto.getPin().trim()
+                            : (dto.getPassword().trim().matches("^[0-9]{4,6}$") ? dto.getPassword().trim() : null);
+                    if (pinExistente != null) {
+                        usuarioExistente.setPin(passwordEncoder.encode(pinExistente));
+                    }
                     usuarioExistente.setRol(normalizedRol);
                     if (dto.getNombreCompleto() != null && !dto.getNombreCompleto().isBlank()) {
                         usuarioExistente.setNombreCompleto(dto.getNombreCompleto().trim());
@@ -138,6 +144,12 @@ public class UsuarioService {
             usuario.setNombreCompleto(dto.getNombreCompleto() != null && !dto.getNombreCompleto().isBlank() ? dto.getNombreCompleto().trim() : null);
             usuario.setEmail(dto.getEmail() != null && !dto.getEmail().isBlank() ? dto.getEmail().trim().toLowerCase() : null);
             usuario.setPassword(passwordEncoder.encode(dto.getPassword().trim()));
+            String pinNuevo = dto.getPin() != null && !dto.getPin().isBlank()
+                    ? dto.getPin().trim()
+                    : (dto.getPassword().trim().matches("^[0-9]{4,6}$") ? dto.getPassword().trim() : null);
+            if (pinNuevo != null) {
+                usuario.setPin(passwordEncoder.encode(pinNuevo));
+            }
             usuario.setRol(normalizedRol);
             usuario.setEstado(true);
             usuario.setFechaCambioClave(OffsetDateTime.now());
@@ -225,6 +237,9 @@ public class UsuarioService {
         }
 
         usuario.setPassword(passwordEncoder.encode(nuevaPassword.trim()));
+        if (nuevaPassword.trim().matches("^[0-9]{4,6}$")) {
+            usuario.setPin(passwordEncoder.encode(nuevaPassword.trim()));
+        }
         usuario.setFechaCambioClave(OffsetDateTime.now());
         usuarioRepository.save(usuario);
         userSecurityCacheService.evict(usuario.getUsername());

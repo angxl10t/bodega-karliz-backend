@@ -19,6 +19,10 @@ public class Usuario {
     @Column(nullable = false, length = 255)
     private String password;
 
+    // PIN numérico de 4 a 6 dígitos para cajeros/mozos en terminales POS (BCrypt hash)
+    @Column(name = "pin", length = 100)
+    private String pin;
+
     @Column(nullable = false, length = 50)
     private String rol;
 

@@ -36,6 +36,10 @@ public class RegistroBodegaDTO {
     @Size(max = 30)
     private String regimenTributario;
 
+    @Pattern(regexp = "^$|^(BODEGA|POLLERIA|CHIFA|FASTFOOD|RESTAURANTE)$", message = "El giro de negocio debe ser: BODEGA, POLLERIA, CHIFA, FASTFOOD o RESTAURANTE")
+    @Size(max = 30)
+    private String giroNegocio;
+
     @Pattern(regexp = "^$|^(BASICO|PRO)$", message = "El plan debe ser BASICO o PRO")
     @Size(max = 30)
     private String plan;

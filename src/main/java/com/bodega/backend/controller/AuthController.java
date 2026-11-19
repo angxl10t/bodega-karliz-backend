@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -122,11 +123,13 @@ public class AuthController {
             response.put("lemaComercial", b.getLemaComercial() != null ? b.getLemaComercial() : "");
             response.put("logoUrl", b.getLogoUrl() != null ? b.getLogoUrl() : "");
             response.put("regimenTributario", b.getRegimenTributario() != null ? b.getRegimenTributario() : "NUEVO_RUS");
+            response.put("giroNegocio", b.getGiroNegocio() != null ? b.getGiroNegocio() : "BODEGA");
             response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(b.getFacturacionSunatActiva())));
         } else {
             response.put("nombreBodega", "");
             response.put("colorPrimario", "#2563EB");
             response.put("regimenTributario", "NUEVO_RUS");
+            response.put("giroNegocio", "BODEGA");
             response.put("facturacionSunatActiva", "false");
         }
 
@@ -166,6 +169,11 @@ public class AuthController {
         } else {
             bodega.setRegimenTributario("NUEVO_RUS");
         }
+        if (dto.getGiroNegocio() != null && !dto.getGiroNegocio().isBlank()) {
+            bodega.setGiroNegocio(dto.getGiroNegocio().trim().toUpperCase());
+        } else {
+            bodega.setGiroNegocio("BODEGA");
+        }
         // Periodo de prueba gratuito inicial de 1 mes (30 días) con Plan Minimarket PRO completo
         bodega.setPlan("PRO");
         bodega.setEstado(true);
@@ -197,6 +205,7 @@ public class AuthController {
         response.put("rol", "ADMIN");
         response.put("idBodega", bodegaGuardada.getIdBodega().toString());
         response.put("nombreBodega", bodegaGuardada.getNombreComercial());
+        response.put("giroNegocio", bodegaGuardada.getGiroNegocio() != null ? bodegaGuardada.getGiroNegocio() : "BODEGA");
         response.put("plan", bodegaGuardada.getPlan());
         response.put("email", admin.getEmail() != null ? admin.getEmail() : "");
         response.put("ruc", bodegaGuardada.getRucDni() != null ? bodegaGuardada.getRucDni() : "");
@@ -209,6 +218,148 @@ public class AuthController {
         response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(bodegaGuardada.getFacturacionSunatActiva())));
         response.put("mensaje", "¡Bienvenido a CajaYa! Tu tienda '" + bodegaGuardada.getNombreComercial() + "' ha sido creada con éxito. Disfruta de 1 mes gratis de Plan PRO.");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // =========================================================================
+    // Login Rápido de Cajero en Terminal con PIN Numérico (Aislamiento Multi-tienda)
+    // =========================================================================
+
+    @PostMapping("/login-cajero")
+    public ResponseEntity<Map<String, String>> loginCajero(
+            @Valid @RequestBody com.bodega.backend.dto.LoginCajeroPinDTO dto,
+            HttpServletRequest request) {
+        String clientIp = extractClientIp(request);
+        String rateLimiterKey = "pin_" + (dto.getIdBodega() != null ? dto.getIdBodega() : "anon") + "_" + clientIp;
+
+        if (loginRateLimiterService.isBlocked(clientIp, rateLimiterKey)) {
+            long remaining = loginRateLimiterService.getRemainingBlockMinutes(clientIp, rateLimiterKey);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Demasiados intentos con PIN. Operación bloqueada temporalmente por " + remaining + " minuto(s).");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
+        }
+
+        // 1. Identificar la tienda vinculada a la terminal
+        com.bodega.backend.entity.Bodega bodega = null;
+        if (dto.getIdBodega() != null) {
+            bodega = bodegaRepository.findById(dto.getIdBodega()).orElse(null);
+        }
+        if (bodega == null && dto.getCodigoTienda() != null && !dto.getCodigoTienda().isBlank()) {
+            String cod = dto.getCodigoTienda().trim();
+            bodega = bodegaRepository.findByRucDni(cod).orElse(null);
+            if (bodega == null && cod.matches("^[0-9]+$")) {
+                try {
+                    bodega = bodegaRepository.findById(Long.parseLong(cod)).orElse(null);
+                } catch (Exception ignored) {}
+            }
+        }
+
+        if (bodega == null) {
+            loginRateLimiterService.registerFailedAttempt(clientIp, rateLimiterKey);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Tienda o terminal no identificada. Por favor selecciona o vincula tu local.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
+        }
+
+        if (!Boolean.TRUE.equals(bodega.getEstado())) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "La tienda vinculada a esta terminal se encuentra deshabilitada o suspendida.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+        }
+
+        // 2. Buscar usuario con PIN dentro de esta tienda exclusivamente
+        Usuario usuarioAutenticado = null;
+        String pinIngresado = dto.getPin().trim();
+
+        if (dto.getIdUsuario() != null) {
+            Usuario u = usuarioRepository.findById(dto.getIdUsuario()).orElse(null);
+            if (u != null && u.getBodega() != null && bodega.getIdBodega().equals(u.getBodega().getIdBodega()) && Boolean.TRUE.equals(u.getEstado())) {
+                boolean match = false;
+                if (u.getPin() != null && passwordEncoder.matches(pinIngresado, u.getPin())) {
+                    match = true;
+                } else if (passwordEncoder.matches(pinIngresado, u.getPassword())) {
+                    match = true;
+                }
+                if (match) {
+                    usuarioAutenticado = u;
+                }
+            }
+        } else {
+            List<Usuario> usuariosDeTienda = usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
+            for (Usuario u : usuariosDeTienda) {
+                boolean match = false;
+                if (u.getPin() != null && passwordEncoder.matches(pinIngresado, u.getPin())) {
+                    match = true;
+                } else if (passwordEncoder.matches(pinIngresado, u.getPassword())) {
+                    match = true;
+                }
+                if (match) {
+                    usuarioAutenticado = u;
+                    break;
+                }
+            }
+        }
+
+        if (usuarioAutenticado == null) {
+            loginRateLimiterService.registerFailedAttempt(clientIp, rateLimiterKey);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "PIN incorrecto para esta terminal.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+        }
+
+        // Éxito: limpiar intentos
+        loginRateLimiterService.resetAttempts(clientIp, rateLimiterKey);
+
+        Long idBodega = bodega.getIdBodega();
+        String planBodega = bodega.getPlan() != null ? bodega.getPlan() : "PRO";
+        String token = jwtUtil.generateToken(usuarioAutenticado.getUsername(), usuarioAutenticado.getRol(), idBodega, planBodega);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", token);
+        response.put("rol", usuarioAutenticado.getRol());
+        response.put("idBodega", idBodega.toString());
+        response.put("nombreBodega", bodega.getNombreComercial() != null ? bodega.getNombreComercial() : "");
+        response.put("giroNegocio", bodega.getGiroNegocio() != null ? bodega.getGiroNegocio() : "BODEGA");
+        response.put("username", usuarioAutenticado.getUsername());
+        response.put("nombreCompleto", usuarioAutenticado.getNombreCompleto() != null ? usuarioAutenticado.getNombreCompleto() : usuarioAutenticado.getUsername());
+        response.put("plan", planBodega);
+        response.put("email", usuarioAutenticado.getEmail() != null ? usuarioAutenticado.getEmail() : "");
+        response.put("ruc", bodega.getRucDni() != null ? bodega.getRucDni() : "");
+        response.put("direccion", bodega.getDireccion() != null ? bodega.getDireccion() : "");
+        response.put("telefono", bodega.getTelefono() != null ? bodega.getTelefono() : "");
+        response.put("colorPrimario", bodega.getColorPrimario() != null ? bodega.getColorPrimario() : "#2563EB");
+        response.put("lemaComercial", bodega.getLemaComercial() != null ? bodega.getLemaComercial() : "");
+        response.put("logoUrl", bodega.getLogoUrl() != null ? bodega.getLogoUrl() : "");
+        response.put("regimenTributario", bodega.getRegimenTributario() != null ? bodega.getRegimenTributario() : "NUEVO_RUS");
+        response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(bodega.getFacturacionSunatActiva())));
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/terminal/{idBodega}/cajeros")
+    public ResponseEntity<List<com.bodega.backend.dto.CajeroTerminalDTO>> listarCajerosTerminal(@PathVariable Long idBodega) {
+        if (idBodega == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<Usuario> usuarios = usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
+        List<com.bodega.backend.dto.CajeroTerminalDTO> cajeros = usuarios.stream()
+                .filter(u -> !"SUPERADMIN".equalsIgnoreCase(u.getRol()))
+                .map(u -> {
+                    String nombre = u.getNombreCompleto() != null && !u.getNombreCompleto().isBlank()
+                            ? u.getNombreCompleto()
+                            : u.getUsername();
+                    String[] partes = nombre.trim().split("\\s+");
+                    String iniciales = partes.length >= 2
+                            ? (partes[0].substring(0, 1) + partes[1].substring(0, 1)).toUpperCase()
+                            : nombre.substring(0, Math.min(2, nombre.length())).toUpperCase();
+                    return new com.bodega.backend.dto.CajeroTerminalDTO(
+                            u.getIdUsuario(),
+                            nombre,
+                            u.getUsername(),
+                            iniciales,
+                            u.getRol()
+                    );
+                })
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(cajeros);
     }
 
     // =========================================================================

@@ -31,6 +31,11 @@ public class UsuarioDTO {
     @Size(min = 4, max = 72, message = "La contraseña o PIN debe tener entre 4 y 72 caracteres")
     private String password;
 
+    // PIN numérico de 4 a 6 dígitos para cajeros en terminales POS
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Pattern(regexp = "^$|^[0-9]{4,6}$", message = "El PIN debe tener entre 4 y 6 dígitos numéricos")
+    private String pin;
+
     @NotBlank(message = "El rol es obligatorio")
     @Pattern(regexp = "(?i)^(ADMIN|CAJERO)$", message = "El rol debe ser ADMIN o CAJERO")
     private String rol;
