@@ -27,6 +27,7 @@ import '../../core/theme_provider.dart';
 import '../../core/widgets/water_drop_theme_transition.dart';
 import '../../core/gastronomia_helper.dart';
 import 'pedido_web_service.dart';
+import 'widgets/catalogo_gastronomico_view.dart';
 
 class ItemCarritoPublico {
   final int idProducto;
@@ -142,6 +143,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   bool _isEnviandoPedido = false;
+  String _modalidadEntrega = 'DELIVERY'; // 'DELIVERY' | 'RECOJO'
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _notasPedidoCtrl = TextEditingController();
   final ScrollController _catScrollCtrl = ScrollController();
@@ -151,7 +153,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   bool get _esPolleria => _giroNegocio == 'POLLERIA';
   bool get _esChifa => _giroNegocio == 'CHIFA';
-  bool get _esFastFood => _giroNegocio == 'FASTFOOD';
+  bool get _esFastFood =>
+      _giroNegocio == 'FASTFOOD' || _giroNegocio.contains('FAST');
   bool get _esRestaurante => _giroNegocio == 'RESTAURANTE';
   bool get _esGastronomico =>
       _esPolleria || _esChifa || _esFastFood || _esRestaurante;
@@ -747,23 +750,24 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         buffer.writeln('(Incluye botellas retornables)');
       }
       buffer.writeln('');
-      if (_bodega['deliveryActivo'] == false) {
-        if (_esGastronomico) {
+      if (_esGastronomico) {
+        if (_modalidadEntrega == 'RECOJO' ||
+            _bodega['deliveryActivo'] == false) {
           buffer.writeln('Modalidad: Para llevar / Recojo en local');
           buffer.writeln(
             '¿Me confirman tiempo estimado de preparación para pasar a recoger?',
           );
         } else {
-          buffer.writeln('Modalidad: Retiro en tienda');
-          buffer.writeln(
-            '¿Me confirman disponibilidad para recoger en su local?',
-          );
-        }
-      } else {
-        if (_esGastronomico) {
           buffer.writeln('Modalidad: Delivery / Envío a domicilio');
           buffer.writeln(
             '¿Me confirman cobertura y tiempo estimado de entrega a mi dirección?',
+          );
+        }
+      } else {
+        if (_bodega['deliveryActivo'] == false) {
+          buffer.writeln('Modalidad: Retiro en tienda');
+          buffer.writeln(
+            '¿Me confirman disponibilidad para recoger en su local?',
           );
         } else {
           buffer.writeln(
@@ -1658,6 +1662,83 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   Widget _buildCatalogoProView(bool isDark) {
+    if (_esGastronomico) {
+      return CatalogoGastronomicoView(
+        bodega: _bodega,
+        productos: _productosFiltrados,
+        totalProductosCount: _productos.length,
+        categorias: _categorias,
+        categoriaSeleccionada: _categoriaSeleccionada,
+        onSeleccionarCategoria: (cat) {
+          _searchDebounce?.cancel();
+          setState(() {
+            _categoriaSeleccionada = cat;
+            _filtroBusqueda = '';
+            _searchCtrl.clear();
+            _recomputeProductosFiltrados();
+          });
+        },
+        conteoPorCategoria: _conteoPorCategoria,
+        ofertasCount: _ofertasCount,
+        filtroBusqueda: _filtroBusqueda,
+        searchController: _searchCtrl,
+        onBuscar: (q) {
+          _searchDebounce?.cancel();
+          _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+            setState(() {
+              _filtroBusqueda = q.trim();
+              _recomputeProductosFiltrados();
+            });
+          });
+        },
+        onLimpiarBusqueda: () {
+          _searchDebounce?.cancel();
+          _searchCtrl.clear();
+          setState(() {
+            _filtroBusqueda = '';
+            _recomputeProductosFiltrados();
+          });
+        },
+        ordenSeleccionado: _ordenSeleccionado,
+        onCambiarOrden: (ord) {
+          setState(() {
+            _ordenSeleccionado = ord;
+            _recomputeProductosFiltrados();
+          });
+        },
+        promociones: _promociones,
+        carrito: _carrito,
+        cantidadDeProductoEnCarrito: _cantidadDeProductoEnCarrito,
+        onAgregarProducto: (prod) {
+          final nombre = prod['nombre']?.toString() ?? '';
+          final categoria = prod['categoria']?.toString() ?? '';
+          final id = (prod['idProducto'] is num)
+              ? (prod['idProducto'] as num).toInt()
+              : int.tryParse(prod['idProducto']?.toString() ?? '') ?? 0;
+          if (GastronomiaHelper.esProductoConPresa(nombre, categoria)) {
+            _mostrarDetalleProductoOnline(prod);
+          } else {
+            _modificarCantidad(id, 1);
+          }
+        },
+        onModificarCantidad: (id, delta) => _modificarCantidad(id, delta),
+        onVerDetalleProducto: (prod) => _mostrarDetalleProductoOnline(prod),
+        colorMarca: _colorMarca,
+        colorPromocion: _colorPromocion,
+        isDark: isDark,
+        modalidadEntrega: _modalidadEntrega,
+        onCambiarModalidad: (mod) {
+          setState(() => _modalidadEntrega = mod);
+        },
+        onVerCarrito: _mostrarCarritoModal,
+        onActualizarCatalogo: _cargarCatalogo,
+      );
+    }
+
+    return _buildBodegaProView(isDark);
+  }
+
+  Widget _buildBodegaProView(bool isDark) {
     final mediaQuery = MediaQuery.of(context);
     final double shortestSide = mediaQuery.size.shortestSide;
     final bool isPhysicalTablet = shortestSide >= 600;
