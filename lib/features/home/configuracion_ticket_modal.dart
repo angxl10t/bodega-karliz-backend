@@ -40,7 +40,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
   late TextEditingController _horarioCtrl;
   late TextEditingController _redesCtrl;
 
-  bool _mostrarQr = true;
+  bool _mostrarQr = false;
   String _tipoQr = 'YAPE';
   String _giroNegocio = 'BODEGA';
   late TextEditingController _numeroQrCtrl;

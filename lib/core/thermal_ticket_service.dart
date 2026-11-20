@@ -101,6 +101,167 @@ class ThermalTicketService {
     return safeLeft + pad + cleanRight;
   }
 
+  /// Divide un texto largo en palabras respetando el ancho máximo y centra cada línea resultante.
+  static String wrapCenter(String text, [int width = width58mm]) {
+    final clean = sanitize(text);
+    if (clean.isEmpty) return '';
+    final paragraphs = clean.split('\n');
+    final List<String> resultLines = [];
+
+    for (final paragraph in paragraphs) {
+      final pTrim = paragraph.trim();
+      if (pTrim.isEmpty) continue;
+      if (pTrim.length <= width) {
+        resultLines.add(center(pTrim, width));
+        continue;
+      }
+
+      final words = pTrim.split(RegExp(r'\s+'));
+      String currentLine = '';
+
+      for (final word in words) {
+        if (word.isEmpty) continue;
+        if (currentLine.isEmpty) {
+          if (word.length <= width) {
+            currentLine = word;
+          } else {
+            resultLines.add(center(word.substring(0, width), width));
+            currentLine = word.substring(width);
+          }
+        } else if (currentLine.length + 1 + word.length <= width) {
+          currentLine += ' $word';
+        } else {
+          resultLines.add(center(currentLine, width));
+          currentLine = word;
+        }
+      }
+      if (currentLine.isNotEmpty) {
+        resultLines.add(center(currentLine, width));
+      }
+    }
+
+    return resultLines.join('\n');
+  }
+
+  /// Divide texto en líneas por palabras con anchos específicos para la primera línea y subsiguientes.
+  static List<String> _wrapTextWords(
+    String text,
+    int firstWidth,
+    int nextWidth,
+  ) {
+    final clean = text.trim();
+    if (clean.isEmpty) return [''];
+    if (clean.length <= firstWidth) return [clean];
+
+    final words = clean.split(RegExp(r'\s+'));
+    final result = <String>[];
+    String current = '';
+    int targetWidth = firstWidth;
+
+    for (final word in words) {
+      if (word.isEmpty) continue;
+      if (current.isEmpty) {
+        if (word.length <= targetWidth) {
+          current = word;
+        } else {
+          final cut = targetWidth;
+          result.add(word.substring(0, cut));
+          targetWidth = nextWidth;
+          current = word.substring(cut);
+        }
+      } else if (current.length + 1 + word.length <= targetWidth) {
+        current += ' $word';
+      } else {
+        result.add(current);
+        targetWidth = nextWidth;
+        current = word;
+      }
+    }
+    if (current.isNotEmpty) {
+      result.add(current);
+    }
+    return result;
+  }
+
+  /// Formatea la lista de productos con columnas estándar tipo boleta fiscal / retail:
+  /// Cant. Desc. P.U. Imp.
+  /// Envolviendo las descripciones largas e indentándolas limpiamente bajo Desc.
+  static List<String> formatItemRows(
+    List<TicketItem> items, [
+    int width = width58mm,
+  ]) {
+    final List<String> lines = [];
+    final bool is80mm = width >= width80mm;
+
+    // Ancho de columnas según tipo de papel
+    final int cantColWidth = is80mm ? 5 : 4;
+    final int puColWidth = is80mm ? 8 : 7;
+    final int impColWidth = is80mm ? 8 : 7;
+    final int pricesTotalWidth = puColWidth + impColWidth;
+
+    for (final item in items) {
+      String cantStr = item.cantidad % 1 == 0
+          ? item.cantidad.toInt().toString()
+          : (item.cantidad * 100 % 1 == 0
+                ? item.cantidad.toStringAsFixed(2)
+                : item.cantidad.toStringAsFixed(3));
+
+      final int cantFieldWidth = cantStr.length < cantColWidth
+          ? cantColWidth
+          : cantStr.length + 1;
+      final String cantPadded = cantStr.padRight(cantFieldWidth);
+
+      final double pu = item.precioUnitario > 0
+          ? item.precioUnitario
+          : (item.cantidad > 0 ? item.subtotal / item.cantidad : 0.0);
+      final String puStr = 'S/${pu.toStringAsFixed(2)}'.padLeft(puColWidth);
+      final String impStr = 'S/${item.subtotal.toStringAsFixed(2)}'.padLeft(
+        impColWidth,
+      );
+
+      // Nombre completo del producto con variante si existe
+      String descCompleta = sanitize(item.nombre);
+      if (item.variante != null && item.variante!.trim().isNotEmpty) {
+        descCompleta += ' ${sanitize(item.variante!)}';
+      }
+
+      final int descCol1Width = (width - cantFieldWidth - pricesTotalWidth)
+          .clamp(4, width);
+      final int descNextWidth = (width - cantFieldWidth).clamp(4, width);
+
+      final descChunks = _wrapTextWords(
+        descCompleta,
+        descCol1Width,
+        descNextWidth,
+      );
+
+      // Línea 1: Cantidad | Descripción | P.U. | Imp.
+      final String desc1 = (descChunks.isNotEmpty ? descChunks.first : '')
+          .padRight(descCol1Width);
+      lines.add('$cantPadded$desc1$puStr$impStr');
+
+      // Líneas subsiguientes indentadas
+      final String indent = ' ' * cantFieldWidth;
+      for (int i = 1; i < descChunks.length; i++) {
+        lines.add('$indent${descChunks[i]}');
+      }
+
+      // Observaciones / notas
+      if (item.notas != null && item.notas!.trim().isNotEmpty) {
+        final notasChunks = _wrapTextWords(
+          '(${sanitize(item.notas!.trim())})',
+          descNextWidth,
+          descNextWidth,
+        );
+        for (final n in notasChunks) {
+          lines.add('$indent$n');
+        }
+      }
+    }
+
+    return lines;
+  }
+
   /// Genera la secuencia binaria estándar ESC/POS para imprimir un código QR (GS ( k)
   /// Compatible con impresoras térmicas Epson, Xprinter, Sunmi, Goojprt y Zjiang.
   static List<int> generateEscPosQrBytes(String qrData, {int moduleSize = 5}) {
@@ -175,98 +336,150 @@ class ThermalTicketService {
     final buffer = StringBuffer();
     final fechaVenta = fecha ?? DateTime.now();
     final d = fechaVenta;
-    final dateStr =
-        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
 
-    // Cabecera de la Bodega (Nivel 1 & 2)
+    // 1. Cabecera Comercial y Fiscal (Centrada con wrapping limpio)
     if (nombreComercio.isNotEmpty) {
-      buffer.writeln(center(nombreComercio, width));
+      buffer.writeln(center(sanitize(nombreComercio), width));
     }
     if (lemaComercial != null && lemaComercial.isNotEmpty) {
-      buffer.writeln(center('"$lemaComercial"', width));
+      buffer.writeln(wrapCenter('"$lemaComercial"', width));
     }
     final bool esInformal = regimenTributario == 'INFORMAL';
     if (!esInformal) {
       if (rucDni != null && rucDni.isNotEmpty) {
-        buffer.writeln(center('RUC/DNI: $rucDni', width));
+        final cleanRuc = sanitize(rucDni);
+        if (cleanRuc.toUpperCase().startsWith('RUC') ||
+            cleanRuc.toUpperCase().startsWith('DNI')) {
+          buffer.writeln(center(cleanRuc, width));
+        } else if (cleanRuc.length == 11) {
+          buffer.writeln(center('RUC: $cleanRuc', width));
+        } else if (cleanRuc.length == 8) {
+          buffer.writeln(center('DNI: $cleanRuc', width));
+        } else {
+          buffer.writeln(center('RUC: $cleanRuc', width));
+        }
       }
-      buffer.writeln(center('Regimen: NUEVO RUS (Ley 30877)', width));
+      if (regimenTributario != null &&
+          regimenTributario.isNotEmpty &&
+          regimenTributario != 'GENERAL' &&
+          regimenTributario != 'INFORMAL') {
+        buffer.writeln(center('Regimen: $regimenTributario', width));
+      }
     }
     if (direccion != null && direccion.isNotEmpty) {
-      buffer.writeln(center(direccion, width));
+      buffer.writeln(wrapCenter(direccion, width));
     }
     if (telefono != null && telefono.isNotEmpty) {
-      buffer.writeln(center(telefono, width));
+      final cleanTel = sanitize(telefono);
+      final telLabel =
+          cleanTel.toLowerCase().startsWith('tel') ||
+              cleanTel.toLowerCase().startsWith('telf')
+          ? cleanTel
+          : 'Telf: $cleanTel';
+      buffer.writeln(center(telLabel, width));
     }
-    buffer.writeln(divider(width, '='));
+    if (cfg.redesSociales.isNotEmpty && cfg.redesSociales.contains('@')) {
+      final cleanMail = sanitize(cfg.redesSociales);
+      final mailLabel = cleanMail.toLowerCase().startsWith('email')
+          ? cleanMail
+          : 'Email: $cleanMail';
+      buffer.writeln(center(mailLabel, width));
+    }
+    buffer.writeln(divider(width, '-'));
 
-    // Datos del Comprobante (Boleta de Venta en Nuevo RUS o Ticket de Mostrador en modo Informal)
+    // 2. Tipo de Comprobante y Serie-Correlativo
     final bool esBoleta =
         !esInformal &&
         (tipoComprobante == 'BOLETA_ELECTRONICA' ||
             tipoComprobante == 'BOLETA');
+    final bool esFactura =
+        !esInformal &&
+        (tipoComprobante == 'FACTURA_ELECTRONICA' ||
+            tipoComprobante == 'FACTURA');
 
     if (esBoleta) {
-      buffer.writeln(center('BOLETA DE VENTA', width));
-      if (serieCorrelativo != null && serieCorrelativo.isNotEmpty) {
-        buffer.writeln(
-          twoColumns('SERIE-CORRELATIVO:', serieCorrelativo, width),
-        );
-      }
+      buffer.writeln(center('BOLETA DE VENTA ELECTRONICA', width));
+      final numStr = (serieCorrelativo != null && serieCorrelativo.isNotEmpty)
+          ? serieCorrelativo
+          : (ticketId != null
+                ? 'B001-${ticketId.toString().padLeft(8, '0')}'
+                : 'B001-00000001');
+      buffer.writeln(center(numStr, width));
+    } else if (esFactura) {
+      buffer.writeln(center('FACTURA ELECTRONICA', width));
+      final numStr = (serieCorrelativo != null && serieCorrelativo.isNotEmpty)
+          ? serieCorrelativo
+          : (ticketId != null
+                ? 'F001-${ticketId.toString().padLeft(8, '0')}'
+                : 'F001-00000001');
+      buffer.writeln(center(numStr, width));
     } else {
-      final ticketNum = ticketId != null
-          ? '#${ticketId.toString().padLeft(6, '0')}'
-          : 'TICKET DE VENTA';
-      buffer.writeln(twoColumns('COMPROBANTE:', ticketNum, width));
+      buffer.writeln(center('BOLETA DE VENTA', width));
+      final numStr = (serieCorrelativo != null && serieCorrelativo.isNotEmpty)
+          ? serieCorrelativo
+          : (ticketId != null
+                ? '#${ticketId.toString().padLeft(6, '0')}'
+                : 'TICKET DE VENTA');
+      buffer.writeln(center(numStr, width));
     }
+    buffer.writeln(divider(width, '-'));
 
-    buffer.writeln(twoColumns('FECHA:', dateStr, width));
-    if (cajero != null && cajero.isNotEmpty) {
-      buffer.writeln(twoColumns('CAJERO:', cajero, width));
-    }
+    // 3. Metadatos de Emisión y Cliente
+    final fechaStr =
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    final horaStr =
+        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
+    buffer.writeln('Fecha Emision: $fechaStr');
+    buffer.writeln('Hora Emision: $horaStr');
 
     final docCli =
         (clienteDocumento != null &&
-            clienteDocumento.isNotEmpty &&
-            clienteDocumento != '00000000')
-        ? clienteDocumento
+            clienteDocumento.trim().isNotEmpty &&
+            clienteDocumento.trim() != '00000000')
+        ? clienteDocumento.trim()
         : null;
-    buffer.writeln(twoColumns('CLIENTE:', clienteNombre, width));
+
+    final rawNombre =
+        (clienteNombre.trim().isNotEmpty &&
+            clienteNombre.trim() != 'Público General')
+        ? clienteNombre.trim()
+        : 'Clientes Varios';
+    final cliNombre = sanitize(rawNombre);
+    buffer.writeln('Cliente: $cliNombre');
+
     if (docCli != null) {
-      final docLabel = docCli.length == 11
-          ? 'RUC:'
-          : (docCli.length == 8 ? 'DNI:' : 'DOC:');
-      buffer.writeln(twoColumns(docLabel, docCli, width));
-    }
-    buffer.writeln(divider(width, '-'));
-
-    // Encabezado de Productos (CANT  DESCRIPCION  TOTAL)
-    if (width == width58mm) {
-      buffer.writeln('CANT  DESCRIPCION         IMPORTE');
+      if (docCli.length == 11) {
+        buffer.writeln('RUC: $docCli');
+      } else if (docCli.length == 8) {
+        buffer.writeln('DNI: $docCli');
+      } else {
+        buffer.writeln('Doc: $docCli');
+      }
     } else {
-      buffer.writeln(
-        'CANT  DESCRIPCION                                IMPORTE',
-      );
+      buffer.writeln('Doc: 99999999');
+    }
+
+    if (cajero != null && cajero.trim().isNotEmpty) {
+      buffer.writeln('Cajero: ${cajero.trim()}');
     }
     buffer.writeln(divider(width, '-'));
 
-    // Lista de ítems vendidos
-    for (final item in items) {
-      final cantStr = item.cantidad % 1 == 0
-          ? item.cantidad.toInt().toString()
-          : (item.cantidad * 100 % 1 == 0
-                ? item.cantidad.toStringAsFixed(2)
-                : item.cantidad.toStringAsFixed(3));
-      final precioStr = 'S/ ${item.subtotal.toStringAsFixed(2)}';
-      final desc = item.nombre;
-
-      final leftSide = '$cantStr x $desc';
-      buffer.writeln(twoColumns(leftSide, precioStr, width));
+    // 4. Encabezado de Productos (Cant. Desc. P.U. Imp.)
+    if (width == width58mm) {
+      buffer.writeln('Cant. Desc.        P.U.   Imp.');
+    } else {
+      buffer.writeln('Cant. Desc.                     P.U.     Imp.');
     }
+    buffer.writeln(divider(width, '-'));
 
-    buffer.writeln(divider(width, '='));
+    // 5. Lista de Ítems Formateada con P.U. e Imp.
+    final itemLines = formatItemRows(items, width);
+    for (final line in itemLines) {
+      buffer.writeln(line);
+    }
+    buffer.writeln(divider(width, '-'));
 
-    // Totales y Liquidación de Pago
+    // 6. Totales y Liquidación de Pago
     if (descuento != null && descuento > 0.01) {
       final sub = total + descuento;
       buffer.writeln(
@@ -280,9 +493,23 @@ class ThermalTicketService {
         ),
       );
     }
+
+    if (esBoleta || esFactura) {
+      final opGravada = total / 1.18;
+      final igv = total - opGravada;
+      buffer.writeln(
+        twoColumns('OP. GRAVADA:', 'S/ ${opGravada.toStringAsFixed(2)}', width),
+      );
+      buffer.writeln(
+        twoColumns('I.G.V. (18%):', 'S/ ${igv.toStringAsFixed(2)}', width),
+      );
+    }
+
     buffer.writeln(
       twoColumns('TOTAL A PAGAR:', 'S/ ${total.toStringAsFixed(2)}', width),
     );
+    buffer.writeln(divider(width, '-'));
+
     buffer.writeln(
       twoColumns('METODO DE PAGO:', metodoPago.toUpperCase(), width),
     );
@@ -304,59 +531,35 @@ class ThermalTicketService {
           width,
         ),
       );
+    } else {
+      buffer.writeln(
+        twoColumns('IMPORTE PAGADO:', 'S/ ${total.toStringAsFixed(2)}', width),
+      );
     }
-
     buffer.writeln(divider(width, '-'));
 
-    if (esBoleta) {
+    if (esBoleta || esFactura) {
       buffer.writeln(
         center('Representacion impresa de comprobante electronico', width),
       );
+      if (sunatHash != null && sunatHash.isNotEmpty) {
+        buffer.writeln(center('Res. SUNAT / Hash: $sunatHash', width));
+      }
       buffer.writeln(divider(width, '-'));
     }
 
-    // Código QR de Cobro / SUNAT (Pie de Ticket)
-    if (cfg.mostrarQr) {
-      final qrType = cfg.tipoQr.toUpperCase();
-      final qrData = cfg.numeroQr.trim().isNotEmpty
-          ? cfg.numeroQr.trim()
-          : (telefono ?? '');
-
-      if (qrType == 'YAPE' || qrType == 'PLIN') {
-        buffer.writeln(center('PAGA CON $qrType ESCANEANDO:', width));
-        if (qrData.isNotEmpty) {
-          buffer.writeln(center('Numero: $qrData', width));
-        }
-        if (cfg.titularQr.trim().isNotEmpty) {
-          buffer.writeln(center('Titular: ${cfg.titularQr.trim()}', width));
-        }
-        // Etiqueta interpretable por RawBT / drivers térmicos
-        buffer.writeln(center('[qr]$qrData[/qr]', width));
-        buffer.writeln(divider(width, '-'));
-      } else if (qrType == 'CATALOGO') {
-        buffer.writeln(center('CATALOGO DIGITAL Y PEDIDOS ONLINE:', width));
-        if (qrData.isNotEmpty) {
-          buffer.writeln(center('[qr]$qrData[/qr]', width));
-        }
-        buffer.writeln(divider(width, '-'));
-      } else if (qrType == 'PERSONALIZADO' && qrData.isNotEmpty) {
-        buffer.writeln(center('[qr]$qrData[/qr]', width));
-        buffer.writeln(divider(width, '-'));
-      }
-    }
-
-    // Pie de Ticket Personalizado
+    // 7. Pie de Ticket Personalizado (Sin QR del negocio)
     if (cfg.mensajeAgradecimiento.isNotEmpty) {
-      buffer.writeln(center(cfg.mensajeAgradecimiento, width));
+      buffer.writeln(wrapCenter(cfg.mensajeAgradecimiento, width));
     }
     if (cfg.mensajeSecundario.isNotEmpty) {
-      buffer.writeln(center(cfg.mensajeSecundario, width));
+      buffer.writeln(wrapCenter(cfg.mensajeSecundario, width));
     }
     if (cfg.horarioAtencion.isNotEmpty) {
-      buffer.writeln(center(cfg.horarioAtencion, width));
+      buffer.writeln(wrapCenter(cfg.horarioAtencion, width));
     }
-    if (cfg.redesSociales.isNotEmpty) {
-      buffer.writeln(center(cfg.redesSociales, width));
+    if (cfg.redesSociales.isNotEmpty && !cfg.redesSociales.contains('@')) {
+      buffer.writeln(wrapCenter(cfg.redesSociales, width));
     }
     buffer.writeln(center('CajaYa Cloud POS', width));
     buffer.writeln(); // Avance de papel

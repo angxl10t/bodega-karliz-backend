@@ -129,7 +129,7 @@ void main() {
 
       expect(receipt.contains('BODEGA LOS ANDES'), isTrue);
       expect(receipt.contains('"Calidad y confianza en tu mesa"'), isTrue);
-      expect(receipt.contains('RUC/DNI: 20601234567'), isTrue);
+      expect(receipt.contains('RUC: 20601234567'), isTrue);
       expect(receipt.contains('CajaYa Cloud POS'), isTrue);
     });
 
@@ -180,7 +180,7 @@ void main() {
       expect(textDecoded.contains('Bodega La Ciguena'), isTrue);
       expect(textDecoded.contains('Aguita Mineral'), isTrue);
       expect(textDecoded.contains('Guero Perez'), isTrue);
-      expect(textDecoded.contains('RUC/DNI: 10443322119'), isTrue);
+      expect(textDecoded.contains('RUC: 10443322119'), isTrue);
       expect(textDecoded.contains('"Calidad y confianza"'), isTrue);
     });
   });

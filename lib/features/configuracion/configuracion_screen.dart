@@ -84,7 +84,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   String _modoConexion = 'rawbt';
   bool _abrirGaveta = true;
   bool _impresionAutomatica = false;
-  bool _mostrarQr = true;
+  bool _mostrarQr = false;
   String _tipoQr = 'YAPE';
   final _numeroQrCtrl = TextEditingController();
   final _titularQrCtrl = TextEditingController();

@@ -64,7 +64,7 @@ class ConfiguracionTicket {
     this.mensajeSecundario = 'Conserve su comprobante',
     this.horarioAtencion = 'Atención: Lun-Dom 7:00 am - 11:00 pm',
     this.redesSociales = '',
-    this.mostrarQr = true,
+    this.mostrarQr = false,
     this.tipoQr = 'YAPE',
     this.numeroQr = '',
     this.titularQr = '',
@@ -150,7 +150,7 @@ class ConfiguracionTicket {
           json['horarioAtencion'] as String? ??
           'Atención: Lun-Dom 7:00 am - 11:00 pm',
       redesSociales: json['redesSociales'] as String? ?? '',
-      mostrarQr: json['mostrarQr'] as bool? ?? true,
+      mostrarQr: json['mostrarQr'] as bool? ?? false,
       tipoQr: json['tipoQr'] as String? ?? 'YAPE',
       numeroQr: json['numeroQr'] as String? ?? '',
       titularQr: json['titularQr'] as String? ?? '',

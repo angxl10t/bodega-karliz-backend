@@ -16,7 +16,7 @@ void main() {
         expect(config.abrirGaveta, isTrue);
         expect(config.impresionAutomatica, isFalse);
         expect(config.modoConexion, equals('rawbt'));
-        expect(config.mostrarQr, isTrue);
+        expect(config.mostrarQr, isFalse);
         expect(config.tipoQr, equals('YAPE'));
         expect(config.mensajeAgradecimiento, contains('Gracias por su compra'));
       },
@@ -176,17 +176,14 @@ void main() {
       },
     );
 
-    test('generateReceiptText includes custom footer and Yape QR section', () {
+    test('generateReceiptText includes custom footer without business QR', () {
       const customConfig = ConfiguracionTicket(
         anchoPapel: 32,
         mensajeAgradecimiento: '¡Gracias por su lealtad!',
         mensajeSecundario: 'Garantia de 7 dias',
         horarioAtencion: 'Lun-Dom 6am-11pm',
         redesSociales: 'WhatsApp: 999 888 777',
-        mostrarQr: true,
-        tipoQr: 'YAPE',
-        numeroQr: '999888777',
-        titularQr: 'Karliz Bodega',
+        mostrarQr: false,
       );
 
       final text = ThermalTicketService.generateReceiptText(
@@ -212,10 +209,7 @@ void main() {
       expect(text, contains('Bodega Karliz'));
       expect(text, contains('TOTAL A PAGAR:'));
       expect(text, contains('S/ 8.40'));
-      expect(text, contains('PAGA CON YAPE ESCANEANDO:'));
-      expect(text, contains('999888777'));
-      expect(text, contains('Karliz Bodega'));
-      expect(text, contains('[qr]999888777[/qr]'));
+      expect(text.contains('[qr]'), isFalse);
       expect(text, contains('Gracias por su lealtad'));
       expect(text, contains('Garantia de 7 dias'));
       expect(text, contains('Lun-Dom 6am-11pm'));
