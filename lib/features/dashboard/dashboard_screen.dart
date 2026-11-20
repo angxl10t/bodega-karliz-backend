@@ -1773,24 +1773,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
           ),
-          if (isDesktopHeader) ...[
-            const SizedBox(width: 7),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                'F2',
-                style: GoogleFonts.outfit(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

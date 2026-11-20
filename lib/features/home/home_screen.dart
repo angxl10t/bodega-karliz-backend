@@ -1287,8 +1287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   title: isFullScreen
                                       ? 'Salir de Pantalla Completa'
                                       : 'Pantalla Completa Mostrador',
-                                  subtitle:
-                                      'Modo Kiosco POS (Atajo con tecla F11)',
+                                  subtitle: 'Modo Kiosco POS para pantallas táctiles y tablets',
                                   trailing: Switch.adaptive(
                                     value: isFullScreen,
                                     activeThumbColor: AppTheme.brandPrimary,
@@ -3253,21 +3252,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     index: 0,
                     icon: LucideIcons.layoutGrid,
                     label: 'Inicio',
-                    shortcut: 'F1',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 1,
                     icon: LucideIcons.shoppingBag,
                     label: 'Venta POS',
-                    shortcut: 'F2',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
                     index: 2,
                     icon: LucideIcons.banknote,
                     label: 'Caja & Arqueo',
-                    shortcut: 'F4',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
@@ -3276,7 +3272,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: _esGastronomico
                         ? 'Carta / Menú'
                         : 'Stock / Catálogo',
-                    shortcut: 'F3',
                     isDark: isDark,
                   ),
                   _buildSidebarNavTile(
@@ -3287,7 +3282,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: _esGastronomico
                         ? 'Clientes & Delivery'
                         : 'Clientes & Fiados',
-                    shortcut: 'F5',
                     isDark: isDark,
                   ),
 
@@ -3601,7 +3595,6 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required String label,
     required bool isDark,
-    String? shortcut,
   }) {
     final bool isSelected = _selectedIndex == index;
     final brandPrimary = Theme.of(context).colorScheme.primary;
@@ -3613,7 +3606,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         child: Tooltip(
-          message: shortcut != null ? '$label ($shortcut)' : label,
+          message: label,
           preferBelow: false,
           child: InkWell(
             mouseCursor: SystemMouseCursors.click,
@@ -3714,35 +3707,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              if (shortcut != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.08)
-                        : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : const Color(0xFFE2E8F0),
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Text(
-                    shortcut,
-                    style: GoogleFonts.outfit(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
