@@ -1,11 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bodega_mobile/core/permisos_cajero_service.dart';
 import 'package:bodega_mobile/features/auth/auth_service.dart';
 import 'package:bodega_mobile/features/productos/producto_model.dart';
-import 'package:bodega_mobile/features/home/permisos_cajero_modal.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -277,34 +275,6 @@ void main() {
       expect(lista[1].codigo, equals('C'));
       expect(lista[2].codigo, equals('A'));
       expect(lista[3].codigo, equals('D'));
-    });
-  });
-
-  group('PermisosCajeroModal - Renderizado y Ergonomía UI', () {
-    testWidgets('Muestra correctamente los 5 switches y chips de presets', (
-      tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1600));
-
-      await tester.pumpWidget(
-        const MaterialApp(home: Scaffold(body: PermisosCajeroModal())),
-      );
-
-      await tester.pump();
-
-      expect(find.text('Permisos de Cajero'), findsOneWidget);
-      expect(find.text('ROL CAJERO'), findsOneWidget);
-      expect(find.text('Máxima Seguridad'), findsOneWidget);
-      expect(find.text('Estándar Bodega'), findsOneWidget);
-      expect(find.text('Cajero Encargado'), findsOneWidget);
-
-      expect(find.text('Ver Costos de Compra y Margen'), findsOneWidget);
-      expect(find.text('Aplicar Descuentos en Mostrador'), findsOneWidget);
-      expect(find.text('Anular Ventas sin PIN de Admin'), findsOneWidget);
-      expect(find.text('Modificar Precios y Catálogo'), findsOneWidget);
-      expect(find.text('Acceso a Finanzas y Utilidades (BI)'), findsOneWidget);
-
-      expect(find.text('Guardar Configuración de Permisos'), findsOneWidget);
     });
   });
 }

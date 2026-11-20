@@ -1,6 +1,5 @@
 import 'package:bodega_mobile/core/widgets/pago_yape_modal.dart';
 import 'package:bodega_mobile/features/home/mi_suscripcion_modal.dart';
-import 'package:bodega_mobile/features/home/plan_y_personal_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,53 +65,6 @@ void main() {
         );
         expect(find.text('Máx. 150'), findsOneWidget);
         expect(find.text('ILIMITADO'), findsOneWidget);
-        expect(tester.takeException(), isNull);
-      },
-    );
-
-    testWidgets(
-      'PlanYPersonalSheet renders subscription cards without overflow on narrow mobile (340x760) and opens PagoYapeModal',
-      (tester) async {
-        tester.view.physicalSize = const Size(340, 760);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(() {
-          tester.view.resetPhysicalSize();
-          tester.view.resetDevicePixelRatio();
-        });
-
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: PlanYPersonalSheet(
-                nombreBodega: 'Bodega El Progreso del Barrio SAC',
-                plan: 'BASICO',
-                currentUsername: 'administrador_bodega_principal',
-                userRol: 'ADMIN',
-                seccionInicial: PlanSheetSeccion.todas,
-              ),
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        expect(find.text('Mi Bodega Online'), findsOneWidget);
-        expect(find.text('Promociones y Descuentos'), findsOneWidget);
-        expect(
-          find.text('COMPARATIVA DETALLADA: BÁSICO VS PRO'),
-          findsOneWidget,
-        );
-        expect(tester.takeException(), isNull);
-
-        await tester.ensureVisible(
-          find.text('Pagar / Mejorar con Yape / Plin (S/ 39 o S/ 79)'),
-        );
-        await tester.tap(
-          find.text('Pagar / Mejorar con Yape / Plin (S/ 39 o S/ 79)'),
-        );
-        await tester.pumpAndSettle();
-
-        expect(find.text('Pago Directo Yape / Plin'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );

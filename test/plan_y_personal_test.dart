@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bodega_mobile/features/home/bodega_service.dart';
-import 'package:bodega_mobile/features/home/plan_y_personal_sheet.dart';
 
 void main() {
   group('BodegaInfo & Subscription Model Tests', () {
@@ -36,63 +34,6 @@ void main() {
 
       expect(info.plan, 'BASICO');
       expect(info.estado, isTrue);
-    });
-  });
-
-  group('PlanYPersonalSheet Widget Security & UI Tests', () {
-    testWidgets('Displays Mi Bodega Online and PRO features for PRO plan', (
-      WidgetTester tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1200));
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: PlanYPersonalSheet(
-              nombreBodega: 'Bodega Demo',
-              plan: 'PRO',
-              currentUsername: 'admin1',
-              userRol: 'ADMIN',
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Debería mostrar la sección de Mi Bodega Online y botón Mi Enlace
-      expect(find.text('Mi Bodega Online'), findsOneWidget);
-      expect(find.text('Promociones y Descuentos'), findsOneWidget);
-      expect(find.text('PRO ONLINE'), findsOneWidget);
-      expect(find.text('Mi Enlace'), findsOneWidget);
-      expect(find.textContaining('Yape / Plin'), findsOneWidget);
-    });
-
-    testWidgets('Displays Activar PRO upgrade card for BASICO plan', (
-      WidgetTester tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(800, 1200));
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: PlanYPersonalSheet(
-              nombreBodega: 'Bodega Central',
-              plan: 'BASICO',
-              currentUsername: 'admin_bodega',
-              userRol: 'ADMIN',
-            ),
-          ),
-        ),
-      );
-
-      await tester.pump();
-
-      // Debería mostrar Mi Bodega Online y Promociones con opción de Activar PRO
-      expect(find.text('Mi Bodega Online'), findsOneWidget);
-      expect(find.text('Promociones y Descuentos'), findsOneWidget);
-      expect(find.text('Activar PRO'), findsNWidgets(2));
-      expect(find.textContaining('Yape / Plin'), findsOneWidget);
     });
   });
 }

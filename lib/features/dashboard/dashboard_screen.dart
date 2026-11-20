@@ -21,8 +21,6 @@ import '../clientes/clientes_screen.dart';
 import '../compras/compras_screen.dart';
 import '../configuracion/configuracion_screen.dart';
 import '../home/bodega_service.dart';
-import '../home/configuracion_ticket_modal.dart';
-import '../home/mi_bodega_online_modal.dart';
 import '../marketing/kit_marketing_barrio_modal.dart';
 import '../movimientos/auditoria_ciega_screen.dart';
 import '../movimientos/kardex_screen.dart';
@@ -796,11 +794,10 @@ class _DashboardScreenState extends State<DashboardScreen>
             );
             return;
           }
-          MiBodegaOnlineModal.show(
+          ConfiguracionScreen.abrir(
             context,
-            nombreBodega: _nombreBodega,
-            telefonoBodega: _telefono,
-            isPro: true,
+            tabInicial: ConfiguracionTab.online,
+            onConfigSaved: () => _cargarDatos(forceRefresh: true),
           );
         },
       ),
@@ -889,7 +886,11 @@ class _DashboardScreenState extends State<DashboardScreen>
         subtitle: 'Tickets & gaveta ESC/POS',
         icon: LucideIcons.printer,
         color: const Color(0xFF0EA5E9),
-        onTap: () => ConfiguracionTicketModal.show(context),
+        onTap: () => ConfiguracionScreen.abrir(
+          context,
+          tabInicial: ConfiguracionTab.hardware,
+          onConfigSaved: () => _cargarDatos(forceRefresh: true),
+        ),
       ),
       _OperacionItem(
         id: 'personal',

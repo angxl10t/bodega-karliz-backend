@@ -2,7 +2,6 @@ import 'package:bodega_mobile/core/theme.dart';
 import 'package:bodega_mobile/core/theme_provider.dart';
 import 'package:bodega_mobile/features/auth/login_screen.dart';
 import 'package:bodega_mobile/features/home/mi_suscripcion_modal.dart';
-import 'package:bodega_mobile/features/home/plan_y_personal_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,7 +73,7 @@ void main() {
     );
 
     testWidgets(
-      'PlanYPersonalSheet & MiSuscripcionModal in dark mode avoid low-contrast AppTheme.textMuted on muted labels',
+      'MiSuscripcionModal in dark mode avoids low-contrast AppTheme.textMuted on muted labels',
       (tester) async {
         tester.view.physicalSize = const Size(420, 820);
         tester.view.devicePixelRatio = 1.0;
@@ -82,35 +81,6 @@ void main() {
           tester.view.resetPhysicalSize();
           tester.view.resetDevicePixelRatio();
         });
-
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: AppTheme.darkTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.dark,
-            home: const Scaffold(
-              body: PlanYPersonalSheet(
-                nombreBodega: 'Bodega Dark Contrast',
-                plan: 'BASICO',
-                currentUsername: 'owner_test',
-                userRol: 'ADMIN',
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        final subtitleWidget = tester.widget<Text>(
-          find.text('Bodega Dark Contrast').first,
-        );
-        expect(
-          subtitleWidget.style?.color,
-          AppTheme.getAdaptiveMutedText(true),
-        );
-        final lowContrastTextsInSheet = tester
-            .widgetList<Text>(find.byType(Text))
-            .where((t) => t.style?.color == AppTheme.textMuted);
-        expect(lowContrastTextsInSheet, isEmpty);
 
         await tester.pumpWidget(
           MaterialApp(

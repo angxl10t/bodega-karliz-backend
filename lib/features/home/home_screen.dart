@@ -24,9 +24,7 @@ import '../../core/responsive_layout.dart';
 import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/accessibility_panel_modal.dart';
 import 'bodega_service.dart';
-import 'mi_suscripcion_modal.dart';
 import '../productos/sugerencias_precio_modal.dart';
-import 'mi_bodega_online_modal.dart';
 import '../legal/libro_reclamaciones_screen.dart';
 import '../legal/terminos_condiciones_screen.dart';
 import '../legal/politica_privacidad_screen.dart';
@@ -528,11 +526,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   Navigator.pop(
                                                     bottomSheetContext,
                                                   );
-                                                  MiSuscripcionModal.show(
+                                                  ConfiguracionScreen.abrir(
                                                     context,
-                                                    nombreBodega: _nombreBodega,
-                                                    planActual: _plan,
-                                                    onPlanUpdated:
+                                                    tabInicial:
+                                                        ConfiguracionTab.plan,
+                                                    onConfigSaved:
                                                         _cargarDatosUsuario,
                                                   );
                                                 }
@@ -712,11 +710,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           InkWell(
                             onTap: () {
                               Navigator.pop(bottomSheetContext);
-                              MiSuscripcionModal.show(
+                              ConfiguracionScreen.abrir(
                                 context,
-                                nombreBodega: _nombreBodega,
-                                planActual: _plan,
-                                onPlanUpdated: _cargarDatosUsuario,
+                                tabInicial: ConfiguracionTab.plan,
+                                onConfigSaved: _cargarDatosUsuario,
                               );
                             },
                             borderRadius: BorderRadius.circular(16),
@@ -816,17 +813,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // Acceso directo a Mi Bodega Online (Catálogo Web, Horarios & Delivery)
+                          // Acceso directo a Mi Tienda / Carta Online (Catálogo Web, Horarios & Delivery)
                           InkWell(
                             onTap: () {
                               Navigator.pop(bottomSheetContext);
-                              MiBodegaOnlineModal.show(
+                              ConfiguracionScreen.abrir(
                                 context,
-                                nombreBodega: _nombreBodega,
-                                telefonoBodega: _bodegaInfo?.telefono ?? '',
-                                isPro:
-                                    _plan.toUpperCase() == 'PRO' ||
-                                    _plan.toUpperCase() == 'CORPORATIVO',
+                                tabInicial: ConfiguracionTab.online,
+                                onConfigSaved: _cargarDatosUsuario,
                               );
                             },
                             borderRadius: BorderRadius.circular(16),
@@ -871,7 +865,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                           children: [
                                             Flexible(
                                               child: Text(
-                                                'Mi Bodega Online',
+                                                _esGastronomico
+                                                    ? 'Mi Carta Web Online'
+                                                    : 'Mi Bodega Online',
                                                 style: GoogleFonts.outfit(
                                                   fontSize: 13.5,
                                                   fontWeight: FontWeight.w700,
@@ -909,125 +905,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         Text(
                                           'Gestiona abierto/cerrado, delivery rápido y enlace web',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 11,
-                                            color: isDark
-                                                ? AppTheme.textDarkSecondary
-                                                : const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    LucideIcons.chevronRight,
-                                    size: 18,
-                                    color: isDark
-                                        ? Colors.white54
-                                        : const Color(0xFF94A3B8),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // Acceso directo a Configuración de Marca y Colores (Plan PRO)
-                          InkWell(
-                            onTap: () {
-                              Navigator.pop(bottomSheetContext);
-                              ConfiguracionScreen.abrir(
-                                context,
-                                tabInicial: ConfiguracionTab.tienda,
-                                onConfigSaved: _cargarDatosUsuario,
-                              );
-                            },
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppTheme.cardDarkHighlight
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.primary
-                                      .withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Icon(
-                                      LucideIcons.palette,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary,
-                                      size: 18,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Flexible(
-                                              child: Text(
-                                                'Personalizar Colores de Tienda',
-                                                style: GoogleFonts.outfit(
-                                                  fontSize: 13.5,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: isDark
-                                                      ? Colors.white
-                                                      : AppTheme.textDark,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 2,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    .withValues(alpha: 0.15),
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                'PRO',
-                                                style: GoogleFonts.outfit(
-                                                  fontSize: 9.5,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Text(
-                                          'Elige tu color preferido para la app y tu catálogo web',
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 11,
                                             color: isDark
@@ -3209,11 +3086,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(width: 10),
           ElevatedButton.icon(
-            onPressed: () => MiSuscripcionModal.show(
+            onPressed: () => ConfiguracionScreen.abrir(
               context,
-              nombreBodega: _nombreBodega,
-              planActual: _plan,
-              onPlanUpdated: _cargarDatosUsuario,
+              tabInicial: ConfiguracionTab.plan,
+              onConfigSaved: _cargarDatosUsuario,
             ),
             icon: const Icon(LucideIcons.arrowRight, size: 13),
             label: Text(
@@ -3539,13 +3415,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     isDark: isDark,
                     onTap: () {
                       HapticFeedback.selectionClick();
-                      MiBodegaOnlineModal.show(
+                      ConfiguracionScreen.abrir(
                         context,
-                        nombreBodega: _nombreBodega,
-                        telefonoBodega: _bodegaInfo?.telefono ?? '',
-                        isPro:
-                            _plan.toUpperCase() == 'PRO' ||
-                            _plan.toUpperCase() == 'CORPORATIVO',
+                        tabInicial: ConfiguracionTab.online,
+                        onConfigSaved: _cargarDatosUsuario,
                       );
                     },
                   ),

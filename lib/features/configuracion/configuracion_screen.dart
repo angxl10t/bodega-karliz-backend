@@ -14,7 +14,6 @@ import '../../core/theme_provider.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../auth/auth_service.dart';
 import '../home/bodega_service.dart';
-import '../home/configuracion_marca_modal.dart';
 import '../home/usuarios_service.dart';
 import 'modal_generar_codigo_terminal.dart';
 

@@ -1227,14 +1227,15 @@ class _ProductosScreenState extends State<ProductosScreen>
             ),
 
             // 3. Cockpit Financiero de Capital o Banner de Catálogo Web
-            if (!_modoCatalogoWeb)
+            if (!_modoCatalogoWeb) ...[
               _buildInventoryCockpit(
                 context,
                 isDark,
                 bajoStockCount,
                 criticoCount,
-              )
-            else
+              ),
+              _buildWarehouseSubmodulesBar(isDark),
+            ] else
               _buildWebCatalogBanner(context, isDark),
 
             ValueListenableBuilder<int>(
@@ -1750,6 +1751,136 @@ class _ProductosScreenState extends State<ProductosScreen>
             child: Icon(icon, size: 18, color: iconColor),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildWarehouseSubmodulesBar(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            if (!_esGastronomico) ...[
+              _buildWarehouseChip(
+                icon: LucideIcons.calendarClock,
+                label: 'Vencimientos FIFO',
+                color: const Color(0xFFD97706),
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const VencimientosScreen(),
+                    ),
+                  ).then((_) => _cargarProductos());
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
+            _buildWarehouseChip(
+              icon: LucideIcons.trash2,
+              label: _esGastronomico ? 'Mermas de Cocina' : 'Mermas & Bajas',
+              color: const Color(0xFFEF4444),
+              isDark: isDark,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MermasScreen()),
+                ).then((_) => _cargarProductos());
+              },
+            ),
+            const SizedBox(width: 8),
+            _buildWarehouseChip(
+              icon: LucideIcons.fileSpreadsheet,
+              label: 'Kardex Auditoría',
+              color: const Color(0xFF64748B),
+              isDark: isDark,
+              onTap: () {
+                HapticFeedback.selectionClick();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const KardexScreen()),
+                );
+              },
+            ),
+            if (!_esGastronomico) ...[
+              const SizedBox(width: 8),
+              _buildWarehouseChip(
+                icon: LucideIcons.clipboardCheck,
+                label: 'Auditoría Ciega',
+                color: AppTheme.brandPrimary,
+                isDark: isDark,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  final esBasico = _bodegaInfo?.plan.toUpperCase() != 'PRO';
+                  if (esBasico) {
+                    PlanUpgradeModal.show(
+                      context,
+                      featureName: 'Auditoría Rápida por Pasillo',
+                      featureDescription:
+                          'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal.',
+                      icon: LucideIcons.clipboardCheck,
+                      onPlanUpdated: _cargarProductos,
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AuditoriaCiegaScreen(),
+                      ),
+                    ).then((_) => _cargarProductos());
+                  }
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWarehouseChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: isDark ? 0.15 : 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: color.withValues(alpha: isDark ? 0.35 : 0.25),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : AppTheme.textDark,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

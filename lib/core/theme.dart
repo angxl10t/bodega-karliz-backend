@@ -749,3 +749,25 @@ class KarlizLogoMark extends StatelessWidget {
     );
   }
 }
+
+class ColorPreset {
+  final String name;
+  final String hex;
+  final Color color;
+
+  const ColorPreset(this.name, this.hex, this.color);
+}
+
+const List<ColorPreset> kColorPresets = [
+  ColorPreset('Cobalto FinTech', '#2563EB', Color(0xFF2563EB)),
+  ColorPreset('Esmeralda Boutique', '#0D9488', Color(0xFF0D9488)),
+  ColorPreset('Verde Retail', '#059669', Color(0xFF059669)),
+  ColorPreset('Índigo Real', '#4F46E5', Color(0xFF4F46E5)),
+  ColorPreset('Violeta SaaS', '#7C3AED', Color(0xFF7C3AED)),
+  ColorPreset('Rubí Moderno', '#E11D48', Color(0xFFE11D48)),
+  ColorPreset('Ámbar Dinámico', '#D97706', Color(0xFFD97706)),
+  ColorPreset('Turquesa Neón', '#06B6D4', Color(0xFF06B6D4)),
+  ColorPreset('Cacao Artesanal', '#78350F', Color(0xFF78350F)),
+  ColorPreset('Fucsia Vibrante', '#C026D3', Color(0xFFC026D3)),
+  ColorPreset('Pizarra Minimal', '#334155', Color(0xFF334155)),
+];
