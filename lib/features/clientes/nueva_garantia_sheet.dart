@@ -254,7 +254,7 @@ class _NuevaGarantiaSheetState extends State<NuevaGarantiaSheet> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(
-                          LucideIcons.wine,
+                          LucideIcons.bottleWine,
                           color: Color(0xFF2563EB),
                           size: 22,
                         ),

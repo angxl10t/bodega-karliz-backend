@@ -2035,6 +2035,53 @@ class _VentasScreenState extends State<VentasScreen>
                                             ),
                                           ),
                                         ],
+                                        if (pedido.incluyeRetornables) ...[
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 3.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF0284C7)
+                                                  .withValues(
+                                                    alpha: isDark ? 0.20 : 0.10,
+                                                  ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: const Color(0xFF0284C7)
+                                                    .withValues(alpha: 0.35),
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  LucideIcons.bottleWine,
+                                                  size: 13,
+                                                  color: Color(0xFF0284C7),
+                                                ),
+                                                const SizedBox(width: 5),
+                                                Text(
+                                                  'Incluye botellas retornables (exigir envases vacíos o garantía)',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark
+                                                        ? const Color(
+                                                            0xFF38BDF8,
+                                                          )
+                                                        : const Color(
+                                                            0xFF0369A1,
+                                                          ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                         const SizedBox(height: 8),
                                         Container(
                                           padding: const EdgeInsets.all(8),
@@ -3044,7 +3091,7 @@ class _VentasScreenState extends State<VentasScreen>
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              LucideIcons.wine,
+              LucideIcons.bottleWine,
               size: 16,
               color: Color(0xFF2563EB),
             ),
@@ -6240,7 +6287,7 @@ class _VentasScreenState extends State<VentasScreen>
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            LucideIcons.wine,
+                            LucideIcons.bottleWine,
                             size: 18,
                             color: Color(0xFF2563EB),
                           ),
@@ -7079,7 +7126,7 @@ class _VentasScreenState extends State<VentasScreen>
                 if (!_esGastronomico) ...[
                   const SizedBox(width: 6),
                   _buildPosActionChip(
-                    icon: LucideIcons.wine,
+                    icon: LucideIcons.bottleWine,
                     label: 'Garantía Botellas',
                     onTap: _abrirModalGarantiaEnvase,
                     isDark: isDark,
@@ -7301,7 +7348,7 @@ class _VentasScreenState extends State<VentasScreen>
                                 IconButton(
                                   tooltip: 'Garantía de Botellas / Retornables',
                                   icon: const Icon(
-                                    LucideIcons.wine,
+                                    LucideIcons.bottleWine,
                                     size: 18,
                                     color: Color(0xFF2563EB),
                                   ),
@@ -9073,7 +9120,7 @@ class _VentasScreenState extends State<VentasScreen>
                     IconButton(
                       tooltip: 'Garantía de Botellas / Retornables',
                       icon: Icon(
-                        LucideIcons.wine,
+                        LucideIcons.bottleWine,
                         size: 17,
                         color: isDark
                             ? AppTheme.textDarkSecondary

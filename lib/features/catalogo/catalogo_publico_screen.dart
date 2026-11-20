@@ -3890,7 +3890,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const Icon(
-                                        LucideIcons.wine,
+                                        LucideIcons.bottleWine,
                                         size: 9.5,
                                         color: Color(0xFF0284C7),
                                       ),
@@ -4490,6 +4490,44 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 ],
                               ),
                             ),
+                            if (_esProductoRetornable(prod))
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0284C7)
+                                      .withValues(alpha: isDark ? 0.22 : 0.12),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFF0284C7)
+                                        .withValues(alpha: 0.35),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.bottleWine,
+                                      size: 12,
+                                      color: Color(0xFF0284C7),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Botella Retornable',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? const Color(0xFF38BDF8)
+                                            : const Color(0xFF0369A1),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -5588,7 +5626,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      if (item.variante != null ||
+                                      if (_esProductoRetornable(prod) ||
+                                          item.variante != null ||
                                           (item.notas != null &&
                                               item.notas!.isNotEmpty)) ...[
                                         const SizedBox(height: 2),
@@ -5596,6 +5635,57 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           spacing: 4,
                                           runSpacing: 2,
                                           children: [
+                                            if (_esProductoRetornable(prod))
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 5,
+                                                      vertical: 1.5,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF0284C7)
+                                                      .withValues(
+                                                        alpha: isDark
+                                                            ? 0.22
+                                                            : 0.12,
+                                                      ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(5),
+                                                  border: Border.all(
+                                                    color: const Color(
+                                                      0xFF0284C7,
+                                                    ).withValues(alpha: 0.35),
+                                                    width: 0.7,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                      LucideIcons.bottleWine,
+                                                      size: 9.5,
+                                                      color: Color(0xFF0284C7),
+                                                    ),
+                                                    const SizedBox(width: 2.5),
+                                                    Text(
+                                                      'Retornable',
+                                                      style: GoogleFonts.outfit(
+                                                        fontSize: 9.5,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: isDark
+                                                            ? const Color(
+                                                                0xFF38BDF8,
+                                                              )
+                                                            : const Color(
+                                                                0xFF0369A1,
+                                                              ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             if (item.variante != null)
                                               Container(
                                                 padding:
@@ -5856,6 +5946,60 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             );
                           },
                         ),
+                      ),
+
+                      // Aviso de Botellas Retornables si el carrito las contiene
+                      Builder(
+                        builder: (_) {
+                          final bool tieneRetornables = _carrito.values.any((
+                            item,
+                          ) {
+                            final p =
+                                _productosPorId[item.idProducto.toString()] ??
+                                const <String, dynamic>{};
+                            return _esProductoRetornable(p);
+                          });
+                          if (!tieneRetornables) return const SizedBox.shrink();
+                          return Container(
+                            margin: const EdgeInsets.fromLTRB(18, 0, 18, 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0284C7)
+                                  .withValues(alpha: isDark ? 0.20 : 0.10),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF0284C7)
+                                    .withValues(alpha: 0.35),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  LucideIcons.bottleWine,
+                                  size: 16,
+                                  color: Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Tu pedido incluye botellas retornables. Recuerda tener tus envases vacíos a cambio al recibir o se cobrará garantía.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? const Color(0xFF7DD3FC)
+                                          : const Color(0xFF0369A1),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
 
                       // Campo Opcional de Indicaciones / Notas

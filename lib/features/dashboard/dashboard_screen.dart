@@ -959,7 +959,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           categoria: 'mostrador',
           title: 'Garantía Botellas',
           subtitle: 'Envases retornables',
-          icon: LucideIcons.wine,
+          icon: LucideIcons.bottleWine,
           color: const Color(0xFF2563EB),
           onTap: () {
             widget.onNavigateTab(4);
