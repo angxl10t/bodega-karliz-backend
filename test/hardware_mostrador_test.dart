@@ -106,7 +106,7 @@ void main() {
         expect(find.text('Ticketera Térmica'), findsOneWidget);
         expect(find.text('Lector de Barras'), findsOneWidget);
         expect(find.text('Gaveta de Dinero'), findsOneWidget);
-        expect(find.text('Atajos & Kiosco'), findsOneWidget);
+        expect(find.text('Pantalla & Kiosco'), findsOneWidget);
 
         // En pestaña Ticketera
         expect(find.text('ANCHO DE PAPEL DE LA TICKETERA'), findsOneWidget);
@@ -132,11 +132,25 @@ void main() {
         expect(find.textContaining('ABRIR GAVETA AHORA'), findsOneWidget);
         expect(find.textContaining('Atajo de teclado F7'), findsOneWidget);
 
-        // Deslizar a pestaña Atajos & Kiosco
+        // Deslizar a pestaña Pantalla & Kiosco
         await tester.drag(find.byType(TabBarView), const Offset(-500, 0));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
-        expect(find.text('F2'), findsOneWidget);
+        expect(
+          find.textContaining('Optimización Táctil para Tablets & Celulares'),
+          findsOneWidget,
+        );
+
+        // Expandir tabla opcional de atajos físicos
+        final atajosTile = find.textContaining('Atajos para teclados físicos');
+        await tester.ensureVisible(atajosTile);
+        await tester.pumpAndSettle();
+        await tester.tap(atajosTile);
+        await tester.pumpAndSettle();
+
+        final f2Finder = find.text('F2');
+        await tester.ensureVisible(f2Finder);
+        expect(f2Finder, findsOneWidget);
         expect(find.text('F4 / F12'), findsOneWidget);
         expect(find.text('F7'), findsOneWidget);
         expect(find.text('F8'), findsOneWidget);

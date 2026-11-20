@@ -6813,15 +6813,19 @@ class _VentasScreenState extends State<VentasScreen>
         PopupMenuItem<String>(
           value: 'fiscal',
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.landmark, size: 15, color: mutedIcon),
-              const SizedBox(width: 10),
-              Text(
-                'Régimen Fiscal (RUS)',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Régimen RUS',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
               ),
             ],
@@ -6830,15 +6834,19 @@ class _VentasScreenState extends State<VentasScreen>
         PopupMenuItem<String>(
           value: 'hardware',
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.cpu, size: 15, color: mutedIcon),
-              const SizedBox(width: 10),
-              Text(
-                'Hardware POS',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Hardware POS',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
               ),
             ],
@@ -6847,15 +6855,19 @@ class _VentasScreenState extends State<VentasScreen>
         PopupMenuItem<String>(
           value: 'ticket',
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.printer, size: 15, color: mutedIcon),
-              const SizedBox(width: 10),
-              Text(
-                'Ticket',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Ticket',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
               ),
             ],
@@ -6864,15 +6876,19 @@ class _VentasScreenState extends State<VentasScreen>
         PopupMenuItem<String>(
           value: 'tips',
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.sparkles, size: 15, color: mutedIcon),
-              const SizedBox(width: 10),
-              Text(
-                'Tips Turno',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Tips Turno',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
               ),
             ],
@@ -6883,15 +6899,19 @@ class _VentasScreenState extends State<VentasScreen>
           value: 'sync',
           enabled: !_isLoading,
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(LucideIcons.refreshCw, size: 15, color: mutedIcon),
-              const SizedBox(width: 10),
-              Text(
-                _isLoading ? 'Sincronizando...' : 'Sincronizar',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _isLoading ? 'Sincronizando...' : 'Sincronizar',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
               ),
             ],
