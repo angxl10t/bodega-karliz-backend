@@ -5,6 +5,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../core/theme.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../../core/thermal_ticket_service.dart';
+import '../configuracion/configuracion_screen.dart';
 import 'bodega_service.dart';
 
 class ConfiguracionTicketModal extends StatefulWidget {
@@ -13,9 +14,10 @@ class ConfiguracionTicketModal extends StatefulWidget {
   const ConfiguracionTicketModal({super.key, this.onSaved});
 
   static Future<void> show(BuildContext context, {VoidCallback? onSaved}) {
-    return showDialog(
-      context: context,
-      builder: (ctx) => ConfiguracionTicketModal(onSaved: onSaved),
+    return ConfiguracionScreen.abrir(
+      context,
+      tabInicial: ConfiguracionTab.hardware,
+      onConfigSaved: onSaved,
     );
   }
 

@@ -7014,7 +7014,7 @@ class _VentasScreenState extends State<VentasScreen>
           value: 'ticket',
           child: Row(
             children: [
-              Icon(LucideIcons.settings, size: 15, color: mutedIcon),
+              Icon(LucideIcons.printer, size: 15, color: mutedIcon),
               const SizedBox(width: 10),
               Text(
                 'Ticket',
