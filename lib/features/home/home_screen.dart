@@ -3322,7 +3322,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: LucideIcons.scrollText,
                     label: 'Kardex Auditoría',
                     color: const Color(0xFF64748B),
-                    badge: 'Kardex',
                     isDark: isDark,
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -3337,7 +3336,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: LucideIcons.calendarClock,
                       label: 'Vencimientos',
                       color: const Color(0xFF64748B),
-                      badge: 'Alertas',
                       isDark: isDark,
                       onTap: () {
                         HapticFeedback.selectionClick();
@@ -3355,7 +3353,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? 'Compras e Insumos'
                         : 'Compras Proveedor',
                     color: const Color(0xFF64748B),
-                    badge: 'Facturas',
                     isDark: isDark,
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -3405,7 +3402,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ? 'Mi Carta Web'
                         : 'Mi Bodega Online',
                     color: const Color(0xFF10B981),
-                    badge: 'Web',
                     isDark: isDark,
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -3420,7 +3416,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: LucideIcons.tag,
                     label: 'Promociones & Ofertas',
                     color: const Color(0xFF8B5CF6),
-                    badge: 'PRO',
                     isDark: isDark,
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -3442,7 +3437,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: LucideIcons.slidersHorizontal,
                     label: 'Panel & Configuración',
                     color: const Color(0xFF64748B),
-                    badge: 'Ajustes',
                     isDark: isDark,
                     onTap: () {
                       HapticFeedback.selectionClick();
@@ -3718,9 +3712,9 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required String label,
     required Color color,
-    required String badge,
     required bool isDark,
     required VoidCallback onTap,
+    String? badge,
   }) {
     if (_railCollapsed) {
       return Padding(
@@ -3795,31 +3789,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppTheme.cardDarkHighlight
-                      : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
+              if (badge != null && badge.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
                     color: isDark
-                        ? AppTheme.borderDark
-                        : const Color(0xFFE2E8F0),
-                    width: 0.8,
+                        ? AppTheme.cardDarkHighlight
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : const Color(0xFFE2E8F0),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    badge,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
                   ),
                 ),
-                child: Text(
-                  badge,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w700,
-                    color: isDark
-                        ? AppTheme.textDarkSecondary
-                        : const Color(0xFF64748B),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
