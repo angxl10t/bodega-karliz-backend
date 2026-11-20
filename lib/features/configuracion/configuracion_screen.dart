@@ -1776,8 +1776,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       isDark: isDark,
       icon: LucideIcons.monitorSmartphone,
       title: 'Terminales POS y Cajas Vinculadas',
-      subtitle:
-          'Dispositivos autorizados de forma segura para inicio rápido con PIN de cajero',
+      subtitle: 'Dispositivos autorizados de forma segura para inicio rápido con PIN de cajero',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

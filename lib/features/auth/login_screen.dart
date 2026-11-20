@@ -234,8 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _loginCajero() async {
     if (_terminalToken == null || _terminalToken!.isEmpty) {
       setState(
-        () => _errorMessage =
-            'Terminal no vinculada. Ingresa el código de 6 dígitos generado por tu Administrador.',
+        () => _errorMessage = 'Terminal no vinculada. Ingresa el código de 6 dígitos generado por tu Administrador.',
       );
       HapticFeedback.heavyImpact();
       return;
@@ -373,9 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: const Text('Cancelar'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.alertRed,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.alertRed),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text(
               'Desvincular',

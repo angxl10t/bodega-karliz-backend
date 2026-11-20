@@ -247,7 +247,10 @@ class _ModalGenerarCodigoTerminalState
               // Caja grande del código OTP
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 18,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppTheme.cardDarkSunken

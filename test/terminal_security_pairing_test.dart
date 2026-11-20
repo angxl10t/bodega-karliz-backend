@@ -81,46 +81,49 @@ void main() {
       expect(await AuthService.getTerminalNombre(), isNull);
     });
 
-    testWidgets('ModalGenerarCodigoTerminal genera y muestra el código OTP de 6 dígitos con cuenta regresiva', (tester) async {
-      final mockAuth = MockAuthServiceTerminal();
-      bool cerrado = false;
+    testWidgets(
+      'ModalGenerarCodigoTerminal genera y muestra el código OTP de 6 dígitos con cuenta regresiva',
+      (tester) async {
+        final mockAuth = MockAuthServiceTerminal();
+        bool cerrado = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.lightTheme,
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () {
-                  ModalGenerarCodigoTerminal.show(
-                    context,
-                    authService: mockAuth,
-                    onCerrar: () => cerrado = true,
-                  );
-                },
-                child: const Text('Abrir'),
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () {
+                    ModalGenerarCodigoTerminal.show(
+                      context,
+                      authService: mockAuth,
+                      onCerrar: () => cerrado = true,
+                    );
+                  },
+                  child: const Text('Abrir'),
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Abrir'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Abrir'));
+        await tester.pumpAndSettle();
 
-      expect(mockAuth.solicitarCodigoLlamado, isTrue);
-      expect(find.text('Vincular Terminal POS'), findsOneWidget);
-      expect(find.text('847291'), findsOneWidget);
-      expect(find.textContaining('Expira en'), findsOneWidget);
-      expect(find.text('Copiar'), findsOneWidget);
-      expect(find.text('Nuevo Código'), findsOneWidget);
-      expect(find.text('Listo / Cerrar'), findsOneWidget);
+        expect(mockAuth.solicitarCodigoLlamado, isTrue);
+        expect(find.text('Vincular Terminal POS'), findsOneWidget);
+        expect(find.text('847291'), findsOneWidget);
+        expect(find.textContaining('Expira en'), findsOneWidget);
+        expect(find.text('Copiar'), findsOneWidget);
+        expect(find.text('Nuevo Código'), findsOneWidget);
+        expect(find.text('Listo / Cerrar'), findsOneWidget);
 
-      await tester.tap(find.text('Listo / Cerrar'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Listo / Cerrar'));
+        await tester.pumpAndSettle();
 
-      expect(cerrado, isTrue);
-    });
+        expect(cerrado, isTrue);
+      },
+    );
   });
 }

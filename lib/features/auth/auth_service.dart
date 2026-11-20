@@ -190,7 +190,8 @@ class AuthService {
     String? terminalToken,
   }) async {
     try {
-      final token = terminalToken ?? await SecureStorageService.read('terminal_token');
+      final token =
+          terminalToken ?? await SecureStorageService.read('terminal_token');
       final Map<String, dynamic> body = {'pin': pin.trim()};
       if (token != null && token.isNotEmpty) {
         body['terminalToken'] = token.trim();
@@ -326,7 +327,8 @@ class AuthService {
         headers['X-Terminal-Token'] = terminalToken;
       }
 
-      final storedId = idBodega ?? await SecureStorageService.read('terminal_id_bodega');
+      final storedId =
+          idBodega ?? await SecureStorageService.read('terminal_id_bodega');
       final uri = (storedId != null && storedId.isNotEmpty)
           ? Uri.parse('${ApiConstants.baseUrl}/auth/terminal/$storedId/cajeros')
           : Uri.parse('${ApiConstants.baseUrl}/auth/terminal/cajeros');
@@ -369,7 +371,8 @@ class AuthService {
           .timeout(const Duration(seconds: 25));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
         final String terminalToken = data['terminalToken'] ?? '';
         final String idBodega = data['idBodega'].toString();
         final String nombreBodega = data['nombreBodega'] ?? '';
@@ -378,7 +381,10 @@ class AuthService {
 
         await SecureStorageService.write('terminal_token', terminalToken);
         await SecureStorageService.write('terminal_id_bodega', idBodega);
-        await SecureStorageService.write('terminal_nombre_bodega', nombreBodega);
+        await SecureStorageService.write(
+          'terminal_nombre_bodega',
+          nombreBodega,
+        );
         await SecureStorageService.write('terminal_nombre', nombreTerm);
         if (idTerm != null) {
           await SecureStorageService.write('terminal_id', idTerm.toString());
@@ -392,7 +398,10 @@ class AuthService {
       );
       return {'success': false, 'error': errorMsg};
     } catch (e) {
-      return {'success': false, 'error': 'Error de conexión al vincular terminal: $e'};
+      return {
+        'success': false,
+        'error': 'Error de conexión al vincular terminal: $e',
+      };
     }
   }
 
@@ -440,7 +449,9 @@ class AuthService {
       if (res.statusCode == 200) {
         return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
       }
-      throw Exception(ApiClient.extractErrorMessage(res, 'No se pudo generar el código'));
+      throw Exception(
+        ApiClient.extractErrorMessage(res, 'No se pudo generar el código'),
+      );
     } catch (e) {
       rethrow;
     }
