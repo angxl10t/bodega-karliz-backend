@@ -1865,6 +1865,7 @@ class _PlanYPersonalSheetState extends State<PlanYPersonalSheet> {
 
     return Align(
       alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      heightFactor: isWide ? 1.0 : null,
 
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 620),

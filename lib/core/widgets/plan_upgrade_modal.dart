@@ -51,6 +51,7 @@ class PlanUpgradeModal extends StatelessWidget {
 
     return Align(
       alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      heightFactor: isWide ? 1.0 : null,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: 520,

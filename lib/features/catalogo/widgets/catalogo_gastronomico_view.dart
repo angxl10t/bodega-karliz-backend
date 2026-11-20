@@ -355,8 +355,12 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
                     ),
                     sliver: SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: screenWidth >= 1050 ? 3 : 2,
-                        childAspectRatio: screenWidth >= 1050 ? 0.88 : 0.82,
+                        crossAxisCount: screenWidth >= 1200
+                            ? 4
+                            : (screenWidth >= 880 ? 3 : 2),
+                        childAspectRatio: screenWidth >= 1200
+                            ? 0.84
+                            : (screenWidth >= 880 ? 0.86 : 0.90),
                         crossAxisSpacing: 18,
                         mainAxisSpacing: 18,
                       ),
@@ -400,8 +404,12 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
                 ),
                 sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: screenWidth >= 1050 ? 3 : 2,
-                    childAspectRatio: screenWidth >= 1050 ? 0.88 : 0.82,
+                    crossAxisCount: screenWidth >= 1200
+                        ? 4
+                        : (screenWidth >= 880 ? 3 : 2),
+                    childAspectRatio: screenWidth >= 1200
+                        ? 0.84
+                        : (screenWidth >= 880 ? 0.86 : 0.90),
                     crossAxisSpacing: 18,
                     mainAxisSpacing: 18,
                   ),
@@ -1751,305 +1759,314 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
     final int cantidadEnCarrito = widget.cantidadDeProductoEnCarrito(id);
     final String descripcion = _generarDescripcionSugerida(nombre, categoria);
 
-    return InkWell(
-      onTap: () => widget.onVerDetalleProducto(prod),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF191412) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDark ? const Color(0xFF2C221D) : const Color(0xFFEDE4D9),
-            width: 1.1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.45)
-                  : const Color(0xFF451A03).withValues(alpha: 0.05),
-              blurRadius: 14,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF191412) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C221D) : const Color(0xFFEDE4D9),
+          width: 1.1,
         ),
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Lado Izquierdo: Información Culinaria, Precio y Acción
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : const Color(0xFF451A03).withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => widget.onVerDetalleProducto(prod),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Lado Izquierdo: Información Culinaria, Precio y Acción
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Badge de Categoría / Presa
-                      Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (esConPresa)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEA580C)
-                                    .withValues(alpha: 0.16),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    LucideIcons.drumstick,
-                                    size: 10,
-                                    color: Color(0xFFEA580C),
+                          // Badge de Categoría / Presa
+                          Row(
+                            children: [
+                              if (esConPresa)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
                                   ),
-                                  const SizedBox(width: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEA580C)
+                                        .withValues(alpha: 0.16),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.drumstick,
+                                        size: 10,
+                                        color: Color(0xFFEA580C),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        nombre.toLowerCase().contains('1/2')
+                                            ? 'Pecho y Pierna'
+                                            : 'Elige Presa',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFFEA580C),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Text(
+                                  categoria.toUpperCase(),
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                    color: isDark
+                                        ? const Color(0xFFF59E0B)
+                                        : const Color(0xFFB45309),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Título del Plato
+                          Text(
+                            nombre,
+                            style: GoogleFonts.outfit(
+                              fontSize: 15.5,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+
+                          // Descripción Culinaria Apetitosa
+                          Text(
+                            descripcion,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              height: 1.3,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Fila de Precio & Botón de Pedir
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Precios
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (tienePromoValida) ...[
                                   Text(
-                                    nombre.toLowerCase().contains('1/2')
-                                        ? 'Pecho y Pierna'
-                                        : 'Elige Presa',
+                                    'S/ ${precio.toStringAsFixed(2)}',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w800,
-                                      color: const Color(0xFFEA580C),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.lineThrough,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'S/ ${promoPrice.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: widget.colorPromocion,
+                                      letterSpacing: -0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ] else ...[
+                                  Text(
+                                    'S/ ${precio.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 17.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: isDark
+                                          ? const Color(0xFFFBBF24)
+                                          : const Color(0xFFC2410C),
+                                      letterSpacing: -0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Botón "Agregar" (con compatibilidad estricta de tests)
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEA580C),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
                               ),
-                            )
-                          else
-                            Text(
-                              categoria.toUpperCase(),
-                              style: GoogleFonts.outfit(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                                color: isDark
-                                    ? const Color(0xFFF59E0B)
-                                    : const Color(0xFFB45309),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
+                            onPressed: () => widget.onAgregarProducto(prod),
+                            icon: Icon(
+                              esConPresa
+                                  ? LucideIcons.drumstick
+                                  : LucideIcons.plus,
+                              size: 14,
+                            ),
+                            label: Text(
+                              'Agregar',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-
-                      // Título del Plato
-                      Text(
-                        nombre,
-                        style: GoogleFonts.outfit(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w900,
-                          color: isDark ? Colors.white : AppTheme.textDark,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Descripción Culinaria Apetitosa
-                      Text(
-                        descripcion,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          height: 1.3,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Fila de Precio & Botón de Pedir
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Precios
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (tienePromoValida) ...[
-                              Text(
-                                'S/ ${precio.toStringAsFixed(2)}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.lineThrough,
-                                  color: isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                'S/ ${promoPrice.toStringAsFixed(2)}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: widget.colorPromocion,
-                                  letterSpacing: -0.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ] else ...[
-                              Text(
-                                'S/ ${precio.toStringAsFixed(2)}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 17.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: isDark
-                                      ? const Color(0xFFFBBF24)
-                                      : const Color(0xFFC2410C),
-                                  letterSpacing: -0.3,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // Botón "Agregar" (con compatibilidad estricta de tests)
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFEA580C),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () => widget.onAgregarProducto(prod),
-                        icon: Icon(
-                          esConPresa ? LucideIcons.drumstick : LucideIcons.plus,
-                          size: 14,
-                        ),
-                        label: Text(
-                          'Agregar',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Lado Derecho: Fotografía Gastronómica (Packshot Estudio)
-            Stack(
-              children: [
-                Container(
-                  width: 116,
-                  height: 116,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : const Color(0xFFE2E8F0),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.25 : 0.06,
-                        ),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: ProductImageWidget(
-                    imagenUrl: imagenUrl,
-                    nombre: nombre,
-                    codigoBarras: codigoBarras,
-                    categoria: categoria,
-                    size: 110,
-                    borderRadius: 16,
-                    isDark: false,
-                    seamless: true,
-                    padding: 4,
                   ),
                 ),
-                if (descuentoPct > 0)
-                  Positioned(
-                    top: 6,
-                    left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
+                const SizedBox(width: 12),
+
+                // Lado Derecho: Fotografía Gastronómica (Packshot Estudio)
+                Stack(
+                  children: [
+                    Container(
+                      width: 116,
+                      height: 116,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '-$descuentoPct%',
-                        style: GoogleFonts.outfit(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : const Color(0xFFE2E8F0),
                         ),
-                      ),
-                    ),
-                  ),
-                if (cantidadEnCarrito > 0)
-                  Positioned(
-                    bottom: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.30),
-                            blurRadius: 6,
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.25 : 0.06,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
                           ),
                         ],
                       ),
-                      child: Text(
-                        'x$cantidadEnCarrito',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
+                      child: ProductImageWidget(
+                        imagenUrl: imagenUrl,
+                        nombre: nombre,
+                        codigoBarras: codigoBarras,
+                        categoria: categoria,
+                        size: 110,
+                        borderRadius: 16,
+                        isDark: false,
+                        seamless: true,
+                        padding: 4,
                       ),
                     ),
-                  ),
+                    if (descuentoPct > 0)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '-$descuentoPct%',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (cantidadEnCarrito > 0)
+                      Positioned(
+                        bottom: 6,
+                        right: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.30),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            'x$cantidadEnCarrito',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -2092,288 +2109,292 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
     final int cantidadEnCarrito = widget.cantidadDeProductoEnCarrito(id);
     final String descripcion = _generarDescripcionSugerida(nombre, categoria);
 
-    return InkWell(
-      onTap: () => widget.onVerDetalleProducto(prod),
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF191412) : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isDark ? const Color(0xFF2C221D) : const Color(0xFFEDE4D9),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.50)
-                  : const Color(0xFF451A03).withValues(alpha: 0.06),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF191412) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2C221D) : const Color(0xFFEDE4D9),
+          width: 1.2,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Gran Fotografía de Plato Superior (Estudio Panorámico)
-            Stack(
-              children: [
-                Container(
-                  height: 170,
-                  width: double.infinity,
-                  color: Colors.white,
-                  child: ProductImageWidget(
-                    imagenUrl: imagenUrl,
-                    nombre: nombre,
-                    codigoBarras: codigoBarras,
-                    categoria: categoria,
-                    size: 160,
-                    borderRadius: 0,
-                    isDark: false,
-                    seamless: true,
-                    padding: 8,
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : const Color(0xFF451A03).withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => widget.onVerDetalleProducto(prod),
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Gran Fotografía de Plato Superior (Estudio Panorámico)
+              Stack(
+                children: [
+                  Container(
+                    height: 170,
+                    width: double.infinity,
+                    color: Colors.white,
+                    child: ProductImageWidget(
+                      imagenUrl: imagenUrl,
+                      nombre: nombre,
+                      codigoBarras: codigoBarras,
+                      categoria: categoria,
+                      size: 160,
+                      borderRadius: 0,
+                      isDark: false,
+                      seamless: true,
+                      padding: 8,
+                    ),
                   ),
-                ),
-                if (descuentoPct > 0)
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEF4444),
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.25),
-                            blurRadius: 6,
+                  if (descuentoPct > 0)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'AHORRAS $descuentoPct%',
+                          style: GoogleFonts.outfit(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        'AHORRAS $descuentoPct%',
-                        style: GoogleFonts.outfit(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ),
-                if (esConPresa)
-                  Positioned(
-                    bottom: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
+                  if (esConPresa)
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.70),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              LucideIcons.drumstick,
+                              size: 11,
+                              color: Color(0xFFF59E0B),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              nombre.toLowerCase().contains('1/2')
+                                  ? 'Pecho y Pierna'
+                                  : 'Elige tu presa',
+                              style: GoogleFonts.outfit(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.70),
-                        borderRadius: BorderRadius.circular(8),
+                    ),
+                  if (cantidadEnCarrito > 0)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.30),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'x$cantidadEnCarrito en orden',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                    ),
+                ],
+              ),
+
+              // Contenido y Datos Culinarios
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            LucideIcons.drumstick,
-                            size: 11,
-                            color: Color(0xFFF59E0B),
-                          ),
-                          const SizedBox(width: 4),
                           Text(
-                            nombre.toLowerCase().contains('1/2')
-                                ? 'Pecho y Pierna'
-                                : 'Elige tu presa',
+                            categoria.toUpperCase(),
                             style: GoogleFonts.outfit(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                if (cantidadEnCarrito > 0)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.30),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'x$cantidadEnCarrito en orden',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-
-            // Contenido y Datos Culinarios
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          categoria.toUpperCase(),
-                          style: GoogleFonts.outfit(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.6,
-                            color: isDark
-                                ? const Color(0xFFF59E0B)
-                                : const Color(0xFFB45309),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          nombre,
-                          style: GoogleFonts.outfit(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w900,
-                            color: isDark ? Colors.white : AppTheme.textDark,
-                            height: 1.2,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          descripcion,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                            height: 1.35,
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-
-                    // Fila Inferior: Precios & Botón "Agregar"
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (tienePromoValida) ...[
-                                Text(
-                                  'S/ ${precio.toStringAsFixed(2)}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.lineThrough,
-                                    color: isDark
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF64748B),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  'S/ ${promoPrice.toStringAsFixed(2)}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: widget.colorPromocion,
-                                    letterSpacing: -0.4,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ] else ...[
-                                Text(
-                                  'S/ ${precio.toStringAsFixed(2)}',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                    color: isDark
-                                        ? const Color(0xFFFBBF24)
-                                        : const Color(0xFFC2410C),
-                                    letterSpacing: -0.4,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFEA580C),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed: () => widget.onAgregarProducto(prod),
-                          icon: Icon(
-                            esConPresa
-                                ? LucideIcons.drumstick
-                                : LucideIcons.plus,
-                            size: 15,
-                          ),
-                          label: Text(
-                            'Agregar',
-                            style: GoogleFonts.outfit(
-                              fontSize: 13,
+                              fontSize: 10,
                               fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                              color: isDark
+                                  ? const Color(0xFFF59E0B)
+                                  : const Color(0xFFB45309),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(height: 4),
+                          Text(
+                            nombre,
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: isDark ? Colors.white : AppTheme.textDark,
+                              height: 1.2,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            descripcion,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              height: 1.35,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+
+                      // Fila Inferior: Precios & Botón "Agregar"
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (tienePromoValida) ...[
+                                  Text(
+                                    'S/ ${precio.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.lineThrough,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'S/ ${promoPrice.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: widget.colorPromocion,
+                                      letterSpacing: -0.4,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ] else ...[
+                                  Text(
+                                    'S/ ${precio.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: isDark
+                                          ? const Color(0xFFFBBF24)
+                                          : const Color(0xFFC2410C),
+                                      letterSpacing: -0.4,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFEA580C),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            onPressed: () => widget.onAgregarProducto(prod),
+                            icon: Icon(
+                              esConPresa
+                                  ? LucideIcons.drumstick
+                                  : LucideIcons.plus,
+                              size: 15,
+                            ),
+                            label: Text(
+                              'Agregar',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -267,6 +267,7 @@ class _ComprasScreenState extends State<ComprasScreen>
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
@@ -567,6 +568,7 @@ class _ComprasScreenState extends State<ComprasScreen>
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 620),
                 child: Container(
@@ -1923,6 +1925,7 @@ class _ComprasScreenState extends State<ComprasScreen>
         final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return Align(
           alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          heightFactor: isWide ? 1.0 : null,
           child: ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: 620,

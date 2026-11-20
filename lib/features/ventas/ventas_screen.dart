@@ -1311,6 +1311,7 @@ class _VentasScreenState extends State<VentasScreen>
             final lista = VentaEnEsperaService.ventas;
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: 580,
@@ -1708,6 +1709,7 @@ class _VentasScreenState extends State<VentasScreen>
                       .toList();
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: 620,
@@ -4131,6 +4133,7 @@ class _VentasScreenState extends State<VentasScreen>
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 540),
                 child: Container(
@@ -4677,6 +4680,7 @@ class _VentasScreenState extends State<VentasScreen>
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
                 child: Container(
@@ -11113,6 +11117,7 @@ class _VentasScreenState extends State<VentasScreen>
           builder: (context, setModalState) {
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: Container(

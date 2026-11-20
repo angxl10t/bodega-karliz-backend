@@ -345,6 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Align(
           alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          heightFactor: isWide ? 1.0 : null,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Container(
@@ -1674,6 +1675,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return Align(
           alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          heightFactor: isWide ? 1.0 : null,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Container(
@@ -1952,6 +1954,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         return Align(
           alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+          heightFactor: isWide ? 1.0 : null,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Container(

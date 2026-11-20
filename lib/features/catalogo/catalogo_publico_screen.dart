@@ -3626,12 +3626,6 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                           borderRadius: BorderRadius.circular(
                             isTablet ? 16 : 14,
                           ),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
-                                : const Color(0xFFF1F5F9),
-                            width: 1.0,
-                          ),
                         ),
                         child: Stack(
                           children: [
@@ -4193,6 +4187,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 540),
                 child: Container(
@@ -4360,22 +4355,16 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   : 10,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(24),
+                              color: isDark
+                                  ? const Color(0xFF0F172A)
+                                  : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isDark
-                                    ? Colors.white.withValues(alpha: 0.12)
+                                    ? const Color(0xFF334155)
                                     : const Color(0xFFE2E8F0),
+                                width: 1.0,
                               ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                    alpha: isDark ? 0.25 : 0.06,
-                                  ),
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
                             ),
                             child: ProductImageWidget(
                               imagenUrl: imagenUrl,
@@ -5306,6 +5295,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             if (_carrito.isEmpty) {
               return Align(
                 alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+                heightFactor: isWide ? 1.0 : null,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
                   child: Container(
@@ -5387,6 +5377,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 580),
                 child: Container(

@@ -40,13 +40,23 @@ class AdaptiveModal {
           return Dialog(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
+              side: BorderSide.none,
+            ),
             insetPadding: const EdgeInsets.symmetric(
               horizontal: 24,
               vertical: 24,
             ),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: maxWidth),
-              child: builder(dialogCtx),
+              child: Center(
+                widthFactor: 1.0,
+                heightFactor: 1.0,
+                child: builder(dialogCtx),
+              ),
             ),
           );
         },
@@ -57,6 +67,12 @@ class AdaptiveModal {
         useRootNavigator: useRootNavigator,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+          side: BorderSide.none,
+        ),
+        clipBehavior: Clip.none,
         barrierColor: barrierColor,
         routeSettings: routeSettings,
         builder: builder,
@@ -146,6 +162,7 @@ class AdaptiveModalFrame extends StatelessWidget {
 
     return Align(
       alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+      heightFactor: isWide ? 1.0 : null,
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxWidth: maxWidth,

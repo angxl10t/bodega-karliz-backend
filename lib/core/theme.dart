@@ -224,6 +224,26 @@ class AppTheme {
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          side: BorderSide.none,
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: cardLight,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: effectiveBorder, width: borderWidth),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: const Color(0xFFF1F5F9),
@@ -398,14 +418,18 @@ class AppTheme {
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: cardDarkElevated,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          side: BorderSide(color: borderDarkElevated, width: 1),
+          side: BorderSide.none,
         ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: cardDarkElevated,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: const BorderSide(color: borderDarkElevated, width: 1),
