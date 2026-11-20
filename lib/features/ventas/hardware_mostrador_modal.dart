@@ -8,6 +8,7 @@ import '../../core/configuracion_ticket_service.dart';
 import '../../core/native_bluetooth_printer_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/karliz_sound_service.dart';
+import '../../core/window/window_service.dart';
 import '../productos/producto_model.dart';
 
 /// Modal centralizado de Diagnóstico, Calibración y Control de Hardware en Mostrador.
@@ -411,8 +412,8 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                     text: 'Gaveta de Dinero',
                   ),
                   Tab(
-                    icon: Icon(LucideIcons.keyboard, size: 18),
-                    text: 'Atajos & Kiosco',
+                    icon: Icon(LucideIcons.maximize, size: 18),
+                    text: 'Pantalla & Kiosco',
                   ),
                 ],
               ),
@@ -426,7 +427,7 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
                   _buildTabTicketera(isDark),
                   _buildTabScanner(isDark),
                   _buildTabGaveta(isDark),
-                  _buildTabAtajos(isDark),
+                  _buildTabPantallaYKiosco(isDark),
                 ],
               ),
             ),
@@ -1345,74 +1346,212 @@ class _HardwareMostradorModalState extends State<HardwareMostradorModal>
   }
 
   // ==========================================
-  // PESTAÑA 4: ATAJOS DE TECLADO & KIOSCO
+  // PESTAÑA 4: PANTALLA & MODO KIOSCO TÁCTIL
   // ==========================================
-  Widget _buildTabAtajos(bool isDark) {
+  Widget _buildTabPantallaYKiosco(bool isDark) {
+    final bool canFullscreen = WindowService.instance.isSupported;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildInfoBanner(
-            icon: LucideIcons.keyboard,
-            title: 'Operatividad Rápida sin Ratón (Fast-Keys)',
-            subtitle: 'En hora punta con fila de vecinos, el cajero opera a máxima velocidad usando únicamente el teclado físico de la computadora o tablet.',
+            icon: LucideIcons.tabletSmartphone,
+            title: 'Optimización Táctil para Tablets & Celulares',
+            subtitle: 'CajaYa POS está diseñado con ergonomía táctil directa: botones de gran tamaño, cobro rápido con billetes peruanos y operación fluida sin necesidad de ratón ni teclado físico.',
             isDark: isDark,
           ),
           const SizedBox(height: 16),
 
-          Text(
-            'TABLA DE ATAJOS ACTIVOS EN MOSTRADOR',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.6,
-              color: isDark ? Colors.white60 : const Color(0xFF64748B),
+          if (canFullscreen) ...[
+            Text(
+              'MODO KIOSCO (PANTALLA COMPLETA)',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+                color: isDark ? Colors.white60 : const Color(0xFF64748B),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 8),
+            ValueListenableBuilder<bool>(
+              valueListenable: WindowService.instance.isFullScreenNotifier,
+              builder: (context, isFullScreen, _) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF1E293B)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color:
+                              (isFullScreen
+                                      ? AppTheme.accentGreen
+                                      : AppTheme.brandPrimary)
+                                  .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          isFullScreen
+                              ? LucideIcons.minimize
+                              : LucideIcons.maximize,
+                          color: isFullScreen
+                              ? AppTheme.accentGreen
+                              : AppTheme.brandPrimary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isFullScreen
+                                  ? 'Modo Kiosco Activo (Pantalla Completa)'
+                                  : 'Modo Ventana Estándar',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              isFullScreen
+                                  ? 'Oculta barras del sistema para dar máxima amplitud a la cuadrícula de productos.'
+                                  : 'Expande el sistema a pantalla completa para tablets de mostrador o todo-en-uno.',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(
+                        icon: Icon(
+                          isFullScreen
+                              ? LucideIcons.minimize
+                              : LucideIcons.maximize,
+                          size: 16,
+                        ),
+                        label: Text(
+                          isFullScreen
+                              ? 'Salir de Kiosco'
+                              : 'Pantalla Completa',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isFullScreen
+                              ? const Color(0xFF475569)
+                              : AppTheme.brandPrimary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () =>
+                            WindowService.instance.toggleFullScreen(),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+          ],
 
-          _buildShortcutRow(
-            'F2',
-            'Buscar Producto',
-            'Enfoca la barra de búsqueda para escribir nombre o marca',
-            isDark,
-          ),
-          _buildShortcutRow(
-            'F4 / F12',
-            'Cobrar Venta',
-            'Abre la bandeja de cobro rápido para pagar con Efectivo o Yape',
-            isDark,
-          ),
-          _buildShortcutRow(
-            'F7',
-            'Abrir Gaveta',
-            'Expulsa la gaveta metálica de billetes sin emitir papel',
-            isDark,
-          ),
-          _buildShortcutRow(
-            'F8',
-            'Venta en Espera',
-            'Pone en espera la compra actual o abre la lista de tickets pausados',
-            isDark,
-          ),
-          _buildShortcutRow(
-            'F9',
-            'Régimen / Comprobante',
-            'Alterna entre Boleta de Venta y Ticket de Mostrador',
-            isDark,
-          ),
-          _buildShortcutRow(
-            'Esc',
-            'Limpiar / Cancelar',
-            'Borra la búsqueda actual o vacía la canasta si está vacía',
-            isDark,
-          ),
-          _buildShortcutRow(
-            'Enter',
-            'Escanear Código',
-            'Al disparar con la pistola, se agrega el ítem automáticamente',
-            isDark,
+          // Panel Desplegable de Atajos Físicos Opcionales
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              leading: Icon(
+                LucideIcons.keyboard,
+                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                size: 20,
+              ),
+              title: Text(
+                'Atajos para teclados físicos externos (Opcional)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
+                ),
+              ),
+              subtitle: Text(
+                'Si conectas un teclado o escáner USB/Bluetooth, estos comandos rápidos siguen funcionando en segundo plano.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                ),
+              ),
+              children: [
+                const SizedBox(height: 10),
+                _buildShortcutRow(
+                  'F2',
+                  'Buscar Producto',
+                  'Enfoca la barra de búsqueda para escribir nombre o marca',
+                  isDark,
+                ),
+                _buildShortcutRow(
+                  'F4 / F12',
+                  'Cobrar Venta',
+                  'Abre la bandeja de cobro rápido para pagar con Efectivo o Yape',
+                  isDark,
+                ),
+                _buildShortcutRow(
+                  'F7',
+                  'Abrir Gaveta',
+                  'Expulsa la gaveta metálica de billetes sin emitir papel',
+                  isDark,
+                ),
+                _buildShortcutRow(
+                  'F8',
+                  'Venta en Espera',
+                  'Pone en espera la compra actual o abre la lista de tickets pausados',
+                  isDark,
+                ),
+                _buildShortcutRow(
+                  'F9',
+                  'Régimen / Comprobante',
+                  'Alterna entre Boleta de Venta y Ticket de Mostrador',
+                  isDark,
+                ),
+                _buildShortcutRow(
+                  'Esc',
+                  'Limpiar / Cancelar',
+                  'Borra la búsqueda actual o vacía la canasta si está vacía',
+                  isDark,
+                ),
+                _buildShortcutRow(
+                  'Enter',
+                  'Escanear Código',
+                  'Al disparar con la pistola, se agrega el ítem automáticamente',
+                  isDark,
+                ),
+              ],
+            ),
           ),
         ],
       ),

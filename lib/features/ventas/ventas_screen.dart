@@ -6789,6 +6789,12 @@ class _VentasScreenState extends State<VentasScreen>
       onSelected: (value) {
         HapticFeedback.selectionClick();
         switch (value) {
+          case 'fiscal':
+            MonitorNuevoRusModal.show(
+              context,
+              onRegimenCambiado: _cargarConfiguracionTributaria,
+            );
+            break;
           case 'hardware':
             _abrirHardwareMostrador();
             break;
@@ -6804,6 +6810,23 @@ class _VentasScreenState extends State<VentasScreen>
         }
       },
       itemBuilder: (ctx) => [
+        PopupMenuItem<String>(
+          value: 'fiscal',
+          child: Row(
+            children: [
+              Icon(LucideIcons.landmark, size: 15, color: mutedIcon),
+              const SizedBox(width: 10),
+              Text(
+                'Régimen Fiscal (RUS)',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ],
+          ),
+        ),
         PopupMenuItem<String>(
           value: 'hardware',
           child: Row(
@@ -7787,221 +7810,6 @@ class _VentasScreenState extends State<VentasScreen>
     );
   }
 
-  Widget _buildFastKeysBar(bool isDark) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildKeyBadge('F2', 'Buscar', LucideIcons.search, isDark, () {
-            _tabletSearchFocusNode.requestFocus();
-            HapticFeedback.lightImpact();
-          }),
-          const SizedBox(width: 6),
-          _buildKeyBadge(
-            'F4',
-            'Cobrar',
-            LucideIcons.creditCard,
-            isDark,
-            _carrito.isEmpty
-                ? null
-                : () {
-                    HapticFeedback.mediumImpact();
-                    _ejecutarCobroRapido();
-                  },
-          ),
-          const SizedBox(width: 6),
-          _buildKeyBadge(
-            'F7',
-            'Gaveta',
-            LucideIcons.vault,
-            isDark,
-            _abrirGavetaManual,
-          ),
-          const SizedBox(width: 6),
-          _buildKeyBadge('F8', 'Espera', LucideIcons.pauseCircle, isDark, () {
-            if (_carrito.isNotEmpty) {
-              _ponerVentaEnEspera();
-            } else {
-              _mostrarModalVentasEnEspera();
-            }
-          }),
-          const SizedBox(width: 6),
-          _buildKeyBadge(
-            'F9',
-            _regimenTributario == 'INFORMAL'
-                ? 'Ticket'
-                : (_tipoComprobante == 'BOLETA_ELECTRONICA'
-                      ? 'Boleta'
-                      : 'Ticket'),
-            LucideIcons.fileText,
-            isDark,
-            _regimenTributario == 'INFORMAL'
-                ? null
-                : () {
-                    _alternarTipoComprobante();
-                  },
-          ),
-          const SizedBox(width: 6),
-          _buildKeyBadge(
-            'Esc',
-            'Limpiar',
-            LucideIcons.trash2,
-            isDark,
-            _carrito.isEmpty
-                ? null
-                : () {
-                    _vaciarCarritoManual();
-                  },
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              MonitorNuevoRusModal.show(
-                context,
-                onRegimenCambiado: _cargarConfiguracionTributaria,
-              );
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: _regimenTributario == 'NUEVO_RUS'
-                    ? AppTheme.accentGreen.withValues(alpha: 0.12)
-                    : const Color(0xFF0D9488).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _regimenTributario == 'NUEVO_RUS'
-                      ? AppTheme.accentGreen.withValues(alpha: 0.35)
-                      : const Color(0xFF0D9488).withValues(alpha: 0.35),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _regimenTributario == 'NUEVO_RUS'
-                        ? LucideIcons.store
-                        : LucideIcons.leaf,
-                    size: 13,
-                    color: _regimenTributario == 'NUEVO_RUS'
-                        ? AppTheme.accentGreen
-                        : const Color(0xFF0D9488),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _regimenTributario == 'NUEVO_RUS'
-                        ? 'NUEVO RUS'
-                        : '🌿 SIN RUC',
-                    style: GoogleFonts.outfit(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: _regimenTributario == 'NUEVO_RUS'
-                          ? AppTheme.accentGreen
-                          : const Color(0xFF0D9488),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKeyBadge(
-    String keyLabel,
-    String actionLabel,
-    IconData icon,
-    bool isDark,
-    VoidCallback? onTap,
-  ) {
-    final enabled = onTap != null;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 1.5,
-                ),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? (enabled
-                            ? AppTheme.cardDarkHighlight
-                            : AppTheme.cardDark)
-                      : (enabled
-                            ? const Color(0xFFE2E8F0)
-                            : const Color(0xFFF8FAFC)),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: isDark
-                        ? AppTheme.borderDarkElevated
-                        : const Color(0xFFCBD5E1),
-                    width: 0.8,
-                  ),
-                ),
-                child: Text(
-                  keyLabel,
-                  style: GoogleFonts.outfit(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: enabled
-                        ? (isDark ? AppTheme.brandLight : AppTheme.brandPrimary)
-                        : (isDark
-                              ? AppTheme.textDarkSecondary
-                              : const Color(0xFF64748B)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 5),
-              Icon(
-                icon,
-                size: 11,
-                color: enabled
-                    ? (isDark ? Colors.white : const Color(0xFF334155))
-                    : (isDark
-                          ? AppTheme.textDarkSecondary
-                          : const Color(0xFF64748B)),
-              ),
-              const SizedBox(width: 3),
-              Text(
-                actionLabel,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: enabled
-                      ? (isDark ? Colors.white : const Color(0xFF334155))
-                      : (isDark
-                            ? AppTheme.textDarkMuted
-                            : const Color(0xFF94A3B8)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildTabletCatalogoPanel(
     bool isDark,
     Color cardBg,
@@ -8190,11 +7998,6 @@ class _VentasScreenState extends State<VentasScreen>
               ),
             ],
           ),
-          const SizedBox(height: 8),
-
-          // Atajos rápidos de teclado para cajero (Fast-keys F2, F4, F9, Esc)
-          _buildFastKeysBar(isDark),
-
           const SizedBox(height: 8),
 
           // Pestañas de categorías estilizadas estilo POS (con icono y cantidad)

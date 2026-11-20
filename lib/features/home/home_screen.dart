@@ -1313,9 +1313,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           iconColor: const Color(0xFF0284C7),
                           iconBg: const Color(0xFF0284C7)
                               .withValues(alpha: 0.12),
-                          title: 'Centro de Ayuda & Atajos',
+                          title: 'Centro de Ayuda',
                           subtitle:
-                              'Manual del sistema, atajos F2, F4, Esc y guías',
+                              'Manual del sistema, guías y tutoriales de uso',
                           onTap: () {
                             Navigator.pop(bottomSheetContext);
                             _mostrarGuiaDidactica();
@@ -2501,8 +2501,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 tooltip: isFullScreen
-                                    ? 'Salir de Pantalla Completa (F11)'
-                                    : 'Pantalla Completa Mostrador (F11)',
+                                    ? 'Salir de Pantalla Completa'
+                                    : 'Pantalla Completa Mostrador',
                                 icon: Icon(
                                   isFullScreen
                                       ? LucideIcons.minimize
@@ -2517,7 +2517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       SnackBar(
                                         content: Text(
                                           isFull
-                                              ? 'Modo Pantalla Completa activado (F11)'
+                                              ? 'Modo Pantalla Completa activado'
                                               : 'Modo Ventana restaurado',
                                         ),
                                         duration: const Duration(seconds: 2),
@@ -2760,8 +2760,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 tooltip: isFullScreen
-                    ? 'Salir de Pantalla Completa (F11)'
-                    : 'Pantalla Completa Mostrador (F11)',
+                    ? 'Salir de Pantalla Completa'
+                    : 'Pantalla Completa Mostrador',
                 icon: Icon(
                   isFullScreen ? LucideIcons.minimize : LucideIcons.maximize,
                   size: 16,
@@ -2774,7 +2774,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       SnackBar(
                         content: Text(
                           isFull
-                              ? 'Modo Pantalla Completa activado (F11)'
+                              ? 'Modo Pantalla Completa activado'
                               : 'Modo Ventana restaurado',
                         ),
                         duration: const Duration(seconds: 2),
@@ -4015,8 +4015,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, isFullScreen, _) {
                     return IconButton(
                       tooltip: isFullScreen
-                          ? 'Salir Pantalla Completa (F11)'
-                          : 'Pantalla Completa (F11)',
+                          ? 'Salir Pantalla Completa'
+                          : 'Pantalla Completa',
                       icon: Icon(
                         isFullScreen
                             ? LucideIcons.minimize
