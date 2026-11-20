@@ -10,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'venta_model.dart';
 import 'venta_service.dart';
 import '../auth/auth_service.dart';
-import '../home/configuracion_ticket_modal.dart';
 import '../../core/configuracion_ticket_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
@@ -22,6 +21,7 @@ import '../../core/widgets/egreso_caja_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
 import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../../core/widgets/tab_deferred_refresh.dart';
+import '../../core/widgets/thermal_ticket_preview_dialog.dart';
 
 class CajaVentasScreen extends StatefulWidget {
   final ValueListenable<int>? activeTabNotifier;
@@ -6892,429 +6892,38 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   }
 
   void _mostrarTicketVentaDialog(VentaRegistro v) {
-    int anchoSeleccionado = ConfiguracionTicketService.actual.anchoPapel;
+    final items = v.detalles
+        .map(
+          (d) => TicketItem(
+            nombre: d.nombreProducto,
+            cantidad: d.cantidad,
+            precioUnitario: d.precioUnitario,
+            subtotal: d.subtotal,
+          ),
+        )
+        .toList();
 
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (dialogCtx, setDialogState) {
-            final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-            final items = v.detalles
-                .map(
-                  (d) => TicketItem(
-                    nombre: d.nombreProducto,
-                    cantidad: d.cantidad,
-                    precioUnitario: d.precioUnitario,
-                    subtotal: d.subtotal,
-                  ),
-                )
-                .toList();
-
-            final ticketText = ThermalTicketService.generateReceiptText(
-              ticketId: v.idVenta,
-              clienteNombre: v.clienteNombre ?? 'Público General',
-              clienteDocumento: v.clienteDocumento,
-              metodoPago: v.metodoPago,
-              items: items,
-              total: v.total,
-              pagadoCon: v.montoRecibido,
-              vuelto: v.vuelto,
-              cajero: v.usuarioRegistro ?? _username,
-              fecha: v.fechaVenta,
-              width: anchoSeleccionado,
-              nombreComercio: _nombreBodega,
-              rucDni: _rucBodega.isNotEmpty ? _rucBodega : null,
-              direccion: _direccionBodega.isNotEmpty ? _direccionBodega : null,
-              telefono: _telefonoBodega.isNotEmpty ? _telefonoBodega : null,
-              lemaComercial: _lemaBodega.isNotEmpty ? _lemaBodega : null,
-              tipoComprobante: v.tipoComprobante,
-              serieCorrelativo: v.serieCorrelativo,
-              estadoSunat: v.estadoSunat,
-              sunatHash: v.sunatHash,
-            );
-
-            return Dialog(
-              backgroundColor: isDark
-                  ? AppTheme.cardDarkElevated
-                  : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 24,
-              ),
-              child: Container(
-                constraints: const BoxConstraints(
-                  maxWidth: 460,
-                  maxHeight: 680,
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(9),
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary.withValues(
-                              alpha: 0.12,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            LucideIcons.printer,
-                            color: AppTheme.brandPrimary,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                v.etiquetaComprobante,
-                                style: GoogleFonts.outfit(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 17,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.textDark,
-                                ),
-                              ),
-                              Text(
-                                'Reimpresión térmica ESC/POS',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  color: AppTheme.getAdaptiveMutedText(isDark),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(LucideIcons.x, size: 20),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Selector de Ancho (58mm / 80mm) y acceso a ajustes
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppTheme.cardDarkSunken
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setDialogState(() {
-                                        anchoSeleccionado =
-                                            ThermalTicketService.width58mm;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            anchoSeleccionado ==
-                                                ThermalTicketService.width58mm
-                                            ? (isDark
-                                                  ? AppTheme.brandPrimary
-                                                  : Colors.white)
-                                            : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
-                                        boxShadow:
-                                            anchoSeleccionado ==
-                                                ThermalTicketService.width58mm
-                                            ? [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.06),
-                                                  blurRadius: 4,
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '58 mm (Portátil)',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.w700,
-                                            color:
-                                                anchoSeleccionado ==
-                                                    ThermalTicketService
-                                                        .width58mm
-                                                ? (isDark
-                                                      ? Colors.white
-                                                      : AppTheme.brandPrimary)
-                                                : AppTheme.textMuted,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setDialogState(() {
-                                        anchoSeleccionado =
-                                            ThermalTicketService.width80mm;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            anchoSeleccionado ==
-                                                ThermalTicketService.width80mm
-                                            ? (isDark
-                                                  ? AppTheme.brandPrimary
-                                                  : Colors.white)
-                                            : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(8),
-                                        boxShadow:
-                                            anchoSeleccionado ==
-                                                ThermalTicketService.width80mm
-                                            ? [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.06),
-                                                  blurRadius: 4,
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '80 mm (Mostrador)',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.w700,
-                                            color:
-                                                anchoSeleccionado ==
-                                                    ThermalTicketService
-                                                        .width80mm
-                                                ? (isDark
-                                                      ? Colors.white
-                                                      : AppTheme.brandPrimary)
-                                                : AppTheme.textMuted,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          tooltip: 'Ajustes de Impresora y QR',
-                          style: IconButton.styleFrom(
-                            backgroundColor: isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFF1F5F9),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          icon: const Icon(LucideIcons.settings2, size: 18),
-                          onPressed: () {
-                            ConfiguracionTicketModal.show(
-                              context,
-                              onSaved: () {
-                                setDialogState(() {
-                                  anchoSeleccionado = ConfiguracionTicketService
-                                      .actual
-                                      .anchoPapel;
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Previsualización monospacio del ticket estilo papel térmico
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.cardDarkSunken
-                              : const Color(0xFFFAFAFA),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDark
-                                : AppTheme.borderLight,
-                          ),
-                        ),
-                        child: SingleChildScrollView(
-                          child: SelectableText(
-                            ticketText,
-                            style: GoogleFonts.firaCode(
-                              fontSize: 11.5,
-                              height: 1.35,
-                              color: isDark
-                                  ? const Color(0xFFE2E8F0)
-                                  : const Color(0xFF1E293B),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Acciones
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 13),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              side: BorderSide(
-                                color: isDark
-                                    ? AppTheme.borderDark
-                                    : AppTheme.borderLight,
-                              ),
-                            ),
-                            icon: const Icon(LucideIcons.copy, size: 16),
-                            label: Text(
-                              'Copiar',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
-                            ),
-                            onPressed: () async {
-                              await Clipboard.setData(
-                                ClipboardData(text: ticketText),
-                              );
-                              if (dialogCtx.mounted) {
-                                ScaffoldMessenger.of(dialogCtx).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      '¡Texto del comprobante copiado al portapapeles!',
-                                    ),
-                                    backgroundColor: AppTheme.accentGreen,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.brandPrimary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 13),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            icon: const Icon(LucideIcons.printer, size: 16),
-                            label: Text(
-                              'Imprimir Ticket',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 13,
-                              ),
-                            ),
-                            onPressed: () async {
-                              final escPosBytes =
-                                  ThermalTicketService.generateEscPosBytes(
-                                    ticketId: v.idVenta,
-                                    clienteNombre:
-                                        v.clienteNombre ?? 'Público General',
-                                    clienteDocumento: v.clienteDocumento,
-                                    metodoPago: v.metodoPago,
-                                    items: items,
-                                    total: v.total,
-                                    pagadoCon: v.montoRecibido,
-                                    vuelto: v.vuelto,
-                                    cajero: v.usuarioRegistro ?? _username,
-                                    fecha: v.fechaVenta,
-                                    width: anchoSeleccionado,
-                                    nombreComercio: _nombreBodega,
-                                    rucDni: _rucBodega.isNotEmpty
-                                        ? _rucBodega
-                                        : null,
-                                    direccion: _direccionBodega.isNotEmpty
-                                        ? _direccionBodega
-                                        : null,
-                                    telefono: _telefonoBodega.isNotEmpty
-                                        ? _telefonoBodega
-                                        : null,
-                                    lemaComercial: _lemaBodega.isNotEmpty
-                                        ? _lemaBodega
-                                        : null,
-                                    tipoComprobante: v.tipoComprobante,
-                                    serieCorrelativo: v.serieCorrelativo,
-                                    estadoSunat: v.estadoSunat,
-                                    sunatHash: v.sunatHash,
-                                  );
-
-                              final res =
-                                  await ThermalTicketService.imprimirTicketDirecto(
-                                    escPosBytes: escPosBytes,
-                                    receiptText: ticketText,
-                                  );
-
-                              if (dialogCtx.mounted) {
-                                ScaffoldMessenger.of(dialogCtx).showSnackBar(
-                                  SnackBar(
-                                    content: Text(res.mensaje),
-                                    backgroundColor: res.exito
-                                        ? AppTheme.accentGreen
-                                        : AppTheme.alertRed,
-                                  ),
-                                );
-                                Navigator.pop(ctx);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+    ThermalTicketPreviewDialog.show(
+      context,
+      items: items,
+      total: v.total,
+      metodo: v.metodoPago,
+      pagadoCon: v.montoRecibido,
+      vuelto: v.vuelto,
+      ticketId: v.idVenta,
+      clienteNombre: v.clienteNombre ?? 'Público General',
+      clienteDocumento: v.clienteDocumento,
+      tipoComprobante: v.tipoComprobante,
+      serieCorrelativo: v.serieCorrelativo,
+      estadoSunat: v.estadoSunat,
+      sunatHash: v.sunatHash,
+      cajero: v.usuarioRegistro ?? _username,
+      fecha: v.fechaVenta,
+      nombreComercio: _nombreBodega,
+      rucDni: _rucBodega.isNotEmpty ? _rucBodega : null,
+      direccion: _direccionBodega.isNotEmpty ? _direccionBodega : null,
+      telefono: _telefonoBodega.isNotEmpty ? _telefonoBodega : null,
+      lemaComercial: _lemaBodega.isNotEmpty ? _lemaBodega : null,
     );
   }
 }

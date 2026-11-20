@@ -19,6 +19,7 @@ import '../../core/widgets/adaptive_modal.dart';
 import '../../core/theme.dart';
 import '../../core/category_helper.dart';
 import '../../core/widgets/product_image_widget.dart';
+import '../../core/widgets/thermal_ticket_preview_dialog.dart';
 import '../../core/marca_detector_service.dart';
 import '../../core/gastronomia_helper.dart';
 import 'widgets/selector_presa_modal.dart';
@@ -6616,222 +6617,32 @@ class _VentasScreenState extends State<VentasScreen>
       );
     }).toList();
 
-    int selectedWidth = ConfiguracionTicketService.actual.anchoPapel;
-
-    showDialog(
-      context: context,
-      builder: (dlgCtx) => StatefulBuilder(
-        builder: (context, setDlgState) {
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-          final cfg = ConfiguracionTicketService.actual.copyWith(
-            anchoPapel: selectedWidth,
-          );
-
-          final receiptText = ThermalTicketService.generateReceiptText(
-            ticketId: ventaGenerada?.idVenta,
-            clienteNombre:
-                (!_identificarCliente ||
-                    _clienteNombreController.text.trim().isEmpty)
-                ? 'Público General'
-                : _clienteNombreController.text.trim(),
-            clienteDocumento:
-                (!_identificarCliente ||
-                    _clienteDocController.text.trim().isEmpty)
-                ? null
-                : _clienteDocController.text.trim(),
-            metodoPago: metodo,
-            items: ticketItems,
-            total: total,
-            descuento: descuento,
-            pagadoCon: pagadoCon,
-            vuelto: vuelto,
-            width: selectedWidth,
-            nombreComercio: _nombreBodega,
-            rucDni: _rucBodega,
-            direccion: _direccionBodega,
-            lemaComercial: _lemaBodega,
-            tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
-            serieCorrelativo: ventaGenerada?.serieCorrelativo,
-            estadoSunat: ventaGenerada?.estadoSunat,
-            sunatHash: ventaGenerada?.sunatHash,
-            regimenTributario: _regimenTributario,
-            configTicket: cfg,
-          );
-
-          return AlertDialog(
-            backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            title: Row(
-              children: [
-                const Icon(
-                  LucideIcons.printer,
-                  color: AppTheme.brandPrimary,
-                  size: 22,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Ticket Térmico POS',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 17,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(LucideIcons.settings, size: 18),
-                  tooltip: 'Configurar Pie de Ticket y Gaveta',
-                  onPressed: () async {
-                    await ConfiguracionTicketModal.show(context);
-                    setDlgState(() {
-                      selectedWidth =
-                          ConfiguracionTicketService.actual.anchoPapel;
-                    });
-                  },
-                ),
-                const SizedBox(width: 4),
-                SegmentedButton<int>(
-                  segments: const [
-                    ButtonSegment(
-                      value: ThermalTicketService.width58mm,
-                      label: Text('58mm'),
-                    ),
-                    ButtonSegment(
-                      value: ThermalTicketService.width80mm,
-                      label: Text('80mm'),
-                    ),
-                  ],
-                  selected: {selectedWidth},
-                  onSelectionChanged: (val) {
-                    setDlgState(() => selectedWidth = val.first);
-                  },
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                ),
-              ],
-            ),
-            content: SizedBox(
-              width: selectedWidth == ThermalTicketService.width58mm
-                  ? 320
-                  : 440,
-              height: 360,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppTheme.cardDarkSunken
-                      : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  child: SelectableText(
-                    receiptText,
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 11.5,
-                      height: 1.25,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            actions: [
-              TextButton.icon(
-                icon: const Icon(LucideIcons.copy, size: 16),
-                label: const Text('Copiar'),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: receiptText));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        '¡Texto del ticket copiado al portapapeles!',
-                      ),
-                      backgroundColor: AppTheme.accentGreen,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
-              ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.brandPrimary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                icon: const Icon(LucideIcons.printer, size: 16),
-                label: const Text('Imprimir ESC/POS'),
-                onPressed: () async {
-                  final escPosBytes = ThermalTicketService.generateEscPosBytes(
-                    ticketId: ventaGenerada?.idVenta,
-                    clienteNombre:
-                        (!_identificarCliente ||
-                            _clienteNombreController.text.trim().isEmpty)
-                        ? 'Público General'
-                        : _clienteNombreController.text.trim(),
-                    clienteDocumento:
-                        (!_identificarCliente ||
-                            _clienteDocController.text.trim().isEmpty)
-                        ? null
-                        : _clienteDocController.text.trim(),
-                    metodoPago: metodo,
-                    items: ticketItems,
-                    total: total,
-                    pagadoCon: pagadoCon,
-                    vuelto: vuelto,
-                    width: selectedWidth,
-                    nombreComercio: _nombreBodega,
-                    rucDni: _rucBodega,
-                    direccion: _direccionBodega,
-                    lemaComercial: _lemaBodega,
-                    tipoComprobante:
-                        ventaGenerada?.tipoComprobante ?? _tipoComprobante,
-                    serieCorrelativo: ventaGenerada?.serieCorrelativo,
-                    estadoSunat: ventaGenerada?.estadoSunat,
-                    sunatHash: ventaGenerada?.sunatHash,
-                    regimenTributario: _regimenTributario,
-                    configTicket: cfg,
-                    forzarAperturaGaveta:
-                        cfg.abrirGaveta &&
-                        metodo.toLowerCase().contains('efectivo'),
-                  );
-
-                  final res = await ThermalTicketService.imprimirTicketDirecto(
-                    escPosBytes: escPosBytes,
-                    receiptText: receiptText,
-                    config: cfg,
-                  );
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(res.mensaje),
-                        backgroundColor: res.exito
-                            ? AppTheme.accentGreen
-                            : const Color(0xFFEF4444),
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                },
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(dlgCtx),
-                child: const Text('Cerrar'),
-              ),
-            ],
-          );
-        },
-      ),
+    ThermalTicketPreviewDialog.show(
+      context,
+      items: ticketItems,
+      total: total,
+      metodo: metodo,
+      pagadoCon: pagadoCon > 0 ? pagadoCon : null,
+      vuelto: vuelto > 0 ? vuelto : null,
+      descuento: descuento ?? _totalDescuentoPromociones,
+      ticketId: ventaGenerada?.idVenta,
+      clienteNombre: (!_identificarCliente ||
+              _clienteNombreController.text.trim().isEmpty)
+          ? 'Público General'
+          : _clienteNombreController.text.trim(),
+      clienteDocumento: (!_identificarCliente ||
+              _clienteDocController.text.trim().isEmpty)
+          ? null
+          : _clienteDocController.text.trim(),
+      tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
+      serieCorrelativo: ventaGenerada?.serieCorrelativo,
+      estadoSunat: ventaGenerada?.estadoSunat,
+      sunatHash: ventaGenerada?.sunatHash,
+      nombreComercio: _nombreBodega,
+      rucDni: _rucBodega,
+      direccion: _direccionBodega,
+      lemaComercial: _lemaBodega,
+      regimenTributario: _regimenTributario,
     );
   }
 
@@ -8213,7 +8024,7 @@ class _VentasScreenState extends State<VentasScreen>
           ),
         ],
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -8699,132 +8510,154 @@ class _VentasScreenState extends State<VentasScreen>
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 5,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: isLowStock
+                                                    ? AppTheme.alertRed
+                                                        .withValues(
+                                                        alpha: 0.14,
+                                                      )
+                                                    : (isDark
+                                                        ? AppTheme
+                                                            .cardDarkElevated
+                                                        : Colors.white),
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                  6,
+                                                ),
+                                                border: isLowStock
+                                                    ? null
+                                                    : Border.all(
+                                                        color: isDark
+                                                            ? AppTheme
+                                                                .borderDark
+                                                            : const Color(
+                                                                0xFFE2E8F0,
+                                                              ),
+                                                        width: 0.8,
+                                                      ),
+                                              ),
+                                              child: Text(
+                                                p.esPesableOGranel
+                                                    ? '${_formatStock(p.stockActual)} kg'
+                                                    : '${_formatStock(p.stockActual)} u.',
+                                                style: GoogleFonts.outfit(
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: isLowStock
+                                                      ? AppTheme.alertRed
+                                                      : (isDark
+                                                          ? AppTheme
+                                                              .textDarkSecondary
+                                                          : const Color(
+                                                              0xFF64748B,
+                                                            )),
+                                                ),
+                                              ),
+                                            ),
+                                            if (p.esPesableOGranel) ...[
+                                              const SizedBox(width: 4),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 4,
+                                                  vertical: 1.5,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      Colors.amber.withValues(
+                                                    alpha: 0.18,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: Colors.amber.shade700
+                                                        .withValues(alpha: 0.4),
+                                                    width: 0.8,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      LucideIcons.scale,
+                                                      size: 9,
+                                                      color: Colors
+                                                          .amber.shade900,
+                                                    ),
+                                                    const SizedBox(width: 2),
+                                                    Text(
+                                                      'Balanza',
+                                                      style: GoogleFonts.outfit(
+                                                        fontSize: 8.5,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color: Colors
+                                                            .amber.shade900,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    if (inCart) ...[
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Container(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 5,
                                             vertical: 2,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: isLowStock
-                                                ? AppTheme.alertRed.withValues(
-                                                    alpha: 0.14,
-                                                  )
-                                                : (isDark
-                                                      ? AppTheme
-                                                            .cardDarkElevated
-                                                      : Colors.white),
+                                            color: AppTheme.brandPrimary,
                                             borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            border: isLowStock
-                                                ? null
-                                                : Border.all(
-                                                    color: isDark
-                                                        ? AppTheme.borderDark
-                                                        : const Color(
-                                                            0xFFE2E8F0,
-                                                          ),
-                                                    width: 0.8,
-                                                  ),
-                                          ),
-                                          child: Text(
-                                            p.esPesableOGranel
-                                                ? '${_formatStock(p.stockActual)} kg'
-                                                : '${_formatStock(p.stockActual)} u.',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w800,
-                                              color: isLowStock
-                                                  ? AppTheme.alertRed
-                                                  : (isDark
-                                                        ? AppTheme
-                                                              .textDarkSecondary
-                                                        : const Color(
-                                                            0xFF64748B,
-                                                          )),
+                                              8,
                                             ),
                                           ),
-                                        ),
-                                        if (p.esPesableOGranel) ...[
-                                          const SizedBox(width: 4),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 4,
-                                              vertical: 1.5,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.amber.withValues(
-                                                alpha: 0.18,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: Colors.amber.shade700
-                                                    .withValues(alpha: 0.4),
-                                                width: 0.8,
-                                              ),
-                                            ),
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(
-                                                  LucideIcons.scale,
+                                                const Icon(
+                                                  LucideIcons.check,
                                                   size: 9,
-                                                  color: Colors.amber.shade900,
+                                                  color: Colors.white,
                                                 ),
                                                 const SizedBox(width: 2),
                                                 Text(
-                                                  'Balanza',
+                                                  p.esPesableOGranel
+                                                      ? 'x${_formatCantidad(inCartQty)}kg'
+                                                      : 'x${_formatCantidad(inCartQty)}',
                                                   style: GoogleFonts.outfit(
-                                                    fontSize: 8.5,
-                                                    fontWeight: FontWeight.w800,
-                                                    color:
-                                                        Colors.amber.shade900,
+                                                    fontSize: 9.5,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ],
-                                      ],
-                                    ),
-                                    if (inCart)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.brandPrimary,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              LucideIcons.check,
-                                              size: 9,
-                                              color: Colors.white,
-                                            ),
-                                            const SizedBox(width: 2),
-                                            Text(
-                                              p.esPesableOGranel
-                                                  ? 'x${_formatCantidad(inCartQty)}kg'
-                                                  : 'x${inCartQty.toInt()}',
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 9.5,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ],
                                         ),
                                       ),
+                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -9051,7 +8884,7 @@ class _VentasScreenState extends State<VentasScreen>
           ),
         ],
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -9556,7 +9389,7 @@ class _VentasScreenState extends State<VentasScreen>
 
           // Totalizador Digital LED de Caja
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
@@ -9565,7 +9398,7 @@ class _VentasScreenState extends State<VentasScreen>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isDark
                     ? const Color(0xFF38BDF8).withValues(alpha: 0.35)
@@ -9575,8 +9408,8 @@ class _VentasScreenState extends State<VentasScreen>
               boxShadow: [
                 BoxShadow(
                   color: AppTheme.brandPrimary.withValues(alpha: 0.18),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -9593,9 +9426,9 @@ class _VentasScreenState extends State<VentasScreen>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.outfit(
-                          fontSize: 10.5,
+                          fontSize: 10,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
+                          letterSpacing: 0.8,
                           color: const Color(0xFF38BDF8),
                         ),
                       ),
@@ -9604,7 +9437,7 @@ class _VentasScreenState extends State<VentasScreen>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
+                          fontSize: 9.5,
                           color: AppTheme.textDarkSecondary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -9618,7 +9451,7 @@ class _VentasScreenState extends State<VentasScreen>
                   child: Text(
                     'S/ ${_totalVenta.toStringAsFixed(2)}',
                     style: GoogleFonts.outfit(
-                      fontSize: 25,
+                      fontSize: 22,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.5,
                       color: Colors.white,
@@ -9630,16 +9463,16 @@ class _VentasScreenState extends State<VentasScreen>
             ),
           ),
           if (_promocionesAplicadas.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _buildPromocionesCartBanner(isDark),
           ],
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           _buildDescuentoManualBanner(isDark),
           if (_totalBotellasRetornablesEnCarrito > 0) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             _buildRetornablesCartBanner(isDark),
           ],
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           // Botones de Acción (Ticket Térmico + Cobro)
           Row(
@@ -9653,11 +9486,11 @@ class _VentasScreenState extends State<VentasScreen>
                       color: AppTheme.brandPrimary,
                       width: 1.2,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    minimumSize: const Size(46, 46),
+                    minimumSize: const Size(42, 42),
                   ),
                   onPressed: () {
                     _mostrarTicketTermicoDialog(
@@ -9668,14 +9501,14 @@ class _VentasScreenState extends State<VentasScreen>
                       vuelto: _vuelto,
                     );
                   },
-                  child: const Icon(LucideIcons.printer, size: 20),
+                  child: const Icon(LucideIcons.printer, size: 18),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _buildCobrarButton(
                   isDark: isDark,
-                  height: ResponsiveLayout.isDesktop(context) ? 54.0 : 46.0,
+                  height: ResponsiveLayout.isDesktop(context) ? 48.0 : 42.0,
                   isTablet: true,
                 ),
               ),
@@ -10149,7 +9982,12 @@ class _VentasScreenState extends State<VentasScreen>
     );
   }
 
-  Widget _buildPaymentChip(String metodo, IconData icon, bool isDark) {
+  Widget _buildPaymentChip(
+    String metodo,
+    IconData icon,
+    bool isDark, {
+    bool isTablet = false,
+  }) {
     final bool isSelected = _metodoPago == metodo;
     final Color activeColor = Theme.of(context).colorScheme.primary;
 
@@ -10157,12 +9995,16 @@ class _VentasScreenState extends State<VentasScreen>
       color: Colors.transparent,
       child: InkWell(
         mouseCursor: SystemMouseCursors.click,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isTablet ? 10 : 12),
         onTap: () {
-          setState(() {
-            _metodoPago = metodo;
-            _pagoConController.clear();
-          });
+          if (_metodoPago != metodo) {
+            setState(() {
+              _metodoPago = metodo;
+            });
+            if (metodo == 'Efectivo') {
+              _pagoConController.clear();
+            }
+          }
           HapticFeedback.selectionClick();
         },
         child: AnimatedScale(
@@ -10171,14 +10013,17 @@ class _VentasScreenState extends State<VentasScreen>
           curve: Curves.easeOutCubic,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 10 : 13,
+              vertical: isTablet ? 6 : 8,
+            ),
             decoration: BoxDecoration(
               color: isSelected
                   ? activeColor
                   : (isDark
                         ? AppTheme.cardDarkHighlight
                         : const Color(0xFFF5F6F8)),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(isTablet ? 10 : 12),
               border: Border.all(
                 color: isSelected
                     ? activeColor
@@ -10202,18 +10047,18 @@ class _VentasScreenState extends State<VentasScreen>
               children: [
                 Icon(
                   icon,
-                  size: 15,
+                  size: isTablet ? 13.5 : 15,
                   color: isSelected
                       ? Colors.white
                       : (isDark
                             ? AppTheme.textDarkSecondary
                             : const Color(0xFF64748B)),
                 ),
-                const SizedBox(width: 7),
+                const SizedBox(width: 5),
                 Text(
                   metodo,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
+                    fontSize: isTablet ? 11 : 12,
                     fontWeight: FontWeight.w800,
                     color: isSelected
                         ? Colors.white
@@ -10568,58 +10413,72 @@ class _VentasScreenState extends State<VentasScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Selector de Canales de Pago
-        Wrap(
-          spacing: isTablet ? 5 : 8,
-          runSpacing: isTablet ? 4 : 6,
-          children: [
-            _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark),
-            _buildPaymentChip('Yape', LucideIcons.smartphone, isDark),
-            _buildPaymentChip('Plin', LucideIcons.smartphone, isDark),
-            _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark),
-            _buildPaymentChip('Crédito', LucideIcons.handCoins, isDark),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark, isTablet: isTablet),
+              const SizedBox(width: 6),
+              _buildPaymentChip('Yape', LucideIcons.smartphone, isDark, isTablet: isTablet),
+              const SizedBox(width: 6),
+              _buildPaymentChip('Plin', LucideIcons.smartphone, isDark, isTablet: isTablet),
+              const SizedBox(width: 6),
+              _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark, isTablet: isTablet),
+              const SizedBox(width: 6),
+              _buildPaymentChip('Crédito', LucideIcons.handCoins, isDark, isTablet: isTablet),
+            ],
+          ),
         ),
-        SizedBox(height: isTablet ? 8 : 12),
+        SizedBox(height: isTablet ? 6 : 10),
 
         if (_metodoPago == 'Efectivo') ...[
-          // Denominaciones sugeridas rápidas
+          // Denominaciones sugeridas rápidas (scroll horizontal fluido)
           ValueListenableBuilder<TextEditingValue>(
+            key: const ValueKey('pos_denom_listenable'),
             valueListenable: _pagoConController,
-            builder: (context, _, _) => Wrap(
-              spacing: isTablet ? 5 : 7,
-              runSpacing: isTablet ? 4 : 6,
-              children: [
-                _buildDenomChip(
-                  label: 'Exacto (S/ ${_totalVenta.toStringAsFixed(2)})',
-                  amount: _totalVenta,
-                  isDark: isDark,
-                  isExacto: true,
-                ),
-                for (final b in billetes)
+            builder: (context, _, _) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
                   _buildDenomChip(
-                    label:
-                        'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
-                    amount: b,
+                    label: 'Exacto (S/ ${_totalVenta.toStringAsFixed(2)})',
+                    amount: _totalVenta,
                     isDark: isDark,
+                    isExacto: true,
                   ),
-              ],
+                  for (final b in billetes) ...[
+                    const SizedBox(width: 5),
+                    _buildDenomChip(
+                      label:
+                          'S/ ${b % 1 == 0 ? b.toInt() : b.toStringAsFixed(2)}',
+                      amount: b,
+                      isDark: isDark,
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
-          SizedBox(height: isTablet ? 8 : 10),
+          SizedBox(height: isTablet ? 6 : 8),
 
-          // Campo "Pagó con"
+          // Campo "Pagó con" + Indicador inteligente integrado
           Row(
+            key: const ValueKey('pos_cash_row'),
             children: [
               Expanded(
+                flex: isTablet ? 5 : 1,
                 child: SizedBox(
-                  height: isTablet ? 40 : 46,
+                  height: isTablet ? 38 : 44,
                   child: TextField(
+                    key: const ValueKey('pos_pago_con_textfield'),
                     controller: _pagoConController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
                     style: GoogleFonts.outfit(
-                      fontSize: isTablet ? 14 : 16,
+                      fontSize: isTablet ? 13.5 : 15,
                       fontWeight: FontWeight.w800,
                       color: labelColor,
                     ),
@@ -10627,7 +10486,7 @@ class _VentasScreenState extends State<VentasScreen>
                       isDense: true,
                       labelText: 'Efectivo recibido',
                       labelStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: isTablet ? 12 : 13.5,
+                        fontSize: isTablet ? 11 : 12.5,
                         fontWeight: FontWeight.w700,
                         color: isDark
                             ? AppTheme.textDarkSecondary
@@ -10636,15 +10495,15 @@ class _VentasScreenState extends State<VentasScreen>
                       prefixText: 'S/ ',
                       prefixStyle: GoogleFonts.outfit(
                         fontWeight: FontWeight.w900,
-                        fontSize: isTablet ? 14 : 16,
+                        fontSize: isTablet ? 13.5 : 15,
                         color: AppTheme.brandPrimary,
                       ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: isTablet ? 8 : 12,
+                        horizontal: 10,
+                        vertical: isTablet ? 6 : 10,
                       ),
                       suffixIconConstraints: const BoxConstraints(
                         minWidth: 0,
@@ -10656,6 +10515,11 @@ class _VentasScreenState extends State<VentasScreen>
                             ? IconButton(
                                 icon: const Icon(LucideIcons.x, size: 14),
                                 onPressed: _pagoConController.clear,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 24,
+                                  minHeight: 24,
+                                ),
                               )
                             : const SizedBox.shrink(),
                       ),
@@ -10663,16 +10527,27 @@ class _VentasScreenState extends State<VentasScreen>
                   ),
                 ),
               ),
+              if (isTablet) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 6,
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _pagoConController,
+                    builder: (context, _, _) =>
+                        _buildVueltoInlineBadge(isDark),
+                  ),
+                ),
+              ],
             ],
           ),
-          SizedBox(height: isTablet ? 8 : 10),
-
-          // Tarjeta Inteligente de Vuelto
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _pagoConController,
-            builder: (context, _, _) =>
-                _buildVueltoCard(isDark, isTablet: isTablet),
-          ),
+          if (!isTablet) ...[
+            const SizedBox(height: 8),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _pagoConController,
+              builder: (context, _, _) =>
+                  _buildVueltoCard(isDark, isTablet: isTablet),
+            ),
+          ],
         ] else if (_metodoPago == 'Crédito') ...[
           _buildCreditCustomerCard(isDark, isTablet: isTablet),
         ] else ...[
@@ -10681,7 +10556,7 @@ class _VentasScreenState extends State<VentasScreen>
             width: double.infinity,
             padding: EdgeInsets.symmetric(
               horizontal: 12,
-              vertical: isTablet ? 8 : 10,
+              vertical: isTablet ? 7 : 10,
             ),
             decoration: BoxDecoration(
               color: _metodoPago == 'Yape'
@@ -10692,7 +10567,7 @@ class _VentasScreenState extends State<VentasScreen>
                               .withValues(alpha: isDark ? 0.2 : 0.1)
                         : const Color(0xFF2563EB)
                               .withValues(alpha: isDark ? 0.2 : 0.1)),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _metodoPago == 'Yape'
                     ? const Color(0xFF742284).withValues(alpha: 0.35)
@@ -10707,21 +10582,21 @@ class _VentasScreenState extends State<VentasScreen>
                   _metodoPago == 'Tarjeta'
                       ? LucideIcons.creditCard
                       : LucideIcons.smartphone,
-                  size: 18,
+                  size: 16,
                   color: _metodoPago == 'Yape'
                       ? const Color(0xFF9333EA)
                       : (_metodoPago == 'Plin'
                             ? const Color(0xFF0891B2)
                             : const Color(0xFF2563EB)),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _metodoPago == 'Yape'
-                        ? 'Cobro Yape: Verifica la notificación en tu celular antes de confirmar.'
+                        ? 'Cobro Yape: Verifica la notificación en tu celular.'
                         : (_metodoPago == 'Plin'
-                              ? 'Cobro Plin: Verifica la transferencia recibida en tu cuenta bancaria.'
-                              : 'Cobro Tarjeta: Desliza o inserta la tarjeta en tu terminal POS.'),
+                              ? 'Cobro Plin: Verifica la transferencia recibida.'
+                              : 'Cobro Tarjeta: Desliza o inserta en tu POS.'),
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: isTablet ? 11 : 12,
                       fontWeight: FontWeight.w700,
@@ -10734,6 +10609,163 @@ class _VentasScreenState extends State<VentasScreen>
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildVueltoInlineBadge(bool isDark) {
+    final recibido = _montoRecibido;
+    if (recibido <= 0) {
+      return InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () {
+          _pagoConController.text = _totalVenta.toStringAsFixed(2);
+          HapticFeedback.selectionClick();
+          KarlizSoundService.instance.playBarcodeBeep();
+        },
+        child: Container(
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D9488).withValues(alpha: isDark ? 0.2 : 0.12),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                LucideIcons.zap,
+                size: 13,
+                color: Color(0xFF0D9488),
+              ),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  'Pago Exacto',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0D9488),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (recibido < _totalVenta) {
+      final faltante = _totalVenta - recibido;
+      return Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppTheme.alertRed.withValues(alpha: isDark ? 0.22 : 0.12),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppTheme.alertRed.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              LucideIcons.alertTriangle,
+              size: 13,
+              color: AppTheme.alertRed,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'FALTA DINERO',
+                    style: GoogleFonts.outfit(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.alertRed,
+                    ),
+                  ),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '- S/ ${faltante.toStringAsFixed(2)}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.alertRed,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final vuelto = recibido - _totalVenta;
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.accentGreen.withValues(alpha: isDark ? 0.22 : 0.14),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppTheme.accentGreen.withValues(alpha: 0.6),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            LucideIcons.checkCheck,
+            size: 14,
+            color: AppTheme.accentGreen,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  vuelto > 0 ? 'VUELTO' : 'PAGO EXACTO',
+                  style: GoogleFonts.outfit(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                    color: AppTheme.accentGreen,
+                  ),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    vuelto > 0
+                        ? 'S/ ${vuelto.toStringAsFixed(2)}'
+                        : 'S/ 0.00',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.accentGreen,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
