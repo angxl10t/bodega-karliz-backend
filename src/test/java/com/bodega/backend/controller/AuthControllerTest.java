@@ -62,6 +62,9 @@ public class AuthControllerTest {
     private com.bodega.backend.service.StarterPackService starterPackService;
 
     @Mock
+    private com.bodega.backend.service.TerminalService terminalService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -330,15 +333,25 @@ public class AuthControllerTest {
         c2.setUsername("lucia");
         c2.setRol("CAJERO");
 
+        com.bodega.backend.entity.TerminalPOS term = new com.bodega.backend.entity.TerminalPOS();
+        term.setIdTerminal(1L);
+        term.setBodega(bodega);
+        term.setEstado(true);
+
+        when(request.getHeader("X-Terminal-Token")).thenReturn("token_valido");
+        when(terminalService.validarTerminalToken("token_valido")).thenReturn(term);
         when(usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(1L)).thenReturn(java.util.List.of(c1, c2));
 
-        ResponseEntity<java.util.List<com.bodega.backend.dto.CajeroTerminalDTO>> response = authController.listarCajerosTerminal(1L);
+        ResponseEntity<?> response = authController.listarCajerosTerminal(1L, request);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        assertEquals("CM", response.getBody().get(0).getIniciales());
-        assertEquals("Carlos Morales", response.getBody().get(0).getNombreCompleto());
-        assertEquals("LR", response.getBody().get(1).getIniciales());
+        @SuppressWarnings("unchecked")
+        java.util.List<com.bodega.backend.dto.CajeroTerminalDTO> body = (java.util.List<com.bodega.backend.dto.CajeroTerminalDTO>) response.getBody();
+        assertNotNull(body);
+        assertEquals(2, body.size());
+        assertEquals("CM", body.get(0).getIniciales());
+        assertEquals("Carlos Morales", body.get(0).getNombreCompleto());
+        assertEquals("LR", body.get(1).getIniciales());
     }
 }

@@ -35,6 +35,7 @@ public class AuthController {
     private final com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService;
     private final com.bodega.backend.service.StarterPackService starterPackService;
     private final RecuperacionClaveService recuperacionClaveService;
+    private final com.bodega.backend.service.TerminalService terminalService;
 
     public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, 
                           UsuarioRepository usuarioRepository,
@@ -44,7 +45,8 @@ public class AuthController {
                           LoginRateLimiterService loginRateLimiterService,
                           com.bodega.backend.security.UserSecurityCacheService userSecurityCacheService,
                           com.bodega.backend.service.StarterPackService starterPackService,
-                          RecuperacionClaveService recuperacionClaveService) {
+                          RecuperacionClaveService recuperacionClaveService,
+                          com.bodega.backend.service.TerminalService terminalService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
         this.usuarioRepository = usuarioRepository;
@@ -55,6 +57,7 @@ public class AuthController {
         this.userSecurityCacheService = userSecurityCacheService;
         this.starterPackService = starterPackService;
         this.recuperacionClaveService = recuperacionClaveService;
+        this.terminalService = terminalService;
     }
 
     @PostMapping("/login")
@@ -221,6 +224,30 @@ public class AuthController {
     }
 
     // =========================================================================
+    // Emparejamiento Criptográfico Seguro de Terminal POS (Device Pairing)
+    // =========================================================================
+
+    @PostMapping("/terminal/vincular")
+    public ResponseEntity<?> vincularTerminal(
+            @Valid @RequestBody com.bodega.backend.dto.VincularTerminalRequestDTO dto,
+            HttpServletRequest request) {
+        String clientIp = extractClientIp(request);
+        try {
+            com.bodega.backend.dto.VincularTerminalResponseDTO res = terminalService.vincularTerminal(dto, clientIp);
+            return ResponseEntity.ok(res);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", ex.getMessage()));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error interno al vincular terminal: " + ex.getMessage()));
+        }
+    }
+
+    // =========================================================================
     // Login Rápido de Cajero en Terminal con PIN Numérico (Aislamiento Multi-tienda)
     // =========================================================================
 
@@ -229,21 +256,36 @@ public class AuthController {
             @Valid @RequestBody com.bodega.backend.dto.LoginCajeroPinDTO dto,
             HttpServletRequest request) {
         String clientIp = extractClientIp(request);
-        String rateLimiterKey = "pin_" + (dto.getIdBodega() != null ? dto.getIdBodega() : "anon") + "_" + clientIp;
 
-        if (loginRateLimiterService.isBlocked(clientIp, rateLimiterKey)) {
-            long remaining = loginRateLimiterService.getRemainingBlockMinutes(clientIp, rateLimiterKey);
-            Map<String, String> err = new HashMap<>();
-            err.put("error", "Demasiados intentos con PIN. Operación bloqueada temporalmente por " + remaining + " minuto(s).");
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
+        // 1. Validar Token Criptográfico de Terminal si se provee por Header o DTO
+        com.bodega.backend.entity.TerminalPOS terminal = null;
+        String rawTerminalToken = request.getHeader("X-Terminal-Token");
+        if (rawTerminalToken == null || rawTerminalToken.isBlank()) {
+            rawTerminalToken = dto.getTerminalToken();
+        }
+        if (rawTerminalToken == null || rawTerminalToken.isBlank()) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.toLowerCase().startsWith("terminal ")) {
+                rawTerminalToken = authHeader.substring(9).trim();
+            }
         }
 
-        // 1. Identificar la tienda vinculada a la terminal
+        if (rawTerminalToken != null && !rawTerminalToken.isBlank()) {
+            terminal = terminalService.validarTerminalToken(rawTerminalToken);
+            if (terminal == null) {
+                Map<String, String> err = new HashMap<>();
+                err.put("error", "Terminal POS no autorizada o desvinculada. Solicita al administrador un nuevo código de vinculación.");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+            }
+        }
+
+        // 2. Identificar la tienda vinculada a la terminal
         com.bodega.backend.entity.Bodega bodega = null;
-        if (dto.getIdBodega() != null) {
+        if (terminal != null) {
+            bodega = terminal.getBodega();
+        } else if (dto.getIdBodega() != null) {
             bodega = bodegaRepository.findById(dto.getIdBodega()).orElse(null);
-        }
-        if (bodega == null && dto.getCodigoTienda() != null && !dto.getCodigoTienda().isBlank()) {
+        } else if (dto.getCodigoTienda() != null && !dto.getCodigoTienda().isBlank()) {
             String cod = dto.getCodigoTienda().trim();
             bodega = bodegaRepository.findByRucDni(cod).orElse(null);
             if (bodega == null && cod.matches("^[0-9]+$")) {
@@ -253,10 +295,22 @@ public class AuthController {
             }
         }
 
+        // Mitigación de Fuerza Bruta por Cuenta, IP y Dispositivo
+        String targetUserKey = dto.getIdUsuario() != null ? ("u" + dto.getIdUsuario()) : "pin";
+        String deviceKey = terminal != null ? ("term_" + terminal.getIdTerminal()) : clientIp;
+        String rateLimiterKey = "pin_" + (bodega != null ? bodega.getIdBodega() : "anon") + "_" + targetUserKey + "_" + deviceKey;
+
+        if (loginRateLimiterService.isBlocked(clientIp, rateLimiterKey)) {
+            long remaining = loginRateLimiterService.getRemainingBlockMinutes(clientIp, rateLimiterKey);
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Demasiados intentos con PIN. Operación bloqueada temporalmente por " + remaining + " minuto(s).");
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(err);
+        }
+
         if (bodega == null) {
             loginRateLimiterService.registerFailedAttempt(clientIp, rateLimiterKey);
             Map<String, String> err = new HashMap<>();
-            err.put("error", "Tienda o terminal no identificada. Por favor selecciona o vincula tu local.");
+            err.put("error", "Tienda o terminal no identificada. Por favor vincula tu terminal con el código de 6 dígitos.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
         }
 
@@ -266,7 +320,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
         }
 
-        // 2. Buscar usuario con PIN dentro de esta tienda exclusivamente
+        // 3. Buscar usuario con PIN dentro de esta tienda exclusivamente
         Usuario usuarioAutenticado = null;
         String pinIngresado = dto.getPin().trim();
 
@@ -331,15 +385,53 @@ public class AuthController {
         response.put("logoUrl", bodega.getLogoUrl() != null ? bodega.getLogoUrl() : "");
         response.put("regimenTributario", bodega.getRegimenTributario() != null ? bodega.getRegimenTributario() : "NUEVO_RUS");
         response.put("facturacionSunatActiva", String.valueOf(Boolean.TRUE.equals(bodega.getFacturacionSunatActiva())));
+        if (terminal != null) {
+            response.put("idTerminal", terminal.getIdTerminal().toString());
+            response.put("nombreTerminal", terminal.getNombre());
+        }
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/terminal/{idBodega}/cajeros")
-    public ResponseEntity<List<com.bodega.backend.dto.CajeroTerminalDTO>> listarCajerosTerminal(@PathVariable Long idBodega) {
-        if (idBodega == null) {
-            return ResponseEntity.badRequest().build();
+    @GetMapping({"/terminal/cajeros", "/terminal/{idBodega}/cajeros"})
+    public ResponseEntity<?> listarCajerosTerminal(
+            @PathVariable(required = false) Long idBodega,
+            HttpServletRequest request) {
+        String rawToken = request.getHeader("X-Terminal-Token");
+        if (rawToken == null || rawToken.isBlank()) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.toLowerCase().startsWith("terminal ")) {
+                rawToken = authHeader.substring(9).trim();
+            }
         }
-        List<Usuario> usuarios = usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega);
+
+        // Si no envía token de terminal vinculado, denegar acceso (Fail-Closed anti-enumeración)
+        if (rawToken == null || rawToken.isBlank()) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Acceso denegado. Se requiere vincular la terminal mediante código antes de consultar cajeros.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+        }
+
+        com.bodega.backend.entity.TerminalPOS terminal = terminalService.validarTerminalToken(rawToken);
+        if (terminal == null) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Terminal POS no autorizada o revocada. Solicita un código de vinculación a tu administrador.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(err);
+        }
+
+        com.bodega.backend.entity.Bodega bodega = terminal.getBodega();
+        if (bodega == null || !Boolean.TRUE.equals(bodega.getEstado())) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "La tienda vinculada a esta terminal se encuentra deshabilitada o suspendida.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+        }
+
+        if (idBodega != null && !bodega.getIdBodega().equals(idBodega)) {
+            Map<String, String> err = new HashMap<>();
+            err.put("error", "Esta terminal no corresponde a la tienda solicitada.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(err);
+        }
+
+        List<Usuario> usuarios = usuarioRepository.findByBodega_IdBodegaAndEstadoTrue(bodega.getIdBodega());
         List<com.bodega.backend.dto.CajeroTerminalDTO> cajeros = usuarios.stream()
                 .filter(u -> !"SUPERADMIN".equalsIgnoreCase(u.getRol()))
                 .map(u -> {
