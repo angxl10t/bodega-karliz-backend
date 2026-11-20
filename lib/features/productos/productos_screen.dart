@@ -1821,8 +1821,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                     PlanUpgradeModal.show(
                       context,
                       featureName: 'Auditoría Rápida por Pasillo',
-                      featureDescription:
-                          'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal.',
+                      featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal.',
                       icon: LucideIcons.clipboardCheck,
                       onPlanUpdated: _cargarProductos,
                     );

@@ -1588,8 +1588,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primaryColor,
-                    side: BorderSide(color: primaryColor.withValues(alpha: 0.5)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    side: BorderSide(
+                      color: primaryColor.withValues(alpha: 0.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     minimumSize: Size.zero,
                   ),
                 ),
@@ -1733,18 +1738,16 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
             ),
             child: Row(
               children: [
-                Icon(
-                  LucideIcons.info,
-                  size: 16,
-                  color: primaryColor,
-                ),
+                Icon(LucideIcons.info, size: 16, color: primaryColor),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'El encabezado del ticket (Nombre, RUC, Dirección, Teléfono y Lema) se sincroniza en vivo desde la pestaña "Mi Tienda & Identidad".',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ),
@@ -1819,9 +1822,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: isDark ? Colors.white70 : const Color(0xFF334155),
+                  foregroundColor: isDark
+                      ? Colors.white70
+                      : const Color(0xFF334155),
                   side: BorderSide(
-                    color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFCBD5E1),
                   ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
@@ -2061,7 +2068,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       ),
     );
 
-    final bool useWideLayout = isDesktop || MediaQuery.of(context).size.width >= 800;
+    final bool useWideLayout =
+        isDesktop || MediaQuery.of(context).size.width >= 800;
 
     return useWideLayout
         ? Row(
@@ -2078,10 +2086,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 ),
               ),
               const SizedBox(width: 20),
-              Expanded(
-                flex: 5,
-                child: cardTicketSim,
-              ),
+              Expanded(flex: 5, child: cardTicketSim),
             ],
           )
         : Column(
@@ -2135,10 +2140,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 top: Radius.circular(12),
                 bottom: Radius.circular(4),
               ),
-              border: Border.all(
-                color: const Color(0xFF374151),
-                width: 1.5,
-              ),
+              border: Border.all(color: const Color(0xFF374151), width: 1.5),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.4),
@@ -2181,7 +2183,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.8),
+                            color: const Color(0xFF10B981)
+                                .withValues(alpha: 0.8),
                             blurRadius: 6,
                             spreadRadius: 1,
                           ),
@@ -2197,7 +2200,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF3B82F6).withValues(alpha: 0.8),
+                            color: const Color(0xFF3B82F6)
+                                .withValues(alpha: 0.8),
                             blurRadius: 6,
                             spreadRadius: 1,
                           ),
@@ -2293,9 +2297,15 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
                   // Badge de Documento
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF111827), width: 1.2),
+                      border: Border.all(
+                        color: const Color(0xFF111827),
+                        width: 1.2,
+                      ),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -2310,8 +2320,14 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('20/11/2026 14:35', style: TextStyle(fontSize: is80mm ? 9.5 : 8.5)),
-                      Text('Caja 1', style: TextStyle(fontSize: is80mm ? 9.5 : 8.5)),
+                      Text(
+                        '20/11/2026 14:35',
+                        style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                      ),
+                      Text(
+                        'Caja 1',
+                        style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                      ),
                     ],
                   ),
 
@@ -2323,12 +2339,18 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                       Expanded(
                         child: Text(
                           'CANT  DESCRIPCIÓN',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: is80mm ? 10 : 9),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: is80mm ? 10 : 9,
+                          ),
                         ),
                       ),
                       Text(
                         'TOTAL',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: is80mm ? 10 : 9),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: is80mm ? 10 : 9,
+                        ),
                       ),
                     ],
                   ),
@@ -2344,7 +2366,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('S/ 4.80', style: TextStyle(fontSize: is80mm ? 10 : 9)),
+                      Text(
+                        'S/ 4.80',
+                        style: TextStyle(fontSize: is80mm ? 10 : 9),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -2359,7 +2384,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text('S/ 9.60', style: TextStyle(fontSize: is80mm ? 10 : 9)),
+                      Text(
+                        'S/ 9.60',
+                        style: TextStyle(fontSize: is80mm ? 10 : 9),
+                      ),
                     ],
                   ),
 
@@ -2473,7 +2501,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: const Color(0xFF111827), width: 1.2),
+                        border: Border.all(
+                          color: const Color(0xFF111827),
+                          width: 1.2,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Center(
@@ -2532,7 +2563,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               color: isDark ? const Color(0xFF1E2436) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isDark ? const Color(0xFF262E44) : const Color(0xFFCBD5E1),
+                color: isDark
+                    ? const Color(0xFF262E44)
+                    : const Color(0xFFCBD5E1),
               ),
             ),
             child: Row(
@@ -2569,7 +2602,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
         builder: (context, constraints) {
           const dashWidth = 3.5;
           const dashSpace = 2.5;
-          final double totalWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 200.0;
+          final double totalWidth = constraints.maxWidth > 0
+              ? constraints.maxWidth
+              : 200.0;
           final int dashCount = (totalWidth / (dashWidth + dashSpace)).floor();
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2708,8 +2743,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor:
-                res.exito ? const Color(0xFF10B981) : AppTheme.brandPrimary,
+            backgroundColor: res.exito
+                ? const Color(0xFF10B981)
+                : AppTheme.brandPrimary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -3564,10 +3600,7 @@ class _SawtoothPainter extends CustomPainter {
   final Color color;
   final double toothWidth;
 
-  const _SawtoothPainter({
-    required this.color,
-    this.toothWidth = 8.0,
-  });
+  const _SawtoothPainter({required this.color, this.toothWidth = 8.0});
 
   @override
   void paint(Canvas canvas, Size size) {

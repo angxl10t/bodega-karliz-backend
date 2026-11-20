@@ -6626,12 +6626,12 @@ class _VentasScreenState extends State<VentasScreen>
       vuelto: vuelto > 0 ? vuelto : null,
       descuento: descuento ?? _totalDescuentoPromociones,
       ticketId: ventaGenerada?.idVenta,
-      clienteNombre: (!_identificarCliente ||
-              _clienteNombreController.text.trim().isEmpty)
+      clienteNombre:
+          (!_identificarCliente || _clienteNombreController.text.trim().isEmpty)
           ? 'Público General'
           : _clienteNombreController.text.trim(),
-      clienteDocumento: (!_identificarCliente ||
-              _clienteDocController.text.trim().isEmpty)
+      clienteDocumento:
+          (!_identificarCliente || _clienteDocController.text.trim().isEmpty)
           ? null
           : _clienteDocController.text.trim(),
       tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
@@ -8520,29 +8520,27 @@ class _VentasScreenState extends State<VentasScreen>
                                             Container(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                horizontal: 5,
-                                                vertical: 2,
-                                              ),
+                                                    horizontal: 5,
+                                                    vertical: 2,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: isLowStock
                                                     ? AppTheme.alertRed
-                                                        .withValues(
-                                                        alpha: 0.14,
-                                                      )
+                                                          .withValues(
+                                                            alpha: 0.14,
+                                                          )
                                                     : (isDark
-                                                        ? AppTheme
-                                                            .cardDarkElevated
-                                                        : Colors.white),
+                                                          ? AppTheme
+                                                                .cardDarkElevated
+                                                          : Colors.white),
                                                 borderRadius:
-                                                    BorderRadius.circular(
-                                                  6,
-                                                ),
+                                                    BorderRadius.circular(6),
                                                 border: isLowStock
                                                     ? null
                                                     : Border.all(
                                                         color: isDark
                                                             ? AppTheme
-                                                                .borderDark
+                                                                  .borderDark
                                                             : const Color(
                                                                 0xFFE2E8F0,
                                                               ),
@@ -8559,11 +8557,11 @@ class _VentasScreenState extends State<VentasScreen>
                                                   color: isLowStock
                                                       ? AppTheme.alertRed
                                                       : (isDark
-                                                          ? AppTheme
-                                                              .textDarkSecondary
-                                                          : const Color(
-                                                              0xFF64748B,
-                                                            )),
+                                                            ? AppTheme
+                                                                  .textDarkSecondary
+                                                            : const Color(
+                                                                0xFF64748B,
+                                                              )),
                                                 ),
                                               ),
                                             ),
@@ -8572,14 +8570,12 @@ class _VentasScreenState extends State<VentasScreen>
                                               Container(
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                  horizontal: 4,
-                                                  vertical: 1.5,
-                                                ),
+                                                      horizontal: 4,
+                                                      vertical: 1.5,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color:
-                                                      Colors.amber.withValues(
-                                                    alpha: 0.18,
-                                                  ),
+                                                  color: Colors.amber
+                                                      .withValues(alpha: 0.18),
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                   border: Border.all(
@@ -8595,8 +8591,8 @@ class _VentasScreenState extends State<VentasScreen>
                                                     Icon(
                                                       LucideIcons.scale,
                                                       size: 9,
-                                                      color: Colors
-                                                          .amber.shade900,
+                                                      color:
+                                                          Colors.amber.shade900,
                                                     ),
                                                     const SizedBox(width: 2),
                                                     Text(
@@ -8606,7 +8602,8 @@ class _VentasScreenState extends State<VentasScreen>
                                                         fontWeight:
                                                             FontWeight.w800,
                                                         color: Colors
-                                                            .amber.shade900,
+                                                            .amber
+                                                            .shade900,
                                                       ),
                                                     ),
                                                   ],
@@ -10418,15 +10415,40 @@ class _VentasScreenState extends State<VentasScreen>
           physics: const BouncingScrollPhysics(),
           child: Row(
             children: [
-              _buildPaymentChip('Efectivo', LucideIcons.banknote, isDark, isTablet: isTablet),
+              _buildPaymentChip(
+                'Efectivo',
+                LucideIcons.banknote,
+                isDark,
+                isTablet: isTablet,
+              ),
               const SizedBox(width: 6),
-              _buildPaymentChip('Yape', LucideIcons.smartphone, isDark, isTablet: isTablet),
+              _buildPaymentChip(
+                'Yape',
+                LucideIcons.smartphone,
+                isDark,
+                isTablet: isTablet,
+              ),
               const SizedBox(width: 6),
-              _buildPaymentChip('Plin', LucideIcons.smartphone, isDark, isTablet: isTablet),
+              _buildPaymentChip(
+                'Plin',
+                LucideIcons.smartphone,
+                isDark,
+                isTablet: isTablet,
+              ),
               const SizedBox(width: 6),
-              _buildPaymentChip('Tarjeta', LucideIcons.creditCard, isDark, isTablet: isTablet),
+              _buildPaymentChip(
+                'Tarjeta',
+                LucideIcons.creditCard,
+                isDark,
+                isTablet: isTablet,
+              ),
               const SizedBox(width: 6),
-              _buildPaymentChip('Crédito', LucideIcons.handCoins, isDark, isTablet: isTablet),
+              _buildPaymentChip(
+                'Crédito',
+                LucideIcons.handCoins,
+                isDark,
+                isTablet: isTablet,
+              ),
             ],
           ),
         ),
@@ -10533,8 +10555,7 @@ class _VentasScreenState extends State<VentasScreen>
                   flex: 6,
                   child: ValueListenableBuilder<TextEditingValue>(
                     valueListenable: _pagoConController,
-                    builder: (context, _, _) =>
-                        _buildVueltoInlineBadge(isDark),
+                    builder: (context, _, _) => _buildVueltoInlineBadge(isDark),
                   ),
                 ),
               ],
@@ -10626,7 +10647,8 @@ class _VentasScreenState extends State<VentasScreen>
           height: 38,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D9488).withValues(alpha: isDark ? 0.2 : 0.12),
+            color: const Color(0xFF0D9488)
+                .withValues(alpha: isDark ? 0.2 : 0.12),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: const Color(0xFF0D9488).withValues(alpha: 0.5),
@@ -10636,11 +10658,7 @@ class _VentasScreenState extends State<VentasScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                LucideIcons.zap,
-                size: 13,
-                color: Color(0xFF0D9488),
-              ),
+              const Icon(LucideIcons.zap, size: 13, color: Color(0xFF0D9488)),
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
@@ -10750,9 +10768,7 @@ class _VentasScreenState extends State<VentasScreen>
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    vuelto > 0
-                        ? 'S/ ${vuelto.toStringAsFixed(2)}'
-                        : 'S/ 0.00',
+                    vuelto > 0 ? 'S/ ${vuelto.toStringAsFixed(2)}' : 'S/ 0.00',
                     style: GoogleFonts.outfit(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,

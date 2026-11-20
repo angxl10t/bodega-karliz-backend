@@ -13,10 +13,7 @@ class SawtoothPainter extends CustomPainter {
   final Color color;
   final double toothWidth;
 
-  const SawtoothPainter({
-    required this.color,
-    this.toothWidth = 8.0,
-  });
+  const SawtoothPainter({required this.color, this.toothWidth = 8.0});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -169,7 +166,8 @@ class _ThermalTicketPreviewDialogState
   @override
   void initState() {
     super.initState();
-    _anchoSeleccionado = widget.anchoInicial ??
+    _anchoSeleccionado =
+        widget.anchoInicial ??
         widget.configTicket?.anchoPapel ??
         ConfiguracionTicketService.actual.anchoPapel;
     _cfg = (widget.configTicket ?? ConfiguracionTicketService.actual).copyWith(
@@ -228,8 +226,8 @@ class _ThermalTicketPreviewDialogState
       sunatHash: widget.sunatHash,
       regimenTributario: widget.regimenTributario,
       configTicket: _cfg,
-      forzarAperturaGaveta: _cfg.abrirGaveta &&
-          widget.metodo.toLowerCase().contains('efectivo'),
+      forzarAperturaGaveta:
+          _cfg.abrirGaveta && widget.metodo.toLowerCase().contains('efectivo'),
     );
   }
 
@@ -253,7 +251,9 @@ class _ThermalTicketPreviewDialogState
             content: Row(
               children: [
                 Icon(
-                  res.exito ? LucideIcons.checkCheck : LucideIcons.alertTriangle,
+                  res.exito
+                      ? LucideIcons.checkCheck
+                      : LucideIcons.alertTriangle,
                   color: Colors.white,
                   size: 20,
                 ),
@@ -266,8 +266,9 @@ class _ThermalTicketPreviewDialogState
                 ),
               ],
             ),
-            backgroundColor:
-                res.exito ? AppTheme.accentGreen : AppTheme.alertRed,
+            backgroundColor: res.exito
+                ? AppTheme.accentGreen
+                : AppTheme.alertRed,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
@@ -291,9 +292,7 @@ class _ThermalTicketPreviewDialogState
 
     return Dialog(
       backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Container(
         constraints: BoxConstraints(
@@ -572,8 +571,9 @@ class _ThermalTicketPreviewDialogState
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color:
-                              isDark ? const Color(0xFF1E2436) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1E2436)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isDark
@@ -587,7 +587,9 @@ class _ThermalTicketPreviewDialogState
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                is80mm ? LucideIcons.scroll : LucideIcons.receipt,
+                                is80mm
+                                    ? LucideIcons.scroll
+                                    : LucideIcons.receipt,
                                 size: 13,
                                 color: primaryColor,
                               ),
@@ -621,8 +623,9 @@ class _ThermalTicketPreviewDialogState
               children: [
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        isDark ? Colors.white70 : const Color(0xFF475569),
+                    foregroundColor: isDark
+                        ? Colors.white70
+                        : const Color(0xFF475569),
                     side: BorderSide(
                       color: isDark
                           ? AppTheme.borderDark
