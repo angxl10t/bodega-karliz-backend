@@ -236,7 +236,7 @@ void main() {
     );
 
     testWidgets(
-      'Pestaña 3: Permite alternar ancho de papel 58mm y 80mm en ticket simulador',
+      'Pestaña 3: Permite alternar ancho de papel 58mm y 80mm en ticket simulador lateral',
       (tester) async {
         tester.view.physicalSize = const Size(1280, 800);
         tester.view.devicePixelRatio = 1.0;
@@ -250,14 +250,36 @@ void main() {
         expect(find.text('58 mm (Estándar)'), findsOneWidget);
         expect(find.text('80 mm (Mostrador Ancho)'), findsOneWidget);
 
+        // Simulador de hardware en vivo con cabezal y pastilla de columnas
+        expect(find.text('CAJAYA THERMAL POS'), findsOneWidget);
+        expect(find.text('Papel 58 mm • 32 columnas ESC/POS'), findsOneWidget);
+        expect(find.text('TICKET POS  B001-00293'), findsOneWidget);
+
         // Cambiar a 80mm
         await tester.tap(find.byKey(const Key('btnPapel80')));
         await tester.pumpAndSettle();
+
+        // Pastilla actualizada a 80mm
+        expect(find.text('Papel 80 mm • 48 columnas ESC/POS'), findsOneWidget);
 
         // Alternar switch de QR en ticket
         final qrSwitch = find.byKey(const Key('checkQrTicket'));
         expect(qrSwitch, findsOneWidget);
         await tester.tap(qrSwitch);
+        await tester.pumpAndSettle();
+
+        // Botón de imprimir ticket de prueba
+        final btnPrint = find.byKey(const Key('btnImprimirTicketPrueba'));
+        expect(btnPrint, findsOneWidget);
+        await tester.ensureVisible(btnPrint);
+        await tester.tap(btnPrint);
+        await tester.pumpAndSettle();
+
+        // Botón de probar apertura de gaveta
+        final btnDrawer = find.byKey(const Key('btnProbarGaveta'));
+        expect(btnDrawer, findsOneWidget);
+        await tester.ensureVisible(btnDrawer);
+        await tester.tap(btnDrawer);
         await tester.pumpAndSettle();
       },
     );

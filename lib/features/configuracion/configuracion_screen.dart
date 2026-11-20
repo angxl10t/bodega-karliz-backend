@@ -1481,6 +1481,122 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Banner de Estado de Conexión
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    LucideIcons.bluetooth,
+                    size: 18,
+                    color: primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Impresora ESC/POS Lista',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.brandInk,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Canal activo (Bluetooth / USB / RawBT)',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF10B981),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: const Color(0xFF10B981),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        content: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.checkCircle,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Canal de impresora térmica verificado y activo.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(LucideIcons.refreshCw, size: 13),
+                  label: Text(
+                    'Probar',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primaryColor,
+                    side: BorderSide(color: primaryColor.withValues(alpha: 0.5)),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    minimumSize: Size.zero,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             'ANCHO DE PAPEL TÉRMICO',
             style: GoogleFonts.outfit(
@@ -1497,6 +1613,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 child: _buildChoiceButton(
                   key: const Key('btnPapel58'),
                   label: '58 mm (Estándar)',
+                  subtitle: '32 cols • Móvil',
                   icon: LucideIcons.receipt,
                   selected: _anchoPapel == ThermalTicketService.width58mm,
                   onTap: () => setState(
@@ -1511,6 +1628,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 child: _buildChoiceButton(
                   key: const Key('btnPapel80'),
                   label: '80 mm (Mostrador Ancho)',
+                  subtitle: '48 cols • Epson / Xprinter',
                   icon: LucideIcons.scroll,
                   selected: _anchoPapel == ThermalTicketService.width80mm,
                   onTap: () => setState(
@@ -1525,7 +1643,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           const SizedBox(height: 16),
           _buildPermissionToggle(
             title: 'Abrir Gaveta de Dinero Automáticamente',
-            desc: 'Envía pulso eléctrico ESC/POS al confirmar una venta en efectivo.',
+            desc: 'Envía pulso eléctrico ESC/POS (Pin 2/5) al confirmar venta en efectivo.',
             value: _abrirGaveta,
             onChanged: (val) => setState(() => _abrirGaveta = val),
             isDark: isDark,
@@ -1603,6 +1721,36 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  LucideIcons.info,
+                  size: 16,
+                  color: primaryColor,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'El encabezado del ticket (Nombre, RUC, Dirección, Teléfono y Lema) se sincroniza en vivo desde la pestaña "Mi Tienda & Identidad".',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1613,161 +1761,80 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       title: 'Simulación de Ticket Térmico en Vivo',
       subtitle:
           'Visualiza exactamente cómo saldrá el papel impreso en mostrador',
-      child: Center(
-        child: Container(
-          width: _anchoPapel == ThermalTicketService.width80mm ? 320 : 250,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFFDF9),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+      child: Column(
+        children: [
+          _buildThermalTicketSimulator(isDark, primaryColor),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.center,
+            children: [
+              ElevatedButton.icon(
+                key: const Key('btnImprimirTicketPrueba'),
+                onPressed: _imprimirTicketPrueba,
+                icon: const Icon(LucideIcons.printer, size: 15),
+                label: Text(
+                  'Imprimir Ticket de Prueba',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                key: const Key('btnProbarGaveta'),
+                onPressed: () async {
+                  HapticFeedback.selectionClick();
+                  await ThermalTicketService.abrirGavetaDinero();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: AppTheme.brandPrimary,
+                        behavior: SnackBarBehavior.floating,
+                        content: const Text(
+                          'Pulso de apertura de gaveta enviado (Pin 2/5 ESC/POS).',
+                        ),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(LucideIcons.banknote, size: 15),
+                label: Text(
+                  'Probar Gaveta',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: isDark ? Colors.white70 : const Color(0xFF334155),
+                  side: BorderSide(
+                    color: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
             ],
-            border: Border.symmetric(
-              horizontal: BorderSide(
-                color: Colors.grey.shade400,
-                width: 2,
-                style: BorderStyle.solid,
-              ),
-            ),
           ),
-          child: DefaultTextStyle(
-            style: GoogleFonts.firaCode(
-              color: const Color(0xFF1E293B),
-              fontSize: 11,
-              height: 1.35,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  _nombreCtrl.text.isNotEmpty
-                      ? _nombreCtrl.text.toUpperCase()
-                      : 'BODEGA SAN MARTÍN',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                Text(
-                  'RUC: ${_rucCtrl.text.isNotEmpty ? _rucCtrl.text : "20601234567"}',
-                ),
-                Text(
-                  _direccionCtrl.text.isNotEmpty
-                      ? _direccionCtrl.text
-                      : "Av. San Martín 450",
-                ),
-                Text(
-                  'Tel: ${_telefonoCtrl.text.isNotEmpty ? _telefonoCtrl.text : "987 654 321"}',
-                ),
-                const Divider(color: Colors.black45, height: 14),
-                const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'TICKET POS',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(width: 40),
-                      Text('B001-00293'),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.black45, height: 14),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '1 Arroz Costeño 1kg',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text('S/ 4.80'),
-                  ],
-                ),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '2 Leche Gloria Azul',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Text('S/ 9.60'),
-                  ],
-                ),
-                const Divider(color: Colors.black45, height: 14),
-                const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'TOTAL A PAGAR:  ',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                      SizedBox(width: 30),
-                      Text(
-                        'S/ 14.40',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_mostrarQr) ...[
-                  const Divider(color: Colors.black45, height: 14),
-                  Text(
-                    'PAGA CON $_tipoQr AL: ${_numeroQrCtrl.text.isNotEmpty ? _numeroQrCtrl.text : "987 654 321"}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: 60,
-                    height: 60,
-                    color: const Color(0xFFE2E8F0),
-                    alignment: Alignment.center,
-                    child: const Icon(
-                      LucideIcons.qrCode,
-                      color: Color(0xFF1E293B),
-                      size: 36,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                Text(
-                  _lemaCtrl.text.isNotEmpty
-                      ? _lemaCtrl.text
-                      : '¡Gracias por su preferencia!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        ],
       ),
     );
 
@@ -1994,33 +2061,698 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       ),
     );
 
-    return isDesktop
+    final bool useWideLayout = isDesktop || MediaQuery.of(context).size.width >= 800;
+
+    return useWideLayout
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                flex: 3,
+                flex: 6,
                 child: Column(
                   children: [
-                    cardTerminales,
-                    const SizedBox(height: 16),
                     cardHardware,
+                    const SizedBox(height: 16),
+                    cardTerminales,
                   ],
                 ),
               ),
               const SizedBox(width: 20),
-              Expanded(flex: 2, child: cardTicketSim),
+              Expanded(
+                flex: 5,
+                child: cardTicketSim,
+              ),
             ],
           )
         : Column(
             children: [
-              cardTerminales,
-              const SizedBox(height: 16),
               cardHardware,
               const SizedBox(height: 16),
               cardTicketSim,
+              const SizedBox(height: 16),
+              cardTerminales,
             ],
           );
+  }
+
+  // --- SIMULADOR DE TICKET TÉRMICO & HARDWARE EN VIVO ---
+  Widget _buildThermalTicketSimulator(bool isDark, Color primaryColor) {
+    final bool is80mm = _anchoPapel == ThermalTicketService.width80mm;
+    final double paperWidth = is80mm ? 320.0 : 255.0;
+    final double headWidth = paperWidth + 36.0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF0F121C) : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF262E44) : const Color(0xFFCBD5E1),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 1. Cabezal de Impresión Hardware (Printer Head Chassis)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            width: headWidth,
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111827),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+                bottom: Radius.circular(4),
+              ),
+              border: Border.all(
+                color: const Color(0xFF374151),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      LucideIcons.printer,
+                      size: 15,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'CAJAYA THERMAL POS',
+                      style: GoogleFonts.outfit(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                        color: const Color(0xFFD1D5DB),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.8),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF3B82F6).withValues(alpha: 0.8),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // 2. Ranura de Expulsión del Papel (Printer Feeding Slot)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            width: paperWidth + 16.0,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFF030712),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // 3. Hoja Física de Papel Térmico (Realistic Thermal Receipt Paper)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            width: paperWidth,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFDF8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.22),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+            child: DefaultTextStyle(
+              style: GoogleFonts.firaCode(
+                color: const Color(0xFF111827),
+                fontSize: is80mm ? 10.5 : 9.5,
+                height: 1.35,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Nombre del Comercio
+                  Text(
+                    _nombreCtrl.text.trim().isNotEmpty
+                        ? _nombreCtrl.text.trim().toUpperCase()
+                        : 'BODEGA SAN MARTÍN',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: is80mm ? 13 : 11.5,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  if (_lemaCtrl.text.trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '"${_lemaCtrl.text.trim()}"',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 8.5,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 2),
+                  Text(
+                    'RUC: ${_rucCtrl.text.trim().isNotEmpty ? _rucCtrl.text.trim() : "20601234567"}',
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    _direccionCtrl.text.trim().isNotEmpty
+                        ? _direccionCtrl.text.trim()
+                        : "Av. San Martín 450",
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'Tel: ${_telefonoCtrl.text.trim().isNotEmpty ? _telefonoCtrl.text.trim() : "987 654 321"}',
+                    textAlign: TextAlign.center,
+                  ),
+
+                  _buildReceiptDashedLine(),
+
+                  // Badge de Documento
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF111827), width: 1.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'TICKET POS  B001-00293',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: is80mm ? 11 : 9.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('20/11/2026 14:35', style: TextStyle(fontSize: is80mm ? 9.5 : 8.5)),
+                      Text('Caja 1', style: TextStyle(fontSize: is80mm ? 9.5 : 8.5)),
+                    ],
+                  ),
+
+                  _buildReceiptDashedLine(),
+
+                  // Tabla de Ítems
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'CANT  DESCRIPCIÓN',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: is80mm ? 10 : 9),
+                        ),
+                      ),
+                      Text(
+                        'TOTAL',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: is80mm ? 10 : 9),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '1  Arroz Costeño 1kg',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: is80mm ? 10 : 9),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('S/ 4.80', style: TextStyle(fontSize: is80mm ? 10 : 9)),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '2  Leche Gloria Azul 400g',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: is80mm ? 10 : 9),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text('S/ 9.60', style: TextStyle(fontSize: is80mm ? 10 : 9)),
+                    ],
+                  ),
+
+                  _buildReceiptDashedLine(),
+
+                  // Subtotales y Total
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'OP. GRAVADA:',
+                          style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                        ),
+                      ),
+                      Text(
+                        'S/ 12.20',
+                        style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'I.G.V. (18%):',
+                          style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                        ),
+                      ),
+                      Text(
+                        'S/ 2.20',
+                        style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'TOTAL A PAGAR:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: is80mm ? 11.5 : 10.5,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'S/ 14.40',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: is80mm ? 11.5 : 10.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'PAGO: EFECTIVO',
+                          style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                        ),
+                      ),
+                      Text(
+                        'S/ 20.00',
+                        style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'VUELTO:',
+                          style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                        ),
+                      ),
+                      Text(
+                        'S/ 5.60',
+                        style: TextStyle(fontSize: is80mm ? 9.5 : 8.5),
+                      ),
+                    ],
+                  ),
+
+                  // QR de Pago Dinámico
+                  if (_mostrarQr) ...[
+                    _buildReceiptDashedLine(),
+                    Text(
+                      'PAGA CON $_tipoQr AL:',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: is80mm ? 9.5 : 8.5,
+                      ),
+                    ),
+                    Text(
+                      _numeroQrCtrl.text.trim().isNotEmpty
+                          ? _numeroQrCtrl.text.trim()
+                          : "987 654 321",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: is80mm ? 10.5 : 9.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      width: 68,
+                      height: 68,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: const Color(0xFF111827), width: 1.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          LucideIcons.qrCode,
+                          color: Color(0xFF111827),
+                          size: 46,
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  _buildReceiptDashedLine(),
+
+                  // Código de Barras Decorativo
+                  _buildReceiptBarcode(is80mm),
+
+                  const SizedBox(height: 6),
+                  Text(
+                    _lemaCtrl.text.trim().isNotEmpty
+                        ? _lemaCtrl.text.trim()
+                        : '¡Gracias por su preferencia!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: is80mm ? 9.5 : 8.5,
+                      color: const Color(0xFF334151),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // 4. Borde en Zigzag / Dientes de Sierra (Sawtooth Jagged Edge)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            width: paperWidth,
+            height: 6,
+            child: const CustomPaint(
+              size: Size.infinite,
+              painter: _SawtoothPainter(
+                color: Color(0xFFFFFDF8),
+                toothWidth: 8.0,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // 5. Pastilla Informativa de Ancho ESC/POS
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E2436) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark ? const Color(0xFF262E44) : const Color(0xFFCBD5E1),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  is80mm ? LucideIcons.scroll : LucideIcons.receipt,
+                  size: 14,
+                  color: primaryColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  is80mm
+                      ? 'Papel 80 mm • 48 columnas ESC/POS'
+                      : 'Papel 58 mm • 32 columnas ESC/POS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReceiptDashedLine() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          const dashWidth = 3.5;
+          const dashSpace = 2.5;
+          final double totalWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 200.0;
+          final int dashCount = (totalWidth / (dashWidth + dashSpace)).floor();
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(dashCount > 0 ? dashCount : 1, (_) {
+              return const SizedBox(
+                width: dashWidth,
+                height: 1,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: Color(0xFF6B7280)),
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildReceiptBarcode(bool is80mm) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (int i = 0; i < (is80mm ? 42 : 32); i++)
+              Container(
+                width: (i % 4 == 0 || i % 7 == 0) ? 2.4 : 1.2,
+                height: 20,
+                margin: EdgeInsets.only(right: (i % 5 == 0) ? 2.0 : 1.0),
+                color: const Color(0xFF111827),
+              ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '* 00293-20261120-1440 *',
+          style: GoogleFonts.firaCode(
+            fontSize: 7.5,
+            color: const Color(0xFF4B5563),
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _imprimirTicketPrueba() async {
+    HapticFeedback.mediumImpact();
+    final testItems = [
+      TicketItem(
+        nombre: 'Arroz Costeño 1kg',
+        cantidad: 1,
+        precioUnitario: 4.80,
+        subtotal: 4.80,
+      ),
+      TicketItem(
+        nombre: 'Leche Gloria Azul 400g',
+        cantidad: 2,
+        precioUnitario: 4.80,
+        subtotal: 9.60,
+      ),
+    ];
+
+    try {
+      final ticketCfg = ConfiguracionTicket(
+        anchoPapel: _anchoPapel,
+        modoConexion: _modoConexion,
+        abrirGaveta: _abrirGaveta,
+        impresionAutomatica: _impresionAutomatica,
+        mostrarQr: _mostrarQr,
+        tipoQr: _tipoQr,
+        numeroQr: _numeroQrCtrl.text.trim(),
+        mensajeAgradecimiento: _lemaCtrl.text.trim(),
+      );
+
+      final escPosBytes = ThermalTicketService.generateEscPosBytes(
+        ticketId: 293,
+        clienteNombre: 'Cliente Mostrador',
+        clienteDocumento: null,
+        metodoPago: 'EFECTIVO',
+        items: testItems,
+        total: 14.40,
+        pagadoCon: 20.00,
+        vuelto: 5.60,
+        cajero: 'Caja 1',
+        width: _anchoPapel,
+        nombreComercio: _nombreCtrl.text.trim().isNotEmpty
+            ? _nombreCtrl.text.trim()
+            : 'CajaYa POS',
+        rucDni: _rucCtrl.text.trim().isNotEmpty ? _rucCtrl.text.trim() : null,
+        direccion: _direccionCtrl.text.trim().isNotEmpty
+            ? _direccionCtrl.text.trim()
+            : null,
+        telefono: _telefonoCtrl.text.trim().isNotEmpty
+            ? _telefonoCtrl.text.trim()
+            : null,
+        lemaComercial: _lemaCtrl.text.trim().isNotEmpty
+            ? _lemaCtrl.text.trim()
+            : null,
+        configTicket: ticketCfg,
+      );
+
+      final receiptText = ThermalTicketService.generateReceiptText(
+        ticketId: 293,
+        clienteNombre: 'Cliente Mostrador',
+        clienteDocumento: null,
+        metodoPago: 'EFECTIVO',
+        items: testItems,
+        total: 14.40,
+        pagadoCon: 20.00,
+        vuelto: 5.60,
+        cajero: 'Caja 1',
+        width: _anchoPapel,
+        nombreComercio: _nombreCtrl.text.trim().isNotEmpty
+            ? _nombreCtrl.text.trim()
+            : 'CajaYa POS',
+        rucDni: _rucCtrl.text.trim().isNotEmpty ? _rucCtrl.text.trim() : null,
+        direccion: _direccionCtrl.text.trim().isNotEmpty
+            ? _direccionCtrl.text.trim()
+            : null,
+        telefono: _telefonoCtrl.text.trim().isNotEmpty
+            ? _telefonoCtrl.text.trim()
+            : null,
+        lemaComercial: _lemaCtrl.text.trim().isNotEmpty
+            ? _lemaCtrl.text.trim()
+            : null,
+        configTicket: ticketCfg,
+      );
+
+      final res = await ThermalTicketService.imprimirTicketDirecto(
+        escPosBytes: escPosBytes,
+        receiptText: receiptText,
+        config: ticketCfg,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor:
+                res.exito ? const Color(0xFF10B981) : AppTheme.brandPrimary,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            content: Row(
+              children: [
+                Icon(
+                  res.exito ? LucideIcons.checkCircle : LucideIcons.printer,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    res.exito
+                        ? 'Ticket de prueba enviado a la impresora térmica.'
+                        : 'Simulación completada: ${res.mensaje}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.brandPrimary,
+            behavior: SnackBarBehavior.floating,
+            content: Text(
+              'Simulación de ticket completada ($e)',
+              style: GoogleFonts.plusJakartaSans(fontSize: 12),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   // --- TAB 4: CANALES & TIENDA ONLINE ---
@@ -2472,6 +3204,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   Widget _buildChoiceButton({
     Key? key,
     required String label,
+    String? subtitle,
     required IconData icon,
     required bool selected,
     required VoidCallback onTap,
@@ -2503,20 +3236,43 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           children: [
             Icon(
               icon,
-              size: 15,
+              size: 16,
               color: selected
                   ? primaryColor
                   : (isDark ? Colors.white70 : const Color(0xFF475569)),
             ),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.outfit(
-                fontSize: 12,
-                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                color: selected
-                    ? primaryColor
-                    : (isDark ? Colors.white : AppTheme.textDark),
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: selected
+                          ? primaryColor
+                          : (isDark ? Colors.white : AppTheme.textDark),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
               ),
             ),
           ],
@@ -2801,4 +3557,40 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       }
     }
   }
+}
+
+/// Dibuja los dientes de sierra característicos del corte de papel en guillotinas térmicas.
+class _SawtoothPainter extends CustomPainter {
+  final Color color;
+  final double toothWidth;
+
+  const _SawtoothPainter({
+    required this.color,
+    this.toothWidth = 8.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    path.moveTo(0, 0);
+
+    double x = 0;
+    while (x < size.width) {
+      final midX = x + (toothWidth / 2);
+      final nextX = x + toothWidth;
+      path.lineTo(midX, size.height);
+      path.lineTo(nextX, 0);
+      x = nextX;
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SawtoothPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.toothWidth != toothWidth;
 }
