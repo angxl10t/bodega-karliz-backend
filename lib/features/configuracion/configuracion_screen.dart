@@ -12,9 +12,11 @@ import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../core/thermal_ticket_service.dart';
+import '../auth/auth_service.dart';
 import '../home/bodega_service.dart';
 import '../home/configuracion_marca_modal.dart';
 import '../home/usuarios_service.dart';
+import 'modal_generar_codigo_terminal.dart';
 
 enum ConfiguracionTab { tienda, usuarios, hardware, online, plan }
 
@@ -51,6 +53,7 @@ class ConfiguracionScreen extends StatefulWidget {
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   final _bodegaService = BodegaService();
   final _usuariosService = UsuariosService();
+  final _authService = AuthService();
 
   late ConfiguracionTab _currentTab;
   bool _isLoading = true;
@@ -58,6 +61,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
   BodegaInfo? _bodegaInfo;
   List<UsuarioItem> _usuarios = [];
+  List<Map<String, dynamic>> _terminalesPOS = [];
+  bool _cargandoTerminales = false;
 
   // Pestaña 1: Mi Tienda & Identidad
   final _nombreCtrl = TextEditingController();
@@ -224,9 +229,81 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
           _isLoading = false;
         });
+        _cargarTerminalesPOS();
       }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _cargarTerminalesPOS() async {
+    setState(() => _cargandoTerminales = true);
+    try {
+      final list = await _authService.listarTerminales();
+      if (mounted) {
+        setState(() {
+          _terminalesPOS = list;
+          _cargandoTerminales = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _cargandoTerminales = false);
+    }
+  }
+
+  Future<void> _abrirModalNuevoCodigoTerminal() async {
+    await ModalGenerarCodigoTerminal.show(
+      context,
+      authService: _authService,
+      onCerrar: () {
+        _cargarTerminalesPOS();
+      },
+    );
+  }
+
+  Future<void> _confirmarRevocarTerminal(int idTerminal, String nombre) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          '¿Revocar terminal "$nombre"?',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Este dispositivo perderá su autorización y no podrá iniciar sesión con PIN ni consultar cajeros.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.alertRed),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Revocar Acceso',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && mounted) {
+      final ok = await _authService.revocarTerminal(idTerminal);
+      if (ok && mounted) {
+        _cargarTerminalesPOS();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Terminal "$nombre" revocada exitosamente.',
+              style: GoogleFonts.plusJakartaSans(),
+            ),
+            backgroundColor: AppTheme.accentGreen,
+          ),
+        );
+      }
     }
   }
 
@@ -1695,17 +1772,256 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       ),
     );
 
+    final cardTerminales = _buildCard(
+      isDark: isDark,
+      icon: LucideIcons.monitorSmartphone,
+      title: 'Terminales POS y Cajas Vinculadas',
+      subtitle:
+          'Dispositivos autorizados de forma segura para inicio rápido con PIN de cajero',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Cada terminal autorizada recibe una credencial criptográfica única de acceso.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: _abrirModalNuevoCodigoTerminal,
+                icon: const Icon(LucideIcons.plus, size: 14),
+                label: Text(
+                  'Vincular Terminal',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  minimumSize: Size.zero,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_cargandoTerminales)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (_terminalesPOS.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppTheme.cardDarkSunken
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(LucideIcons.info, size: 18, color: primaryColor),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'No tienes terminales vinculadas aún. Haz clic en "Vincular Terminal" para generar un código OTP seguro de 6 dígitos.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _terminalesPOS.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              itemBuilder: (ctx, idx) {
+                final term = _terminalesPOS[idx];
+                final bool activa = term['estado'] == true;
+                final dynamic idTermRaw = term['idTerminal'];
+                final int? idTerm = idTermRaw is int
+                    ? idTermRaw
+                    : (idTermRaw is num ? idTermRaw.toInt() : null);
+                final String nombre =
+                    term['nombre']?.toString() ?? 'Terminal POS';
+                final String modelo =
+                    term['deviceModel']?.toString() ?? 'Dispositivo Móvil';
+                final String fecha = term['fechaVinculacion'] != null
+                    ? term['fechaVinculacion'].toString().split('T').first
+                    : '';
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardDarkSunken
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: activa
+                              ? (isDark
+                                    ? AppTheme.brandPrimary.withValues(
+                                        alpha: 0.2,
+                                      )
+                                    : const Color(0xFFEFF6FF))
+                              : (isDark
+                                    ? Colors.red.withValues(alpha: 0.15)
+                                    : const Color(0xFFFEF2F2)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          LucideIcons.monitorCheck,
+                          size: 16,
+                          color: activa ? primaryColor : AppTheme.alertRed,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    nombre,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.brandInk,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: activa
+                                        ? AppTheme.accentGreen.withValues(
+                                            alpha: 0.15,
+                                          )
+                                        : AppTheme.alertRed.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    activa ? 'Activa' : 'Revocada',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: activa
+                                          ? AppTheme.accentGreen
+                                          : AppTheme.alertRed,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              '$modelo • Vinculada $fecha',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (activa && idTerm != null)
+                        IconButton(
+                          tooltip: 'Revocar terminal',
+                          icon: const Icon(
+                            LucideIcons.trash2,
+                            size: 16,
+                            color: AppTheme.alertRed,
+                          ),
+                          onPressed: () =>
+                              _confirmarRevocarTerminal(idTerm, nombre),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+
     return isDesktop
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 3, child: cardHardware),
+              Expanded(
+                flex: 3,
+                child: Column(
+                  children: [
+                    cardTerminales,
+                    const SizedBox(height: 16),
+                    cardHardware,
+                  ],
+                ),
+              ),
               const SizedBox(width: 20),
               Expanded(flex: 2, child: cardTicketSim),
             ],
           )
         : Column(
-            children: [cardHardware, const SizedBox(height: 16), cardTicketSim],
+            children: [
+              cardTerminales,
+              const SizedBox(height: 16),
+              cardHardware,
+              const SizedBox(height: 16),
+              cardTicketSim,
+            ],
           );
   }
 

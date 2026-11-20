@@ -46,12 +46,14 @@ class _LoginScreenState extends State<LoginScreen> {
   // Estado para Modo Cajero con PIN en terminal vinculada
   bool _isCajeroPinMode = false;
   String _enteredPin = '';
+  String? _terminalToken;
   String? _terminalIdBodega;
   String? _terminalNombreBodega;
+  String? _terminalNombre;
   List<Map<String, dynamic>> _cajerosTerminal = [];
   int? _selectedIdUsuario;
   String? _selectedCajeroNombre;
-  bool _mostrarCambioTienda = false;
+  final _codigoVinculacionCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -68,23 +70,43 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _cargarInfoTerminal() {
-    AuthService.getTerminalIdBodega().then((id) {
-      if (id != null && id.isNotEmpty && mounted) {
-        setState(() => _terminalIdBodega = id);
+    AuthService.getTerminalToken().then((token) {
+      if (!mounted) return;
+      if (token != null && token.isNotEmpty) {
+        setState(() => _terminalToken = token);
+        AuthService.getTerminalIdBodega().then((id) {
+          if (mounted && id != null) setState(() => _terminalIdBodega = id);
+        });
         AuthService.getTerminalNombreBodega().then((nom) {
-          if (nom != null && mounted) {
+          if (mounted && nom != null) {
             setState(() => _terminalNombreBodega = nom);
           }
         });
-        _authService.obtenerCajerosTerminal(id).then((cajeros) {
-          if (mounted && cajeros.isNotEmpty) {
-            setState(() {
-              _cajerosTerminal = cajeros;
-              _selectedIdUsuario = cajeros.first['idUsuario'] as int?;
-              _selectedCajeroNombre =
-                  cajeros.first['nombreCompleto'] as String?;
-            });
+        AuthService.getTerminalNombre().then((termNom) {
+          if (mounted && termNom != null) {
+            setState(() => _terminalNombre = termNom);
           }
+        });
+        _authService.obtenerCajerosTerminal().then((cajeros) {
+          if (mounted) {
+            if (cajeros.isNotEmpty) {
+              setState(() {
+                _cajerosTerminal = cajeros;
+                _selectedIdUsuario = cajeros.first['idUsuario'] as int?;
+                _selectedCajeroNombre =
+                    cajeros.first['nombreCompleto'] as String?;
+              });
+            } else {
+              setState(() {
+                _cajerosTerminal = [];
+              });
+            }
+          }
+        });
+      } else {
+        setState(() {
+          _terminalToken = null;
+          _cajerosTerminal = [];
         });
       }
     });
@@ -96,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _usernameController.dispose();
     _passwordController.dispose();
     _codigoTiendaCtrl.dispose();
+    _codigoVinculacionCtrl.dispose();
     super.dispose();
   }
 
@@ -209,10 +232,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginCajero() async {
-    if (_terminalIdBodega == null || _terminalIdBodega!.isEmpty) {
+    if (_terminalToken == null || _terminalToken!.isEmpty) {
       setState(
         () => _errorMessage =
-            'Por favor vincula esta terminal al ID de tu negocio.',
+            'Terminal no vinculada. Ingresa el código de 6 dígitos generado por tu Administrador.',
       );
       HapticFeedback.heavyImpact();
       return;
@@ -239,6 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
       idBodega: _terminalIdBodega,
       idUsuario: _selectedIdUsuario,
       pin: _enteredPin,
+      terminalToken: _terminalToken,
     );
 
     if (mounted) {
@@ -254,21 +278,25 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         HapticFeedback.heavyImpact();
+        final err = result.errorMessage ?? 'PIN incorrecto. Intenta de nuevo.';
         setState(() {
-          _errorMessage =
-              result.errorMessage ?? 'PIN incorrecto. Intenta de nuevo.';
+          _errorMessage = err;
           _enteredPin = '';
         });
+        if (err.toLowerCase().contains('desvinculada') ||
+            err.toLowerCase().contains('revocada') ||
+            err.toLowerCase().contains('no autorizada')) {
+          _cargarInfoTerminal();
+        }
       }
     }
   }
 
-  Future<void> _vincularTienda() async {
-    final codigo = _codigoTiendaCtrl.text.trim();
-    if (codigo.isEmpty) return;
-    final id = int.tryParse(codigo);
-    if (id == null) {
-      setState(() => _errorMessage = 'El ID de negocio debe ser numérico.');
+  Future<void> _vincularTerminalConCodigo() async {
+    final codigo = _codigoVinculacionCtrl.text.trim();
+    if (codigo.isEmpty) {
+      setState(() => _errorMessage = 'Ingresa el código de 6 dígitos.');
+      HapticFeedback.heavyImpact();
       return;
     }
     setState(() {
@@ -276,38 +304,100 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = '';
     });
     try {
-      final cajeros = await _authService.obtenerCajerosTerminal(codigo);
-      if (mounted) {
-        if (cajeros.isEmpty) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage =
-                'No se encontraron cajeros activos para el local #$codigo';
-          });
-        } else {
-          await AuthService.vincularTerminal(
-            idBodega: codigo,
-            nombreBodega: 'Local #$codigo',
-          );
-          setState(() {
-            _isLoading = false;
-            _terminalIdBodega = codigo;
-            _terminalNombreBodega = 'Local #$codigo';
-            _cajerosTerminal = cajeros;
-            _selectedIdUsuario = cajeros.first['idUsuario'] as int?;
-            _selectedCajeroNombre = cajeros.first['nombreCompleto'] as String?;
-            _mostrarCambioTienda = false;
-            _errorMessage = '';
-          });
-        }
+      final res = await _authService.vincularTerminalConCodigo(
+        codigoEmparejamiento: codigo,
+      );
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (res['success'] == true) {
+        HapticFeedback.lightImpact();
+        _codigoVinculacionCtrl.clear();
+        _cargarInfoTerminal();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  LucideIcons.shieldCheck,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '¡Terminal vinculada y autorizada exitosamente!',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.accentGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        HapticFeedback.heavyImpact();
+        setState(() {
+          _errorMessage =
+              res['error'] ?? 'Código de vinculación inválido o expirado';
+        });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Error al vincular con el servidor: $e';
+          _errorMessage = 'Error de conexión al vincular terminal: $e';
         });
       }
+    }
+  }
+
+  Future<void> _confirmarDesvincularTerminal() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          '¿Desvincular esta terminal?',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Al desvincularla, ningún cajero podrá ingresar con PIN hasta que el administrador autorice un nuevo código de vinculación de 6 dígitos.',
+          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.alertRed,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Desvincular',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true && mounted) {
+      await AuthService.desvincularTerminal();
+      setState(() {
+        _terminalToken = null;
+        _terminalIdBodega = null;
+        _terminalNombreBodega = null;
+        _terminalNombre = null;
+        _cajerosTerminal = [];
+        _enteredPin = '';
+        _errorMessage = '';
+      });
+      HapticFeedback.mediumImpact();
     }
   }
 
@@ -1424,8 +1514,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Terminal vinculada badge o input de vinculación
-        if (_terminalIdBodega != null && !_mostrarCambioTienda) ...[
+        // 1. Terminal vinculada badge o tarjeta de vinculación segura por OTP
+        if (_terminalToken != null && _cajerosTerminal.isNotEmpty) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
@@ -1442,13 +1532,13 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
                     color: AppTheme.brandPrimary.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    LucideIcons.store,
+                    LucideIcons.monitorCheck,
                     size: 16,
                     color: AppTheme.brandPrimary,
                   ),
@@ -1459,7 +1549,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _terminalNombreBodega ?? 'Terminal #$_terminalIdBodega',
+                        _terminalNombreBodega ?? 'Negocio Conectado',
                         style: GoogleFonts.outfit(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -1481,13 +1571,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(width: 5),
                           Expanded(
                             child: Text(
-                              'Local ID: $_terminalIdBodega • Vinculada',
+                              '${_terminalNombre ?? "Terminal POS"} • Vinculada y Segura',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF64748B),
+                                    ? AppTheme.accentGreen
+                                    : const Color(0xFF16A34A),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1497,23 +1587,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    setState(() => _mostrarCambioTienda = true);
-                  },
+                TextButton.icon(
+                  onPressed: _confirmarDesvincularTerminal,
                   style: TextButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
-                  child: Text(
-                    'Cambiar',
+                  icon: Icon(
+                    LucideIcons.unlink,
+                    size: 13,
+                    color: isDark
+                        ? const Color(0xFFFCA5A5)
+                        : const Color(0xFFDC2626),
+                  ),
+                  label: Text(
+                    'Desvincular',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                       color: isDark
-                          ? AppTheme.brandLight
-                          : AppTheme.brandPrimary,
+                          ? const Color(0xFFFCA5A5)
+                          : const Color(0xFFDC2626),
                     ),
                   ),
                 ),
@@ -1522,83 +1616,108 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ] else ...[
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.cardDarkSunken : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(14),
+              color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          LucideIcons.link,
-                          size: 15,
-                          color: isDark
-                              ? AppTheme.brandLight
-                              : AppTheme.brandPrimary,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Vincular Terminal',
-                          style: GoogleFonts.outfit(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : AppTheme.brandInk,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (_terminalIdBodega != null)
-                      InkWell(
-                        onTap: () =>
-                            setState(() => _mostrarCambioTienda = false),
-                        child: Text(
-                          'Cancelar',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppTheme.textMuted,
-                          ),
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child: const Icon(
+                        LucideIcons.shieldAlert,
+                        size: 17,
+                        color: AppTheme.brandPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vincular Terminal',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : AppTheme.brandInk,
+                            ),
+                          ),
+                          Text(
+                            'Requiere código de autorización del administrador',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
+                Text(
+                  'Para habilitar el ingreso con PIN, ingresa el código de 6 dígitos generado en el panel de Administrador (Configuración > Terminales POS).',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    height: 1.4,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF475569),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
-                        controller: _codigoTiendaCtrl,
-                        keyboardType: TextInputType.number,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppTheme.textDarkPrimary
-                              : const Color(0xFF0F172A),
+                        controller: _codigoVinculacionCtrl,
+                        keyboardType: TextInputType.text,
+                        textCapitalization: TextCapitalization.characters,
+                        maxLength: 6,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 4,
+                          color: isDark ? Colors.white : AppTheme.brandInk,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Ingresa ID de tu local (ej: 1)',
-                          hintStyle: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppTheme.getAdaptiveHintText(isDark),
+                          counterText: '',
+                          hintText: 'CÓDIGO',
+                          hintStyle: GoogleFonts.outfit(
+                            fontSize: 13,
+                            letterSpacing: 2,
+                            color: isDark ? Colors.white24 : Colors.black26,
                           ),
                           filled: true,
                           fillColor: isDark
-                              ? AppTheme.cardDarkElevated
-                              : Colors.white,
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF8FAFC),
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
-                            vertical: 9,
+                            vertical: 10,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -1616,23 +1735,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                   : const Color(0xFFCBD5E1),
                             ),
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: AppTheme.brandPrimary,
+                              width: 1.8,
+                            ),
+                          ),
                         ),
+                        onSubmitted: (_) => _vincularTerminalConCodigo(),
                       ),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
-                      onPressed: _isLoading ? null : _vincularTienda,
+                      onPressed: _isLoading ? null : _vincularTerminalConCodigo,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
-                          vertical: 9,
+                          vertical: 11,
                         ),
                         minimumSize: Size.zero,
                       ),
                       child: Text(
                         'Vincular',
                         style: GoogleFonts.outfit(
-                          fontSize: 12,
+                          fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -1801,7 +1928,7 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 14),
         ],
 
-        // 3. Indicador de PIN (4 puntos)
+        // 3. Indicador de PIN (4 puntos) y Teclado Numérico
         Center(
           child: Text(
             _selectedCajeroNombre != null

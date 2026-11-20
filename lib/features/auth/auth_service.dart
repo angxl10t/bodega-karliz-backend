@@ -187,9 +187,14 @@ class AuthService {
     String? idBodega,
     String? codigoTienda,
     int? idUsuario,
+    String? terminalToken,
   }) async {
     try {
+      final token = terminalToken ?? await SecureStorageService.read('terminal_token');
       final Map<String, dynamic> body = {'pin': pin.trim()};
+      if (token != null && token.isNotEmpty) {
+        body['terminalToken'] = token.trim();
+      }
       if (idBodega != null && idBodega.trim().isNotEmpty) {
         body['idBodega'] = int.tryParse(idBodega.trim());
       }
@@ -200,10 +205,15 @@ class AuthService {
         body['idUsuario'] = idUsuario;
       }
 
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (token != null && token.isNotEmpty) {
+        headers['X-Terminal-Token'] = token.trim();
+      }
+
       final response = await http
           .post(
             Uri.parse('${ApiConstants.baseUrl}/auth/login-cajero'),
-            headers: {'Content-Type': 'application/json'},
+            headers: headers,
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 45));
@@ -211,11 +221,11 @@ class AuthService {
       if (response.statusCode == 200) {
         clearAllSessionState();
         final data = jsonDecode(utf8.decode(response.bodyBytes));
-        final String token = data['token'];
+        final String jwtToken = data['token'];
         final String rol = data['rol'] ?? 'CAJERO';
         _cachedRol = rol;
 
-        await SecureStorageService.write('jwt_token', token);
+        await SecureStorageService.write('jwt_token', jwtToken);
         await SecureStorageService.write('user_rol', rol);
         if (data['username'] != null) {
           await SecureStorageService.write('username', data['username']);
@@ -240,6 +250,18 @@ class AuthService {
           await SecureStorageService.write(
             'terminal_nombre_bodega',
             data['nombreBodega'],
+          );
+        }
+        if (data['nombreTerminal'] != null) {
+          await SecureStorageService.write(
+            'terminal_nombre',
+            data['nombreTerminal'],
+          );
+        }
+        if (data['idTerminal'] != null) {
+          await SecureStorageService.write(
+            'terminal_id',
+            data['idTerminal'].toString(),
           );
         }
         if (data['giroNegocio'] != null) {
@@ -293,17 +315,24 @@ class AuthService {
   }
 
   /// Obtiene los cajeros activos de una tienda para mostrarlos en la pantalla de bloqueo de la terminal.
-  Future<List<Map<String, dynamic>>> obtenerCajerosTerminal(
-    String idBodega,
-  ) async {
+  /// Requiere un X-Terminal-Token válido para prevenir la enumeración no autorizada de tiendas y empleados.
+  Future<List<Map<String, dynamic>>> obtenerCajerosTerminal([
+    String? idBodega,
+  ]) async {
     try {
+      final terminalToken = await SecureStorageService.read('terminal_token');
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      if (terminalToken != null && terminalToken.isNotEmpty) {
+        headers['X-Terminal-Token'] = terminalToken;
+      }
+
+      final storedId = idBodega ?? await SecureStorageService.read('terminal_id_bodega');
+      final uri = (storedId != null && storedId.isNotEmpty)
+          ? Uri.parse('${ApiConstants.baseUrl}/auth/terminal/$storedId/cajeros')
+          : Uri.parse('${ApiConstants.baseUrl}/auth/terminal/cajeros');
+
       final response = await http
-          .get(
-            Uri.parse(
-              '${ApiConstants.baseUrl}/auth/terminal/$idBodega/cajeros',
-            ),
-            headers: {'Content-Type': 'application/json'},
-          )
+          .get(uri, headers: headers)
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
@@ -314,6 +343,65 @@ class AuthService {
     } catch (_) {
       return [];
     }
+  }
+
+  /// Vincula criptográficamente esta terminal usando el código OTP de 6 dígitos
+  /// generado por el administrador desde su panel.
+  Future<Map<String, dynamic>> vincularTerminalConCodigo({
+    required String codigoEmparejamiento,
+    String? nombreTerminal,
+    String? deviceModel,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${ApiConstants.baseUrl}/auth/terminal/vincular'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'codigoEmparejamiento': codigoEmparejamiento
+                  .trim()
+                  .replaceAll(RegExp(r'[^0-9A-Za-z]'), '')
+                  .toUpperCase(),
+              'nombreTerminal': nombreTerminal?.trim(),
+              'deviceModel': deviceModel ?? 'Dispositivo Móvil POS',
+            }),
+          )
+          .timeout(const Duration(seconds: 25));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final String terminalToken = data['terminalToken'] ?? '';
+        final String idBodega = data['idBodega'].toString();
+        final String nombreBodega = data['nombreBodega'] ?? '';
+        final String nombreTerm = data['nombreTerminal'] ?? 'Terminal POS';
+        final dynamic idTerm = data['idTerminal'];
+
+        await SecureStorageService.write('terminal_token', terminalToken);
+        await SecureStorageService.write('terminal_id_bodega', idBodega);
+        await SecureStorageService.write('terminal_nombre_bodega', nombreBodega);
+        await SecureStorageService.write('terminal_nombre', nombreTerm);
+        if (idTerm != null) {
+          await SecureStorageService.write('terminal_id', idTerm.toString());
+        }
+        return {'success': true, 'data': data};
+      }
+
+      final errorMsg = ApiClient.extractErrorMessage(
+        response,
+        'Código de vinculación inválido o expirado.',
+      );
+      return {'success': false, 'error': errorMsg};
+    } catch (e) {
+      return {'success': false, 'error': 'Error de conexión al vincular terminal: $e'};
+    }
+  }
+
+  static Future<String?> getTerminalToken() async {
+    return await SecureStorageService.read('terminal_token');
+  }
+
+  static Future<String?> getTerminalNombre() async {
+    return await SecureStorageService.read('terminal_nombre');
   }
 
   static Future<String?> getTerminalIdBodega() async {
@@ -333,8 +421,55 @@ class AuthService {
   }
 
   static Future<void> desvincularTerminal() async {
+    await SecureStorageService.delete('terminal_token');
     await SecureStorageService.delete('terminal_id_bodega');
     await SecureStorageService.delete('terminal_nombre_bodega');
+    await SecureStorageService.delete('terminal_nombre');
+    await SecureStorageService.delete('terminal_id');
+  }
+
+  // =========================================================================
+  // Métodos Administrativos de Gestión de Terminales (Requieren sesión de Dueño)
+  // =========================================================================
+
+  /// Solicita un nuevo código OTP de 6 dígitos (válido 10 min) para vincular una terminal.
+  Future<Map<String, dynamic>> solicitarCodigoVinculacion() async {
+    try {
+      final client = ApiClient();
+      final res = await client.post('/terminales/solicitar-codigo', {});
+      if (res.statusCode == 200) {
+        return jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      }
+      throw Exception(ApiClient.extractErrorMessage(res, 'No se pudo generar el código'));
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Lista todas las terminales registradas y vinculadas a la tienda actual.
+  Future<List<Map<String, dynamic>>> listarTerminales() async {
+    try {
+      final client = ApiClient();
+      final res = await client.get('/terminales');
+      if (res.statusCode == 200) {
+        final List<dynamic> list = jsonDecode(utf8.decode(res.bodyBytes));
+        return list.map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Revoca el acceso de una terminal inmediatamente.
+  Future<bool> revocarTerminal(int idTerminal) async {
+    try {
+      final client = ApiClient();
+      final res = await client.post('/terminales/$idTerminal/revocar', {});
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Realiza un ping ligero en segundo plano para despertar el contenedor de Render
