@@ -73,6 +73,89 @@ void main() {
       expect(lines.any((l) => l == header80), isTrue);
     });
 
+    test('generateReceiptText eliminates redundant lines in 58mm and 80mm', () {
+      // 1. Caso Bodega Nuevo RUS (Sin IGV discriminado, fecha compacta, sin lema duplicado)
+      final receiptRus = ThermalTicketService.generateReceiptText(
+        ticketId: 103,
+        clienteNombre: 'Público General',
+        clienteDocumento: null,
+        metodoPago: 'Efectivo',
+        items: [
+          TicketItem(
+            nombre: 'Galleta Soda 6pk',
+            cantidad: 1,
+            precioUnitario: 3.00,
+            subtotal: 3.00,
+          ),
+        ],
+        total: 3.00,
+        pagadoCon: 5.00,
+        vuelto: 2.00,
+        width: ThermalTicketService.width58mm,
+        lemaComercial: 'Gracias por su compra, vuelva pronto!',
+        regimenTributario: 'NUEVO_RUS',
+        tipoComprobante: 'BOLETA_ELECTRONICA',
+      );
+
+      final linesRus = receiptRus.split('\n');
+
+      // Fecha y hora compactas en una sola línea (no separadas en 2 renglones)
+      expect(linesRus.any((l) => l.startsWith('FECHA:')), isTrue);
+      expect(linesRus.any((l) => l.startsWith('Fecha Emision:')), isFalse);
+      expect(linesRus.any((l) => l.startsWith('Hora Emision:')), isFalse);
+
+      // No duplica lema falso idéntico a la despedida en la cabecera
+      final graciasCount = linesRus
+          .where((l) => l.toLowerCase().contains('gracias'))
+          .length;
+      expect(graciasCount, equals(1)); // Solo en el pie
+
+      // No imprime "Regimen: NUEVO_RUS" innecesario en la cabecera
+      expect(linesRus.any((l) => l.contains('Regimen:')), isFalse);
+
+      // Nuevo RUS no desglosa IGV
+      expect(linesRus.any((l) => l.contains('OP. GRAVADA:')), isFalse);
+      expect(linesRus.any((l) => l.contains('I.G.V. (18%):')), isFalse);
+
+      // No imprime Doc: 99999999 innecesario para clientes anónimos
+      expect(linesRus.any((l) => l.contains('Doc: 99999999')), isFalse);
+      expect(
+        linesRus.any((l) => l.contains('CLIENTE: Clientes Varios')),
+        isTrue,
+      );
+
+      // Pago y vuelto sin redundancia de "VUELTO / CAMBIO" ni separadores dobles
+      expect(linesRus.any((l) => l.contains('VUELTO / CAMBIO')), isFalse);
+      expect(linesRus.any((l) => l.startsWith('VUELTO:')), isTrue);
+      expect(linesRus.any((l) => l.startsWith('PAGO EFECTIVO:')), isTrue);
+
+      // 2. Caso Factura Electrónica (Régimen General): sí discrimina IGV
+      final receiptFactura = ThermalTicketService.generateReceiptText(
+        ticketId: 104,
+        clienteNombre: 'Comercializadora del Sur SAC',
+        clienteDocumento: '20609998881',
+        metodoPago: 'Yape',
+        items: [
+          TicketItem(
+            nombre: 'Aceite Primor 1L',
+            cantidad: 2,
+            precioUnitario: 10.00,
+            subtotal: 20.00,
+          ),
+        ],
+        total: 20.00,
+        width: ThermalTicketService.width80mm,
+        regimenTributario: 'GENERAL',
+        tipoComprobante: 'FACTURA_ELECTRONICA',
+      );
+
+      final linesFactura = receiptFactura.split('\n');
+      expect(linesFactura.any((l) => l.contains('OP. GRAVADA:')), isTrue);
+      expect(linesFactura.any((l) => l.contains('I.G.V. (18%):')), isTrue);
+      expect(linesFactura.any((l) => l.contains('RUC: 20609998881')), isTrue);
+      expect(linesFactura.any((l) => l.contains('PAGO:')), isTrue);
+    });
+
     testWidgets('ThermalTicketPreviewDialog renders 58mm without clipping', (
       tester,
     ) async {

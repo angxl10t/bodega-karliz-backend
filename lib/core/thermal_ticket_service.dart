@@ -346,29 +346,30 @@ class ThermalTicketService {
     if (nombreComercio.isNotEmpty) {
       buffer.writeln(center(sanitize(nombreComercio), width));
     }
-    if (lemaComercial != null && lemaComercial.isNotEmpty) {
-      buffer.writeln(wrapCenter('"$lemaComercial"', width));
+
+    // Lema comercial solo si es un eslogan de marca real y no duplica la despedida
+    final lemaClean = (lemaComercial ?? '').trim();
+    final bool esDespedida = lemaClean.isEmpty ||
+        lemaClean.toLowerCase().contains('gracias') ||
+        lemaClean.toLowerCase().contains('vuelva') ||
+        lemaClean.toLowerCase() ==
+            cfg.mensajeAgradecimiento.trim().toLowerCase();
+    if (!esDespedida) {
+      buffer.writeln(wrapCenter('"$lemaClean"', width));
     }
+
     final bool esInformal = regimenTributario == 'INFORMAL';
-    if (!esInformal) {
-      if (rucDni != null && rucDni.isNotEmpty) {
-        final cleanRuc = sanitize(rucDni);
-        if (cleanRuc.toUpperCase().startsWith('RUC') ||
-            cleanRuc.toUpperCase().startsWith('DNI')) {
-          buffer.writeln(center(cleanRuc, width));
-        } else if (cleanRuc.length == 11) {
-          buffer.writeln(center('RUC: $cleanRuc', width));
-        } else if (cleanRuc.length == 8) {
-          buffer.writeln(center('DNI: $cleanRuc', width));
-        } else {
-          buffer.writeln(center('RUC: $cleanRuc', width));
-        }
-      }
-      if (regimenTributario != null &&
-          regimenTributario.isNotEmpty &&
-          regimenTributario != 'GENERAL' &&
-          regimenTributario != 'INFORMAL') {
-        buffer.writeln(center('Regimen: $regimenTributario', width));
+    if (!esInformal && rucDni != null && rucDni.isNotEmpty) {
+      final cleanRuc = sanitize(rucDni);
+      if (cleanRuc.toUpperCase().startsWith('RUC') ||
+          cleanRuc.toUpperCase().startsWith('DNI')) {
+        buffer.writeln(center(cleanRuc, width));
+      } else if (cleanRuc.length == 11) {
+        buffer.writeln(center('RUC: $cleanRuc', width));
+      } else if (cleanRuc.length == 8) {
+        buffer.writeln(center('DNI: $cleanRuc', width));
+      } else {
+        buffer.writeln(center('RUC: $cleanRuc', width));
       }
     }
     if (direccion != null && direccion.isNotEmpty) {
@@ -432,50 +433,57 @@ class ThermalTicketService {
     }
     buffer.writeln(divider(width, '-'));
 
-    // 3. Metadatos de Emisión y Cliente
+    // 3. Metadatos de Emisión (Fecha + Hora en 1 sola línea compacta)
     final fechaStr =
         '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
     final horaStr =
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}:${d.second.toString().padLeft(2, '0')}';
-    buffer.writeln('Fecha Emision: $fechaStr');
-    buffer.writeln('Hora Emision: $horaStr');
+    if (width == width58mm) {
+      buffer.writeln(twoColumns('FECHA: $fechaStr', horaStr, width));
+    } else {
+      buffer.writeln(twoColumns('FECHA: $fechaStr', 'HORA: $horaStr', width));
+    }
 
     final docCli =
         (clienteDocumento != null &&
             clienteDocumento.trim().isNotEmpty &&
-            clienteDocumento.trim() != '00000000')
+            clienteDocumento.trim() != '00000000' &&
+            clienteDocumento.trim() != '99999999')
         ? clienteDocumento.trim()
         : null;
 
     final rawNombre =
         (clienteNombre.trim().isNotEmpty &&
-            clienteNombre.trim() != 'Público General')
+            clienteNombre.trim() != 'Público General' &&
+            clienteNombre.trim() != 'Clientes Varios')
         ? clienteNombre.trim()
-        : 'Clientes Varios';
-    final cliNombre = sanitize(rawNombre);
-    final clientLines = wrapText('Cliente: $cliNombre', width);
-    for (final line in clientLines) {
-      buffer.writeln(line);
-    }
+        : null;
 
-    if (docCli != null) {
-      if (docCli.length == 11) {
-        buffer.writeln('RUC: $docCli');
-      } else if (docCli.length == 8) {
-        buffer.writeln('DNI: $docCli');
-      } else {
-        buffer.writeln('Doc: $docCli');
+    if (rawNombre != null) {
+      final cliNombre = sanitize(rawNombre);
+      final clientLines = wrapText('CLIENTE: $cliNombre', width);
+      for (final line in clientLines) {
+        buffer.writeln(line);
+      }
+      if (docCli != null) {
+        if (docCli.length == 11) {
+          buffer.writeln('RUC: $docCli');
+        } else if (docCli.length == 8) {
+          buffer.writeln('DNI: $docCli');
+        } else {
+          buffer.writeln('DOC: $docCli');
+        }
       }
     } else {
-      buffer.writeln('Doc: 99999999');
+      buffer.writeln('CLIENTE: Clientes Varios');
     }
 
     if (cajero != null && cajero.trim().isNotEmpty) {
-      buffer.writeln('Cajero: ${cajero.trim()}');
+      buffer.writeln('CAJERO: ${cajero.trim()}');
     }
     buffer.writeln(divider(width, '-'));
 
-    // 4. Encabezado de Productos (Cant. Desc. P.U. Imp.)
+    // 4. Encabezado de Productos (Cant Desc. P.U. Imp.)
     if (width == width58mm) {
       buffer.writeln('Cant Desc.           P.U.   Imp.');
     } else {
@@ -502,14 +510,22 @@ class ThermalTicketService {
       );
       buffer.writeln(
         twoColumns(
-          'AHORRO EN PROMOS:',
+          'DESCUENTO:',
           '-S/ ${descuento.toStringAsFixed(2)}',
           width,
         ),
       );
     }
 
-    if (esBoleta || esFactura) {
+    // Discriminación de IGV: SOLO para Facturas o Régimen General / MYPE / Especial.
+    // En bodegas del Nuevo RUS e Informales NO se discrimina IGV por norma SUNAT.
+    final bool esNuevoRusOInformal = regimenTributario == null ||
+        regimenTributario == 'NUEVO_RUS' ||
+        regimenTributario == 'RUS' ||
+        regimenTributario == 'INFORMAL';
+    final bool discriminarIgv = esFactura || (!esNuevoRusOInformal && esBoleta);
+
+    if (discriminarIgv) {
       final opGravada = total / 1.18;
       final igv = total - opGravada;
       buffer.writeln(
@@ -523,36 +539,34 @@ class ThermalTicketService {
     buffer.writeln(
       twoColumns('TOTAL A PAGAR:', 'S/ ${total.toStringAsFixed(2)}', width),
     );
-    buffer.writeln(divider(width, '-'));
 
-    buffer.writeln(
-      twoColumns('METODO DE PAGO:', metodoPago.toUpperCase(), width),
-    );
-
-    if (metodoPago.toLowerCase().contains('efectivo')) {
+    // Liquidación del Medio de Pago limpia y sin redundancias
+    final isCash = metodoPago.toLowerCase().contains('efectivo');
+    if (isCash) {
       final recibido = pagadoCon ?? total;
       final cambio = vuelto ?? (recibido - total).clamp(0.0, 999999.0);
-      buffer.writeln(
-        twoColumns(
-          'IMPORTE RECIBIDO:',
-          'S/ ${recibido.toStringAsFixed(2)}',
-          width,
-        ),
-      );
-      buffer.writeln(
-        twoColumns(
-          'VUELTO / CAMBIO:',
-          'S/ ${cambio.toStringAsFixed(2)}',
-          width,
-        ),
-      );
+      if (cambio > 0.009) {
+        buffer.writeln(
+          twoColumns(
+            'PAGO EFECTIVO:',
+            'S/ ${recibido.toStringAsFixed(2)}',
+            width,
+          ),
+        );
+        buffer.writeln(
+          twoColumns('VUELTO:', 'S/ ${cambio.toStringAsFixed(2)}', width),
+        );
+      } else {
+        buffer.writeln(twoColumns('PAGO:', 'EFECTIVO (EXACTO)', width));
+      }
     } else {
       buffer.writeln(
-        twoColumns('IMPORTE PAGADO:', 'S/ ${total.toStringAsFixed(2)}', width),
+        twoColumns('PAGO:', metodoPago.toUpperCase(), width),
       );
     }
     buffer.writeln(divider(width, '-'));
 
+    // 7. Pie de Ticket SUNAT y Despedida (en un solo bloque armónico)
     if (esBoleta || esFactura) {
       final docNombre = esFactura
           ? 'Factura Electronica'
@@ -561,17 +575,15 @@ class ThermalTicketService {
         wrapCenter('Representacion impresa de la $docNombre', width),
       );
       if (sunatHash != null && sunatHash.isNotEmpty) {
-        buffer.writeln(wrapCenter('Res. SUNAT / Hash: $sunatHash', width));
+        buffer.writeln(wrapCenter('Hash: $sunatHash', width));
       }
-      buffer.writeln(divider(width, '-'));
     }
 
-    // 7. Pie de Ticket Personalizado (Sin QR del negocio)
-    if (cfg.mensajeAgradecimiento.isNotEmpty) {
-      buffer.writeln(wrapCenter(cfg.mensajeAgradecimiento, width));
-    }
     if (cfg.mensajeSecundario.isNotEmpty) {
       buffer.writeln(wrapCenter(cfg.mensajeSecundario, width));
+    }
+    if (cfg.mensajeAgradecimiento.isNotEmpty) {
+      buffer.writeln(wrapCenter(cfg.mensajeAgradecimiento, width));
     }
     if (cfg.horarioAtencion.isNotEmpty) {
       buffer.writeln(wrapCenter(cfg.horarioAtencion, width));
