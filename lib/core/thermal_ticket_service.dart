@@ -143,6 +143,11 @@ class ThermalTicketService {
     return resultLines.join('\n');
   }
 
+  /// Divide texto en líneas por palabras con un ancho máximo especificado.
+  static List<String> wrapText(String text, [int width = width58mm]) {
+    return _wrapTextWords(text, width, width);
+  }
+
   /// Divide texto en líneas por palabras con anchos específicos para la primera línea y subsiguientes.
   static List<String> _wrapTextWords(
     String text,
@@ -388,14 +393,17 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '-'));
 
     // 2. Tipo de Comprobante y Serie-Correlativo
+    final tipoNorm = (tipoComprobante ?? '').toUpperCase();
     final bool esBoleta =
         !esInformal &&
-        (tipoComprobante == 'BOLETA_ELECTRONICA' ||
-            tipoComprobante == 'BOLETA');
+        (tipoNorm == 'BOLETA_ELECTRONICA' ||
+            tipoNorm == 'BOLETA' ||
+            tipoNorm.contains('BOLETA'));
     final bool esFactura =
         !esInformal &&
-        (tipoComprobante == 'FACTURA_ELECTRONICA' ||
-            tipoComprobante == 'FACTURA');
+        (tipoNorm == 'FACTURA_ELECTRONICA' ||
+            tipoNorm == 'FACTURA' ||
+            tipoNorm.contains('FACTURA'));
 
     if (esBoleta) {
       buffer.writeln(center('BOLETA DE VENTA ELECTRONICA', width));
@@ -445,7 +453,10 @@ class ThermalTicketService {
         ? clienteNombre.trim()
         : 'Clientes Varios';
     final cliNombre = sanitize(rawNombre);
-    buffer.writeln('Cliente: $cliNombre');
+    final clientLines = wrapText('Cliente: $cliNombre', width);
+    for (final line in clientLines) {
+      buffer.writeln(line);
+    }
 
     if (docCli != null) {
       if (docCli.length == 11) {
@@ -466,16 +477,20 @@ class ThermalTicketService {
 
     // 4. Encabezado de Productos (Cant. Desc. P.U. Imp.)
     if (width == width58mm) {
-      buffer.writeln('Cant. Desc.        P.U.   Imp.');
+      buffer.writeln('Cant Desc.           P.U.   Imp.');
     } else {
-      buffer.writeln('Cant. Desc.                     P.U.     Imp.');
+      buffer.writeln('Cant. Desc.${' ' * 21}    P.U.    Imp.');
     }
     buffer.writeln(divider(width, '-'));
 
     // 5. Lista de Ítems Formateada con P.U. e Imp.
     final itemLines = formatItemRows(items, width);
-    for (final line in itemLines) {
-      buffer.writeln(line);
+    if (itemLines.isEmpty) {
+      buffer.writeln(center('(Sin articulos)', width));
+    } else {
+      for (final line in itemLines) {
+        buffer.writeln(line);
+      }
     }
     buffer.writeln(divider(width, '-'));
 
@@ -539,11 +554,14 @@ class ThermalTicketService {
     buffer.writeln(divider(width, '-'));
 
     if (esBoleta || esFactura) {
+      final docNombre = esFactura
+          ? 'Factura Electronica'
+          : 'Boleta de Venta Electronica';
       buffer.writeln(
-        center('Representacion impresa de comprobante electronico', width),
+        wrapCenter('Representacion impresa de la $docNombre', width),
       );
       if (sunatHash != null && sunatHash.isNotEmpty) {
-        buffer.writeln(center('Res. SUNAT / Hash: $sunatHash', width));
+        buffer.writeln(wrapCenter('Res. SUNAT / Hash: $sunatHash', width));
       }
       buffer.writeln(divider(width, '-'));
     }

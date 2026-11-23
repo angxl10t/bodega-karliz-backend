@@ -286,8 +286,26 @@ class _ThermalTicketPreviewDialogState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
     final bool is80mm = _anchoSeleccionado == ThermalTicketService.width80mm;
-    final double paperWidth = is80mm ? 330.0 : 270.0;
-    final double headWidth = paperWidth + 36.0;
+
+    final textStyle = GoogleFonts.firaCode(
+      color: const Color(0xFF111827),
+      fontSize: is80mm ? 10.5 : 11.5,
+      height: 1.34,
+      fontWeight: FontWeight.w500,
+    );
+
+    // Medición exacta y dinámica del ancho de las columnas (32 cols para 58mm, 48 cols para 80mm)
+    final textPainter = TextPainter(
+      text: TextSpan(text: '-' * _anchoSeleccionado, style: textStyle),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final double textWidth = textPainter.width;
+    final double horizontalPadding = is80mm ? 12.0 : 10.0;
+    // Buffer subpixel de 2.0px para garantizar ajuste perfecto sin cortes ni wrap involuntario
+    final double contentWidth = textWidth + 2.0;
+    final double paperWidth = contentWidth + (horizontalPadding * 2);
+    final double headWidth = paperWidth + 32.0;
     final receiptText = _generarTextoTicket();
 
     return Dialog(
@@ -296,7 +314,7 @@ class _ThermalTicketPreviewDialogState
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Container(
         constraints: BoxConstraints(
-          maxWidth: is80mm ? 480.0 : 420.0,
+          maxWidth: is80mm ? 480.0 : 400.0,
           maxHeight: 740,
         ),
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
@@ -414,201 +432,205 @@ class _ThermalTicketPreviewDialogState
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 1. Chasis del Cabezal de Impresora Térmica
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 260),
-                        curve: Curves.easeOutCubic,
-                        width: headWidth,
-                        height: 42,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF111827),
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12),
-                            bottom: Radius.circular(4),
-                          ),
-                          border: Border.all(
-                            color: const Color(0xFF374151),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.35),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  LucideIcons.printer,
-                                  size: 15,
-                                  color: Color(0xFF9CA3AF),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'CAJAYA THERMAL POS',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.8,
-                                    color: const Color(0xFFD1D5DB),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF10B981)
-                                            .withValues(alpha: 0.8),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF3B82F6),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFF3B82F6)
-                                            .withValues(alpha: 0.8),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // 2. Ranura de Expulsión del Papel
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 260),
-                        curve: Curves.easeOutCubic,
-                        width: paperWidth + 14.0,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF030712),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-
-                      // 3. Hoja Física de Papel Térmico
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 260),
-                        curve: Curves.easeOutCubic,
-                        width: paperWidth,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFFDF8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
-                        child: SelectableText(
-                          receiptText,
-                          textAlign: TextAlign.left,
-                          style: GoogleFonts.firaCode(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 1. Chasis del Cabezal de Impresora Térmica
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          width: headWidth,
+                          height: 42,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
                             color: const Color(0xFF111827),
-                            fontSize: is80mm ? 10.5 : 9.5,
-                            height: 1.32,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                      ),
-
-                      // 4. Borde en Zigzag / Dientes de Sierra (Guillotina de corte)
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 260),
-                        curve: Curves.easeOutCubic,
-                        width: paperWidth,
-                        height: 6,
-                        child: const CustomPaint(
-                          size: Size.infinite,
-                          painter: SawtoothPainter(
-                            color: Color(0xFFFFFDF8),
-                            toothWidth: 8.0,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // 5. Pastilla Informativa de Columnas ESC/POS
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E2436)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isDark
-                                ? const Color(0xFF262E44)
-                                : const Color(0xFFCBD5E1),
-                          ),
-                        ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                is80mm
-                                    ? LucideIcons.scroll
-                                    : LucideIcons.receipt,
-                                size: 13,
-                                color: primaryColor,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12),
+                              bottom: Radius.circular(4),
+                            ),
+                            border: Border.all(
+                              color: const Color(0xFF374151),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                is80mm
-                                    ? 'Papel 80 mm • 48 columnas ESC/POS'
-                                    : 'Papel 58 mm • 32 columnas ESC/POS',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: primaryColor,
-                                ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    LucideIcons.printer,
+                                    size: 15,
+                                    color: Color(0xFF9CA3AF),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'CAJAYA THERMAL POS',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.8,
+                                      color: const Color(0xFFD1D5DB),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF10B981)
+                                              .withValues(alpha: 0.8),
+                                          blurRadius: 6,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF3B82F6),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF3B82F6)
+                                              .withValues(alpha: 0.8),
+                                          blurRadius: 6,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
+
+                        // 2. Ranura de Expulsión del Papel
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          width: paperWidth + 14.0,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF030712),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+
+                        // 3. Hoja Física de Papel Térmico
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          width: paperWidth,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFDF8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                            vertical: 16,
+                          ),
+                          child: SizedBox(
+                            width: contentWidth,
+                            child: SelectableText(
+                              receiptText,
+                              textAlign: TextAlign.left,
+                              style: textStyle,
+                            ),
+                          ),
+                        ),
+
+                        // 4. Borde en Zigzag / Dientes de Sierra (Guillotina de corte)
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          width: paperWidth,
+                          height: 6,
+                          child: const CustomPaint(
+                            size: Size.infinite,
+                            painter: SawtoothPainter(
+                              color: Color(0xFFFFFDF8),
+                              toothWidth: 8.0,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // 5. Pastilla Informativa de Columnas ESC/POS
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E2436)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF262E44)
+                                  : const Color(0xFFCBD5E1),
+                            ),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  is80mm
+                                      ? LucideIcons.scroll
+                                      : LucideIcons.receipt,
+                                  size: 13,
+                                  color: primaryColor,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  is80mm
+                                      ? 'Papel 80 mm • 48 columnas ESC/POS'
+                                      : 'Papel 58 mm • 32 columnas ESC/POS',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
