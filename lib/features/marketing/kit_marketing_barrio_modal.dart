@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/cajaya_vectors.dart';
 import '../../core/responsive_layout.dart';
+import '../../core/secure_storage_service.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/adaptive_modal.dart';
@@ -116,8 +117,10 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
       _giroNegocio == 'FASTFOOD' ||
       _giroNegocio == 'RESTAURANTE';
 
+  String? _savedSlug;
+
   String get _urlCatalogo => KitMarketingBarrioModal.buildUrlCatalogo(
-    slugOrId: widget.slugOrId,
+    slugOrId: widget.slugOrId ?? _savedSlug,
     nombreBodega: _nombreBodega,
     bodegaId: _bodegaId,
   );
@@ -159,6 +162,12 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
             _lemaComercial = info.lemaComercial!.trim();
           }
           _bodegaId ??= info.idBodega;
+        });
+      }
+      final savedSlug = await SecureStorageService.read('tienda_slug');
+      if (savedSlug != null && savedSlug.trim().isNotEmpty && mounted) {
+        setState(() {
+          _savedSlug = KitMarketingBarrioModal.normalizarSlug(savedSlug.trim());
         });
       }
     } catch (_) {}

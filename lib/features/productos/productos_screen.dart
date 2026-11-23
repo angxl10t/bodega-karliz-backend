@@ -22,6 +22,7 @@ import '../dashboard/dashboard_bi_screen.dart';
 import '../home/bodega_service.dart';
 import '../auth/auth_service.dart';
 import '../marketing/kit_marketing_barrio_modal.dart';
+import '../../core/secure_storage_service.dart';
 import '../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../core/responsive_layout.dart';
 import '../../core/theme.dart';
@@ -57,6 +58,7 @@ class _ProductosScreenState extends State<ProductosScreen>
   @override
   void onDeferredTabRefresh() => _cargarProductos(forceRefresh: true);
   BodegaInfo? _bodegaInfo;
+  String? _savedSlug;
 
   bool get _esGastronomico {
     final giro = (_bodegaInfo?.giroNegocio ?? '').toUpperCase();
@@ -193,16 +195,19 @@ class _ProductosScreenState extends State<ProductosScreen>
         AuthService().getUserRole(),
         _productoService.getProductos(forceRefresh: false),
         _bodegaService.obtenerMiBodega(),
+        SecureStorageService.read('tienda_slug'),
       ]);
       _verificarSugerencias();
       if (mounted) {
         final rol = results[0] as String;
         final prods = results[1] as List<Producto>;
         final bInfo = results[2] as BodegaInfo?;
+        final sSlug = results[3] as String?;
         setState(() {
           _userRol = rol;
           _todosProductos = List<Producto>.from(prods);
           _bodegaInfo = bInfo;
+          _savedSlug = sSlug;
           _recalcularCategorias();
           _aplicarFiltros();
           _isLoading = false;
@@ -1886,6 +1891,7 @@ class _ProductosScreenState extends State<ProductosScreen>
 
   Widget _buildWebCatalogBanner(BuildContext context, bool isDark) {
     final catalogUrl = KitMarketingBarrioModal.buildUrlCatalogo(
+      slugOrId: _savedSlug,
       nombreBodega: _bodegaInfo?.nombreComercial,
       bodegaId: _bodegaInfo?.idBodega,
     );

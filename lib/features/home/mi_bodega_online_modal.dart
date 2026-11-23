@@ -71,8 +71,16 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   bool _deliveryActivo = true;
   bool _guardandoEstado = false;
   BodegaInfo? _bodegaInfo;
+  String? _customSlug;
   late final TextEditingController _telefonoCtrl;
   final BodegaService _bodegaService = BodegaService();
+
+  String get _catalogoUrl {
+    final slug = (_customSlug != null && _customSlug!.isNotEmpty)
+        ? _customSlug!
+        : MiBodegaOnlineModal.normalizarSlug(_nombreComercialSeguro);
+    return 'https://cajaya-pos.onrender.com/#/catalogo?tienda=$slug';
+  }
 
   String get _nombreComercialSeguro {
     final infoName = _bodegaInfo?.nombreComercial.trim();
@@ -149,16 +157,22 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   Future<void> _cargarTelefonoActualizado() async {
     try {
       final info = await _bodegaService.obtenerMiBodega();
-      if (mounted && info != null) {
+      final savedSlug = await SecureStorageService.read('tienda_slug');
+      if (mounted) {
         setState(() {
-          _bodegaInfo = info;
-          _catalogoAbierto = info.catalogoAbierto;
-          _deliveryActivo = info.deliveryActivo;
-          if (info.telefono != null && info.telefono!.isNotEmpty) {
-            _telefono = info.telefono!;
-            if (!_editandoTelefono) {
-              _telefonoCtrl.text = _telefono;
+          if (info != null) {
+            _bodegaInfo = info;
+            _catalogoAbierto = info.catalogoAbierto;
+            _deliveryActivo = info.deliveryActivo;
+            if (info.telefono != null && info.telefono!.isNotEmpty) {
+              _telefono = info.telefono!;
+              if (!_editandoTelefono) {
+                _telefonoCtrl.text = _telefono;
+              }
             }
+          }
+          if (savedSlug != null && savedSlug.trim().isNotEmpty) {
+            _customSlug = MiBodegaOnlineModal.normalizarSlug(savedSlug.trim());
           }
         });
       }
@@ -359,9 +373,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final slug = MiBodegaOnlineModal.normalizarSlug(widget.nombreBodega);
-    final catalogoUrl =
-        'https://cajaya-pos.onrender.com/#/catalogo?tienda=$slug';
+    final catalogoUrl = _catalogoUrl;
 
     final mensajeWhatsApp = _esGastronomico
         ? '¡Hola! 👋\n\n'
