@@ -1427,25 +1427,39 @@ class ThermalTicketService {
     }
     body {
       margin: 0;
-      padding: 6px 4px;
+      padding: 12px 6px;
+      background: #f8fafc;
       font-family: 'Courier New', Courier, monospace;
-      font-size: ${widthMm == 80 ? '12px' : '11px'};
-      line-height: 1.25;
-      color: #000;
-      white-space: pre-wrap;
+      color: #0f172a;
+      display: flex;
+      justify-content: center;
+    }
+    .ticket-paper {
       width: ${widthMm}mm;
       max-width: ${widthMm}mm;
+      background: #ffffff;
+      padding: 10px 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-radius: 4px;
+      font-size: ${widthMm == 80 ? '12px' : '11px'};
+      line-height: 1.28;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
     @media print {
-      body { width: 100%; max-width: 100%; }
+      body { background: transparent; padding: 0; display: block; }
+      .ticket-paper { box-shadow: none; border-radius: 0; padding: 0; width: 100%; max-width: 100%; }
     }
   </style>
 </head>
-<body><pre style="margin:0; font-family:inherit;">$cleanText</pre><script>
-  window.onload = function() {
-    window.print();
-  };
-</script></body>
+<body>
+  <div class="ticket-paper"><pre style="margin:0; font-family:inherit; white-space:pre-wrap;">$cleanText</pre></div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 200);
+    };
+  </script>
+</body>
 </html>''';
   }
 

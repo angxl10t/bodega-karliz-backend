@@ -5,16 +5,19 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/configuracion_ticket_service.dart';
 import '../../core/permisos_cajero_service.dart';
 import '../../core/responsive_layout.dart';
+import '../../core/secure_storage_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 import '../../core/thermal_ticket_service.dart';
 import '../auth/auth_service.dart';
 import '../home/bodega_service.dart';
 import '../home/usuarios_service.dart';
+import '../marketing/kit_marketing_barrio_modal.dart';
 import 'modal_generar_codigo_terminal.dart';
 
 enum ConfiguracionTab { tienda, usuarios, hardware, online, plan }
@@ -179,6 +182,14 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       final ticketCfg = await ConfiguracionTicketService.cargar();
       final permisos = await PermisosCajeroService.obtenerPermisos();
 
+      // Leer configuraciones persistidas de canales y tienda web
+      final savedSlug = await SecureStorageService.read('tienda_slug');
+      final savedWhatsapp = await SecureStorageService.read(
+        'whatsapp_delivery',
+      );
+      final savedMinimo = await SecureStorageService.read('pedido_minimo');
+      final savedHorario = await SecureStorageService.read('horario_atencion');
+
       if (mounted) {
         setState(() {
           _bodegaInfo = info;
@@ -195,13 +206,34 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
             _catalogoAbierto = info.catalogoAbierto;
             _deliveryActivo = info.deliveryActivo;
             _planActual = info.plan;
-            _slugCtrl.text = info.nombreComercial.toLowerCase().replaceAll(
-              RegExp(r'[^a-z0-9]'),
-              '-',
-            );
-            _whatsappDeliveryCtrl.text = info.telefono ?? '';
-            _pedidoMinimoCtrl.text = '15.00';
-            _horarioAtencionCtrl.text = 'Lunes a Sábado: 8:00 am - 10:00 pm';
+
+            if (savedSlug != null && savedSlug.trim().isNotEmpty) {
+              _slugCtrl.text = KitMarketingBarrioModal.normalizarSlug(
+                savedSlug,
+              );
+            } else {
+              _slugCtrl.text = KitMarketingBarrioModal.normalizarSlug(
+                info.nombreComercial,
+              );
+            }
+
+            if (savedWhatsapp != null && savedWhatsapp.trim().isNotEmpty) {
+              _whatsappDeliveryCtrl.text = savedWhatsapp.trim();
+            } else {
+              _whatsappDeliveryCtrl.text = info.telefono ?? '';
+            }
+
+            if (savedMinimo != null && savedMinimo.trim().isNotEmpty) {
+              _pedidoMinimoCtrl.text = savedMinimo.trim();
+            } else {
+              _pedidoMinimoCtrl.text = '15.00';
+            }
+
+            if (savedHorario != null && savedHorario.trim().isNotEmpty) {
+              _horarioAtencionCtrl.text = savedHorario.trim();
+            } else {
+              _horarioAtencionCtrl.text = 'Lunes a Sábado: 8:00 am - 10:00 pm';
+            }
           }
 
           // Ticket
@@ -410,10 +442,32 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       );
       await ConfiguracionTicketService.guardar(ticketCfg);
 
+      // 5. Guardar configuración de canales y tienda web (persistente)
+      final cleanSlug = KitMarketingBarrioModal.normalizarSlug(
+        _slugCtrl.text.trim().isNotEmpty
+            ? _slugCtrl.text.trim()
+            : (_bodegaInfo?.nombreComercial ?? 'mi-tienda'),
+      );
+      _slugCtrl.text = cleanSlug;
+      await SecureStorageService.write('tienda_slug', cleanSlug);
+      await SecureStorageService.write(
+        'whatsapp_delivery',
+        _whatsappDeliveryCtrl.text.trim(),
+      );
+      await SecureStorageService.write(
+        'pedido_minimo',
+        _pedidoMinimoCtrl.text.trim(),
+      );
+      await SecureStorageService.write(
+        'horario_atencion',
+        _horarioAtencionCtrl.text.trim(),
+      );
+
       widget.onConfigSaved?.call();
 
       if (mounted) {
         setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFF10B981),
@@ -446,6 +500,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppTheme.alertRed,
@@ -2791,14 +2846,134 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     }
   }
 
+  String _obtenerUrlPublicaTienda() {
+    final slug = _slugCtrl.text.trim().isNotEmpty
+        ? KitMarketingBarrioModal.normalizarSlug(_slugCtrl.text.trim())
+        : (_bodegaInfo != null
+              ? KitMarketingBarrioModal.normalizarSlug(
+                  _bodegaInfo!.nombreComercial,
+                )
+              : 'mi-tienda');
+    return KitMarketingBarrioModal.buildUrlCatalogo(
+      slugOrId: slug,
+      nombreBodega: _nombreCtrl.text.trim().isNotEmpty
+          ? _nombreCtrl.text.trim()
+          : _bodegaInfo?.nombreComercial,
+      bodegaId: _bodegaInfo?.idBodega,
+    );
+  }
+
+  void _copiarEnlacePublico() {
+    final url = _obtenerUrlPublicaTienda();
+    try {
+      Clipboard.setData(ClipboardData(text: url));
+    } catch (_) {}
+    try {
+      HapticFeedback.lightImpact();
+    } catch (_) {}
+    if (mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(LucideIcons.copyCheck, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '¡Enlace público copiado al portapapeles!\n$url',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _abrirEnlacePublico() async {
+    final url = _obtenerUrlPublicaTienda();
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No se pudo abrir el navegador: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _compartirPorWhatsapp() async {
+    final url = _obtenerUrlPublicaTienda();
+    final nombre = _nombreCtrl.text.trim().isNotEmpty
+        ? _nombreCtrl.text.trim()
+        : (_bodegaInfo?.nombreComercial ?? 'Nuestra Tienda');
+    final mensaje = _esGastronomico
+        ? '¡Hola! 👋 Te invitamos a conocer la carta digital de *$nombre* y hacer tus pedidos online aquí:\n$url'
+        : '¡Hola vecino! 👋 Te invitamos a ver el catálogo digital de *$nombre* y hacer tus pedidos online aquí:\n$url';
+    final waUri = Uri.parse(
+      'https://wa.me/?text=${Uri.encodeComponent(mensaje)}',
+    );
+    try {
+      if (await canLaunchUrl(waUri)) {
+        await launchUrl(waUri, mode: LaunchMode.externalApplication);
+      } else {
+        _copiarEnlacePublico();
+      }
+    } catch (_) {
+      _copiarEnlacePublico();
+    }
+  }
+
+  void _abrirKitMarketingBarrio() {
+    final slug = KitMarketingBarrioModal.normalizarSlug(_slugCtrl.text.trim());
+    KitMarketingBarrioModal.show(
+      context,
+      nombreBodega: _nombreCtrl.text.trim().isNotEmpty
+          ? _nombreCtrl.text.trim()
+          : (_bodegaInfo?.nombreComercial ?? 'Mi Tienda'),
+      telefono: _whatsappDeliveryCtrl.text.trim().isNotEmpty
+          ? _whatsappDeliveryCtrl.text.trim()
+          : (_telefonoCtrl.text.trim()),
+      lemaComercial: _lemaCtrl.text.trim(),
+      giroNegocio: _giroNegocio,
+      slugOrId: slug.isNotEmpty ? slug : null,
+    );
+  }
+
   // --- TAB 4: CANALES & TIENDA ONLINE ---
   Widget _buildTabOnline(bool isDark, Color primaryColor, bool isDesktop) {
+    final liveUrl = _obtenerUrlPublicaTienda();
+    final normalizedSlug = KitMarketingBarrioModal.normalizarSlug(
+      _slugCtrl.text,
+    );
+
     final cardOnline = _buildCard(
       isDark: isDark,
       icon: LucideIcons.globe,
       title: _tituloTabOnline,
       subtitle: _subtituloTabOnline,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPermissionToggle(
             title: 'Estado de la Tienda Digital',
@@ -2808,41 +2983,218 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
             isDark: isDark,
             primaryColor: primaryColor,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+
+          // Enlace Web Público (Slug)
           _buildTextField(
+            key: const Key('inputSlugTienda'),
             label: 'Enlace Web Público (Slug)',
             controller: _slugCtrl,
             icon: LucideIcons.link,
             isDark: isDark,
+            helperText: normalizedSlug.isNotEmpty
+                ? 'Identificador público: $normalizedSlug'
+                : 'Ingresa palabras separadas por guiones',
+            suffixIcon: IconButton(
+              tooltip: 'Regenerar desde nombre de tienda',
+              icon: const Icon(LucideIcons.refreshCw, size: 15),
+              onPressed: () {
+                setState(() {
+                  _slugCtrl.text = KitMarketingBarrioModal.normalizarSlug(
+                    _nombreCtrl.text.isNotEmpty
+                        ? _nombreCtrl.text
+                        : (_bodegaInfo?.nombreComercial ?? 'mi-tienda'),
+                  );
+                });
+                HapticFeedback.lightImpact();
+              },
+            ),
+            onChanged: (val) {
+              setState(() {});
+            },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+
+          // Tarjeta Destacada: Enlace Web Público de tu Tienda con acciones directas
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFE2E8F0),
+                width: 1.2,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(LucideIcons.globe, size: 16, color: primaryColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      'ENLACE PÚBLICO ACTIVO',
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                        color: primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF020617) : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFCBD5E1),
+                    ),
+                  ),
+                  child: SelectableText(
+                    liveUrl,
+                    key: const Key('textUrlPublicaTienda'),
+                    style: GoogleFonts.firaCode(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? const Color(0xFF38BDF8)
+                          : const Color(0xFF0284C7),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      key: const Key('btnCopiarEnlaceTienda'),
+                      onPressed: _copiarEnlacePublico,
+                      icon: const Icon(LucideIcons.copy, size: 15),
+                      label: Text(
+                        'Copiar Enlace',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      key: const Key('btnVerTiendaWeb'),
+                      onPressed: _abrirEnlacePublico,
+                      icon: const Icon(LucideIcons.externalLink, size: 15),
+                      label: Text(
+                        'Ver Tienda Web',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: isDark
+                            ? Colors.white
+                            : AppTheme.textDark,
+                        side: BorderSide(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFCBD5E1),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      key: const Key('btnCompartirWhatsapp'),
+                      onPressed: _compartirPorWhatsapp,
+                      icon: const Icon(LucideIcons.share2, size: 15),
+                      label: Text(
+                        'Compartir WhatsApp',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF10B981),
+                        side: const BorderSide(color: Color(0xFF10B981)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+
           Row(
             children: [
               Expanded(
                 child: _buildTextField(
+                  key: const Key('inputWhatsappDelivery'),
                   label: 'WhatsApp Pedidos',
                   controller: _whatsappDeliveryCtrl,
                   icon: LucideIcons.phone,
                   isDark: isDark,
+                  onChanged: (val) => setState(() {}),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _buildTextField(
+                  key: const Key('inputPedidoMinimo'),
                   label: 'Pedido Mínimo (S/)',
                   controller: _pedidoMinimoCtrl,
                   icon: LucideIcons.coins,
                   isDark: isDark,
+                  onChanged: (val) => setState(() {}),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           _buildTextField(
+            key: const Key('inputHorarioAtencion'),
             label: 'Horario de Atención para Entregas',
             controller: _horarioAtencionCtrl,
             icon: LucideIcons.clock,
             isDark: isDark,
+            onChanged: (val) => setState(() {}),
           ),
         ],
       ),
@@ -2876,6 +3228,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                       : (_esGastronomico
                             ? 'CARTA DIGITAL'
                             : 'BODEGA SAN MARTÍN'),
+                  textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     color: const Color(0xFF0F172A),
                     fontWeight: FontWeight.w800,
@@ -2900,11 +3253,25 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'cajaya.pe/${_slugCtrl.text}',
+                  liveUrl,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
                     color: _hexToColor(_selectedHex),
                     fontWeight: FontWeight.w700,
                     fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                TextButton.icon(
+                  key: const Key('btnCopiarEnlaceQrCard'),
+                  onPressed: _copiarEnlacePublico,
+                  icon: const Icon(LucideIcons.copy, size: 13),
+                  label: const Text('Copiar Enlace'),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: primaryColor,
                   ),
                 ),
               ],
@@ -2912,19 +3279,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    _esGastronomico
-                        ? 'Generando PDF listo para imprimir para mesas y mostrador...'
-                        : 'Generando PDF listo para imprimir en vitrina...',
-                  ),
-                ),
-              );
-            },
+            key: const Key('btnDescargarCartelQr'),
+            onPressed: _abrirKitMarketingBarrio,
             icon: const Icon(LucideIcons.download, size: 16),
-            label: const Text('Descargar Cartel PDF'),
+            label: const Text('Descargar Cartel PDF / Afiches'),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
@@ -3178,13 +3536,18 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   }
 
   Widget _buildTextField({
+    Key? key,
     required String label,
     required TextEditingController controller,
     required IconData icon,
     required bool isDark,
     ValueChanged<String>? onChanged,
+    Widget? suffixIcon,
+    String? helperText,
+    String? prefixText,
   }) {
     return Column(
+      key: key,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -3215,6 +3578,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               size: 15,
               color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
             ),
+            suffixIcon: suffixIcon,
+            helperText: helperText,
+            helperStyle: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            ),
+            prefixText: prefixText,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(

@@ -283,5 +283,71 @@ void main() {
         await tester.pumpAndSettle();
       },
     );
+
+    testWidgets(
+      'Pestaña 4: Edición de slug reactiva y botón de copiar enlace público de tienda',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          _createConfiguracionScreen(tabInicial: ConfiguracionTab.online),
+        );
+        await tester.pumpAndSettle();
+
+        // Verificar render de componentes de Canales & Tienda Web
+        expect(find.byKey(const Key('inputSlugTienda')), findsOneWidget);
+        expect(find.byKey(const Key('btnCopiarEnlaceTienda')), findsOneWidget);
+        expect(find.byKey(const Key('btnVerTiendaWeb')), findsOneWidget);
+        expect(find.byKey(const Key('btnCompartirWhatsapp')), findsOneWidget);
+        expect(find.byKey(const Key('btnDescargarCartelQr')), findsOneWidget);
+
+        // Verificar URL pública inicial
+        expect(
+          find.textContaining(
+            'https://cajaya-pos.onrender.com/#/catalogo?tienda=',
+          ),
+          findsWidgets,
+        );
+
+        // Modificar slug y verificar reactividad
+        await tester.enterText(
+          find.byKey(const Key('inputSlugTienda')),
+          'bodega-don-lucho',
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'https://cajaya-pos.onrender.com/#/catalogo?tienda=bodega-don-lucho',
+          ),
+          findsWidgets,
+        );
+
+        // Probar botón de copiar enlace
+        final btnCopiar = find.byKey(const Key('btnCopiarEnlaceTienda'));
+        await tester.ensureVisible(btnCopiar);
+        await tester.tap(btnCopiar);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(
+          find.textContaining('¡Enlace público copiado al portapapeles!'),
+          findsOneWidget,
+        );
+        await tester.pumpAndSettle();
+
+        // Guardar cambios y verificar confirmación
+        await tester.tap(find.byKey(const Key('btnGuardarMaster')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(
+          find.text('¡Configuración y privilegios guardados correctamente!'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

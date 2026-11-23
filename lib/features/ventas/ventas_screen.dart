@@ -6411,14 +6411,14 @@ class _VentasScreenState extends State<VentasScreen>
                       ),
                       icon: const Icon(LucideIcons.printer, size: 17),
                       label: Text(
-                        'IMPRIMIR ESC/POS',
+                        'IMPRIMIR TICKET',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w800,
                           fontSize: 12,
                         ),
                       ),
                       onPressed: () {
-                        _despacharImpresionDirecta(
+                        _mostrarTicketTermicoDialog(
                           items: items,
                           total: total,
                           metodo: metodo,
@@ -6426,7 +6426,6 @@ class _VentasScreenState extends State<VentasScreen>
                           vuelto: vuelto,
                           ventaGenerada: ventaGenerada,
                           descuento: descuento,
-                          silencioso: false,
                         );
                       },
                     ),
