@@ -349,7 +349,8 @@ class ThermalTicketService {
 
     // Lema comercial solo si es un eslogan de marca real y no duplica la despedida
     final lemaClean = (lemaComercial ?? '').trim();
-    final bool esDespedida = lemaClean.isEmpty ||
+    final bool esDespedida =
+        lemaClean.isEmpty ||
         lemaClean.toLowerCase().contains('gracias') ||
         lemaClean.toLowerCase().contains('vuelva') ||
         lemaClean.toLowerCase() ==
@@ -509,17 +510,14 @@ class ThermalTicketService {
         twoColumns('SUBTOTAL:', 'S/ ${sub.toStringAsFixed(2)}', width),
       );
       buffer.writeln(
-        twoColumns(
-          'DESCUENTO:',
-          '-S/ ${descuento.toStringAsFixed(2)}',
-          width,
-        ),
+        twoColumns('DESCUENTO:', '-S/ ${descuento.toStringAsFixed(2)}', width),
       );
     }
 
     // Discriminación de IGV: SOLO para Facturas o Régimen General / MYPE / Especial.
     // En bodegas del Nuevo RUS e Informales NO se discrimina IGV por norma SUNAT.
-    final bool esNuevoRusOInformal = regimenTributario == null ||
+    final bool esNuevoRusOInformal =
+        regimenTributario == null ||
         regimenTributario == 'NUEVO_RUS' ||
         regimenTributario == 'RUS' ||
         regimenTributario == 'INFORMAL';
@@ -560,9 +558,7 @@ class ThermalTicketService {
         buffer.writeln(twoColumns('PAGO:', 'EFECTIVO (EXACTO)', width));
       }
     } else {
-      buffer.writeln(
-        twoColumns('PAGO:', metodoPago.toUpperCase(), width),
-      );
+      buffer.writeln(twoColumns('PAGO:', metodoPago.toUpperCase(), width));
     }
     buffer.writeln(divider(width, '-'));
 
