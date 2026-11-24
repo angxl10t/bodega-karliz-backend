@@ -121,7 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _onSugerenciasNotifierChanged,
     );
     HardwareKeyboard.instance.addHandler(_handleGlobalShortcut);
-    _cargarDatosUsuario();
+    _cargarDatosUsuario().then((_) {
+      if (mounted) {
+        _mostrarBriefingInicialSiCorresponde();
+      }
+    });
     _resetInactivityTimer();
     _screens = [
       DashboardScreen(
@@ -294,22 +298,22 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (_) {}
 
       _verificarSugerenciasSuperadmin();
-
-      if (mounted) {
-        // Mostrar Briefing de Turno ejecutivo/operativo al inicio de sesión
-        Future.delayed(const Duration(milliseconds: 350), () {
-          if (mounted && !LockService().isLocked) {
-            BriefingTurnoModal.showIfNeeded(
-              context,
-              username: _username,
-              userRol: _userRol,
-              nombreBodega: _nombreBodega,
-              onNavigateTab: _selectTab,
-            );
-          }
-        });
-      }
     }
+  }
+
+  void _mostrarBriefingInicialSiCorresponde() {
+    if (!mounted || LockService().isLocked) return;
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted && !LockService().isLocked) {
+        BriefingTurnoModal.showIfNeeded(
+          context,
+          username: _username,
+          userRol: _userRol,
+          nombreBodega: _nombreBodega,
+          onNavigateTab: _selectTab,
+        );
+      }
+    });
   }
 
   void _onSugerenciasNotifierChanged() {

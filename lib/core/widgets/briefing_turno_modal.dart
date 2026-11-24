@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../responsive_layout.dart';
 import '../theme.dart';
+import '../secure_storage_service.dart';
 import 'adaptive_modal.dart';
 import '../../features/auth/auth_service.dart';
 
@@ -44,6 +45,20 @@ class BriefingTurnoModal extends StatefulWidget {
     this.onNavigateTab,
   });
 
+  static final Set<String> _usuariosConBriefingVistoEnSesion = <String>{};
+  static bool _cleanupRegistered = false;
+
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(resetSession);
+  }
+
+  /// Permite reiniciar la memoria de sesión (ej. al cerrar sesión o en tests)
+  static void resetSession() {
+    _usuariosConBriefingVistoEnSesion.clear();
+  }
+
   /// Abre el briefing automáticamente al iniciar sesión o turno
   static Future<void> showIfNeeded(
     BuildContext context, {
@@ -52,18 +67,31 @@ class BriefingTurnoModal extends StatefulWidget {
     String? nombreBodega,
     Function(int tabIndex)? onNavigateTab,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    _ensureCleanupRegistered();
     final uname = (username != null && username.isNotEmpty)
         ? username
         : await AuthService().getUsername();
+
+    // Protección estricta de sesión: NUNCA mostrar automáticamente más de una vez en la misma sesión
+    if (_usuariosConBriefingVistoEnSesion.contains(uname)) {
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
     final todayStr = DateTime.now().toIso8601String().substring(0, 10);
     final keySilenciado = 'briefing_turno_silenciado_v2_${uname}_$todayStr';
 
     // Si el usuario marcó no mostrarlo más hoy, se respeta su preferencia
     final yaSilenciado = prefs.getBool(keySilenciado) ?? false;
-    if (yaSilenciado) return;
+    if (yaSilenciado) {
+      _usuariosConBriefingVistoEnSesion.add(uname);
+      return;
+    }
 
     if (!context.mounted) return;
+
+    // Marcamos como visto en esta sesión para evitar cualquier reapertura indeseada
+    _usuariosConBriefingVistoEnSesion.add(uname);
 
     await show(
       context,
@@ -528,14 +556,18 @@ class _BriefingTurnoModalState extends State<BriefingTurnoModal> {
                                             : const Color(0xFF94A3B8)),
                                 ),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Entendido • No mostrar automáticamente en este turno',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF475569),
+                                Flexible(
+                                  child: Text(
+                                    'Entendido • No mostrar automáticamente en este turno',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? AppTheme.textDarkSecondary
+                                          : const Color(0xFF475569),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
