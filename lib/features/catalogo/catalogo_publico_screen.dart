@@ -2064,6 +2064,51 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               ],
                                             ),
                                           ),
+                                          if (isShortHeight) ...[
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: isTablet ? 8 : 7,
+                                                vertical: isTablet ? 4 : 3,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.18,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.35),
+                                                  width: 0.9,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    _esGastronomico
+                                                        ? LucideIcons.utensils
+                                                        : LucideIcons.package,
+                                                    size: 11,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    ' ',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: isTablet
+                                                              ? 10.5
+                                                              : 9.5,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color: Colors.white,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                       if (lema.isNotEmpty &&
@@ -2120,6 +2165,49 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                   const SizedBox(width: 4),
                                                   Text(
                                                     '4.9 (184)',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color: Colors.white,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Cantidad total de productos en catálogo (Banner)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 9,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.18,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: Colors.white
+                                                      .withValues(alpha: 0.35),
+                                                  width: 0.9,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    _esGastronomico
+                                                        ? LucideIcons.utensils
+                                                        : LucideIcons.package,
+                                                    size: 12,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(width: 5),
+                                                  Text(
+                                                    '${_productos.length} ${_esGastronomico ? (_productos.length == 1 ? "plato disponible" : "platos disponibles") : (_productos.length == 1 ? "producto disponible" : "productos disponibles")}',
                                                     style:
                                                         GoogleFonts.plusJakartaSans(
                                                           fontSize: 11,
@@ -2331,52 +2419,6 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                 ),
                                               ),
                                             ],
-                                            // Contador vivo del catálogo
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 9,
-                                                    vertical: 4,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.22,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    _esGastronomico
-                                                        ? LucideIcons.utensils
-                                                        : LucideIcons
-                                                              .layoutGrid,
-                                                    size: 11.5,
-                                                    color: Colors.white,
-                                                  ),
-                                                  const SizedBox(width: 5),
-                                                  Flexible(
-                                                    child: Text(
-                                                      isTablet
-                                                          ? '${_productos.length} ${_esGastronomico ? "platos y bebidas" : "productos"} · ${_categorias.length} ${_esGastronomico ? "secciones" : "categorías"}'
-                                                          : '${_productos.length} ${_esGastronomico ? "ítems" : "prods"} · ${_categorias.length} ${_esGastronomico ? "secs" : "cats"}',
-                                                      style:
-                                                          GoogleFonts.plusJakartaSans(
-                                                            fontSize: 11,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            color: Colors.white,
-                                                          ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
                                             if (_bodega['telefono'] != null &&
                                                 _bodega['telefono']
                                                     .toString()
@@ -3075,100 +3117,49 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Container(
-                                  width: ringSize,
-                                  height: ringSize,
-                                  padding: const EdgeInsets.all(2.4),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: resolved.config.gradient,
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: resolved.config.gradient.first
-                                            .withValues(
-                                              alpha: isSelected ? 0.45 : 0.20,
-                                            ),
-                                        blurRadius: isSelected ? 8 : 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                            Container(
+                              width: ringSize,
+                              height: ringSize,
+                              padding: const EdgeInsets.all(2.4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: resolved.config.gradient,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: resolved.config.gradient.first
+                                        .withValues(
+                                          alpha: isSelected ? 0.45 : 0.20,
+                                        ),
+                                    blurRadius: isSelected ? 8 : 4,
+                                    offset: const Offset(0, 2),
                                   ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isSelected
-                                          ? resolved.config.gradient.first
-                                          : (isDark
-                                                ? const Color(0xFF0F172A)
-                                                : Colors.white),
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        resolved.config.icon,
-                                        size: iconSize,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : (isDark
-                                                  ? Colors.white
-                                                  : const Color(0xFF1E293B)),
-                                      ),
-                                    ),
+                                ],
+                              ),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isSelected
+                                      ? resolved.config.gradient.first
+                                      : (isDark
+                                            ? const Color(0xFF0F172A)
+                                            : Colors.white),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    resolved.config.icon,
+                                    size: iconSize,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : (isDark
+                                              ? Colors.white
+                                              : const Color(0xFF1E293B)),
                                   ),
                                 ),
-                                if (resolved.count > 0)
-                                  Positioned(
-                                    top: -1,
-                                    right: -3,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4.5,
-                                        vertical: 1.5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? _colorMarca
-                                            : (isDark
-                                                  ? const Color(0xFF334155)
-                                                  : const Color(0xFFF1F5F9)),
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: isDark
-                                              ? const Color(0xFF0F172A)
-                                              : Colors.white,
-                                          width: 1.4,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.12,
-                                            ),
-                                            blurRadius: 3,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Text(
-                                        '${resolved.count}',
-                                        style: GoogleFonts.outfit(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w800,
-                                          color: isSelected
-                                              ? Colors.white
-                                              : (isDark
-                                                    ? const Color(0xFFF1F5F9)
-                                                    : const Color(0xFF334155)),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
+                              ),
                             ),
                             const SizedBox(height: 5),
                             Text(

@@ -43,9 +43,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // 1. Verificar rating badge en el header
+      // 1. Verificar rating badge y contador total de productos en el header banner
       expect(find.text('4.9 (184)'), findsOneWidget);
       expect(find.byIcon(LucideIcons.star), findsWidgets);
+      expect(find.text('265 productos disponibles'), findsOneWidget);
+      expect(find.byIcon(LucideIcons.package), findsWidgets);
 
       // 2. Verificar historias / stories circulares
       expect(find.text('Gaseosas'), findsWidgets);
