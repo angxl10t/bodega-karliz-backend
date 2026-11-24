@@ -2770,75 +2770,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               child: _buildPromocionesHeroBanner(isDark, isTablet),
             ),
 
-            // Historias / Destacados Rápidos ("Stories" tipo Instagram / Rappi)
+            // Categorías Circulares Destacadas ("Stories" unificadas con atajos, canónicas e iconos temáticos)
             SliverToBoxAdapter(child: _buildStoriesRow(isDark, isTablet)),
-
-            // Barra de Categorías con Iconos Temáticos, Conteo y Flechas Desktop
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 8 : 6,
-                ),
-                child: Row(
-                  children: [
-                    if (isTablet) ...[
-                      _buildScrollArrowButton(
-                        icon: LucideIcons.chevronLeft,
-                        isDark: isDark,
-                        onTap: () => _scrollCategorias(-320),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: SingleChildScrollView(
-                        controller: _catScrollCtrl,
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            _buildCategoriaChip(
-                              'TODAS',
-                              _esGastronomico ? 'Carta' : 'Todos',
-                              isDark,
-                              isTablet,
-                              count: _productos.length,
-                            ),
-                            if (_ofertasCount > 0)
-                              _buildCategoriaChip(
-                                'OFERTAS',
-                                'Ofertas',
-                                isDark,
-                                isTablet,
-                                esOferta: true,
-                                count: _ofertasCount,
-                              ),
-                            ..._categorias.map(
-                              (c) => _buildCategoriaChip(
-                                c,
-                                c,
-                                isDark,
-                                isTablet,
-                                count:
-                                    _conteoPorCategoria[c.trim().toUpperCase()],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    if (isTablet) ...[
-                      const SizedBox(width: 8),
-                      _buildScrollArrowButton(
-                        icon: LucideIcons.chevronRight,
-                        isDark: isDark,
-                        onTap: () => _scrollCategorias(320),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
 
             // Barra de Resultados y Ordenamiento
             SliverToBoxAdapter(
@@ -2925,238 +2858,354 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   Widget _buildStoriesRow(bool isDark, bool isTablet) {
     if (_productos.isEmpty) return const SizedBox.shrink();
 
-    final List<_StoryConfig> stories = [];
+    final activeStories = <_ResolvedStory>[];
 
-    if (_esGastronomico) {
-      if (_ofertasCount > 0) {
-        stories.add(
-          const _StoryConfig(
-            label: 'Ofertas Flash',
+    // 1. Siempre incluir círculo principal "Todos" o "Carta"
+    final String todosLabel = _esGastronomico ? 'Carta' : 'Todos';
+    final IconData todosIcon = _esGastronomico
+        ? LucideIcons.utensils
+        : LucideIcons.layoutGrid;
+    final List<Color> todosGradient = [_colorMarcaProfundo, _colorMarca];
+    activeStories.add(
+      _ResolvedStory(
+        config: _StoryConfig(
+          label: todosLabel,
+          icon: todosIcon,
+          gradient: todosGradient,
+          directCategory: 'TODAS',
+        ),
+        targetCategory: 'TODAS',
+        count: _productos.length,
+      ),
+    );
+
+    // 2. Círculo "Ofertas" si hay promociones vigentes
+    if (_ofertasCount > 0) {
+      activeStories.add(
+        _ResolvedStory(
+          config: const _StoryConfig(
+            label: 'Ofertas',
             icon: LucideIcons.flame,
             gradient: [Color(0xFFF43F5E), Color(0xFFF59E0B)],
             directCategory: 'OFERTAS',
           ),
-        );
-      }
-      stories.addAll(const [
-        _StoryConfig(
-          label: 'Pollos Brasa',
-          icon: LucideIcons.drumstick,
-          gradient: [Color(0xFFEA580C), Color(0xFFF97316)],
-          keywords: ['POLLO', 'BRASA', 'COMBO'],
+          targetCategory: 'OFERTAS',
+          count: _ofertasCount,
         ),
-        _StoryConfig(
-          label: 'Chifa & Chaufa',
-          icon: LucideIcons.utensilsCrossed,
-          gradient: [Color(0xFFDC2626), Color(0xFFB91C1C)],
-          keywords: ['CHIFA', 'CHAUFA', 'AEROPUERTO', 'TALLARIN'],
-        ),
-        _StoryConfig(
-          label: 'Guarniciones',
-          icon: LucideIcons.utensils,
-          gradient: [Color(0xFFEAB308), Color(0xFFCA8A04)],
-          keywords: ['GUARNICION', 'PAPA', 'PORCION'],
-        ),
-        _StoryConfig(
-          label: 'Jarras & Bebidas',
-          icon: LucideIcons.cupSoda,
-          gradient: [Color(0xFF0284C7), Color(0xFF0369A1)],
-          keywords: ['BEBIDA', 'JARRA', 'CHICHA', 'REFRESCO', 'GASEOSA'],
-        ),
-        _StoryConfig(
-          label: 'Salsas & Ají',
-          icon: LucideIcons.sparkles,
-          gradient: [Color(0xFF16A34A), Color(0xFF15803D)],
-          keywords: ['SALSA', 'AJI', 'CREMA', 'EXTRA'],
-        ),
-      ]);
-    } else {
-      if (_ofertasCount > 0) {
-        stories.add(
-          const _StoryConfig(
-            label: 'Ofertas Flash',
-            icon: LucideIcons.flame,
-            gradient: [Color(0xFFF43F5E), Color(0xFFF59E0B)],
-            directCategory: 'OFERTAS',
-          ),
-        );
-      }
-      stories.addAll(const [
-        _StoryConfig(
-          label: 'Chelas & Licores',
-          icon: LucideIcons.bottleWine,
-          gradient: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
-          keywords: ['ALCOHOL', 'LICOR', 'CERVEZA', 'VINOS'],
-        ),
-        _StoryConfig(
-          label: 'Gaseosas',
-          icon: LucideIcons.cupSoda,
-          gradient: [Color(0xFF38BDF8), Color(0xFF2563EB)],
-          keywords: ['GASEOSA', 'BEBIDA', 'REFRESCO', 'AGUA'],
-        ),
-        _StoryConfig(
-          label: 'Snacks Snax',
-          icon: LucideIcons.cookie,
-          gradient: [Color(0xFFFBBF24), Color(0xFFEA580C)],
-          keywords: ['SNACK', 'PIQUEO', 'PAPAS', 'DORITOS'],
-        ),
-        _StoryConfig(
-          label: 'Lácteos Gloria',
-          icon: LucideIcons.milk,
-          gradient: [Color(0xFF60A5FA), Color(0xFF6366F1)],
-          keywords: ['LÁCTEO', 'LACTEO', 'LECHE', 'YOGURT', 'QUESO', 'HUEVO'],
-        ),
-        _StoryConfig(
-          label: 'Despensa Básica',
-          icon: LucideIcons.shoppingBag,
-          gradient: [Color(0xFF34D399), Color(0xFF059669)],
-          keywords: [
-            'ABARROTE',
-            'DESPENSA',
-            'VÍVERE',
-            'ARROZ',
-            'AZÚCAR',
-            'ACEITE',
-          ],
-        ),
-        _StoryConfig(
-          label: 'Hogar & Aseo',
-          icon: LucideIcons.sparkles,
-          gradient: [Color(0xFF22D3EE), Color(0xFF0D9488)],
-          keywords: ['LIMPIEZA', 'ASEO', 'HOGAR', 'DETERGENTE', 'JABÓN'],
-        ),
-      ]);
+      );
     }
 
-    final activeStories = <_ResolvedStory>[];
-    for (final s in stories) {
-      if (s.directCategory != null) {
+    // 3. Presets canónicos temáticos según giro de negocio
+    final List<_StoryConfig> presets = _esGastronomico
+        ? const [
+            _StoryConfig(
+              label: 'Pollos Brasa',
+              icon: LucideIcons.drumstick,
+              gradient: [Color(0xFFEA580C), Color(0xFFF97316)],
+              keywords: ['POLLO', 'BRASA', 'COMBO'],
+            ),
+            _StoryConfig(
+              label: 'Chifa & Chaufa',
+              icon: LucideIcons.utensilsCrossed,
+              gradient: [Color(0xFFDC2626), Color(0xFFB91C1C)],
+              keywords: ['CHIFA', 'CHAUFA', 'AEROPUERTO', 'TALLARIN'],
+            ),
+            _StoryConfig(
+              label: 'Guarniciones',
+              icon: LucideIcons.utensils,
+              gradient: [Color(0xFFEAB308), Color(0xFFCA8A04)],
+              keywords: ['GUARNICION', 'PAPA', 'PORCION'],
+            ),
+            _StoryConfig(
+              label: 'Jarras & Bebidas',
+              icon: LucideIcons.cupSoda,
+              gradient: [Color(0xFF0284C7), Color(0xFF0369A1)],
+              keywords: ['BEBIDA', 'JARRA', 'CHICHA', 'REFRESCO', 'GASEOSA'],
+            ),
+            _StoryConfig(
+              label: 'Salsas & Ají',
+              icon: LucideIcons.sparkles,
+              gradient: [Color(0xFF16A34A), Color(0xFF15803D)],
+              keywords: ['SALSA', 'AJI', 'CREMA', 'EXTRA'],
+            ),
+          ]
+        : const [
+            _StoryConfig(
+              label: 'Chelas & Licores',
+              icon: LucideIcons.bottleWine,
+              gradient: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
+              keywords: ['ALCOHOL', 'LICOR', 'CERVEZA', 'VINOS'],
+            ),
+            _StoryConfig(
+              label: 'Gaseosas',
+              icon: LucideIcons.cupSoda,
+              gradient: [Color(0xFF38BDF8), Color(0xFF2563EB)],
+              keywords: ['GASEOSA', 'BEBIDA', 'REFRESCO', 'AGUA'],
+            ),
+            _StoryConfig(
+              label: 'Snacks Snax',
+              icon: LucideIcons.cookie,
+              gradient: [Color(0xFFFBBF24), Color(0xFFEA580C)],
+              keywords: ['SNACK', 'PIQUEO', 'PAPAS', 'DORITOS'],
+            ),
+            _StoryConfig(
+              label: 'Lácteos Gloria',
+              icon: LucideIcons.milk,
+              gradient: [Color(0xFF60A5FA), Color(0xFF6366F1)],
+              keywords: [
+                'LÁCTEO',
+                'LACTEO',
+                'LECHE',
+                'YOGURT',
+                'QUESO',
+                'HUEVO',
+              ],
+            ),
+            _StoryConfig(
+              label: 'Despensa Básica',
+              icon: LucideIcons.shoppingBag,
+              gradient: [Color(0xFF34D399), Color(0xFF059669)],
+              keywords: [
+                'ABARROTE',
+                'DESPENSA',
+                'VÍVERE',
+                'ARROZ',
+                'AZÚCAR',
+                'ACEITE',
+              ],
+            ),
+            _StoryConfig(
+              label: 'Hogar & Aseo',
+              icon: LucideIcons.sparkles,
+              gradient: [Color(0xFF22D3EE), Color(0xFF0D9488)],
+              keywords: ['LIMPIEZA', 'ASEO', 'HOGAR', 'DETERGENTE', 'JABÓN'],
+            ),
+          ];
+
+    final Set<String> categoriasUsadas = {};
+
+    for (final cat in _categorias) {
+      final catKey = cat.trim().toUpperCase();
+      if (categoriasUsadas.contains(catKey)) continue;
+
+      final count = _conteoPorCategoria[catKey] ?? 0;
+      _StoryConfig? matchingPreset;
+      for (final p in presets) {
+        for (final kw in p.keywords) {
+          if (catKey.contains(kw.toUpperCase())) {
+            matchingPreset = p;
+            break;
+          }
+        }
+        if (matchingPreset != null) break;
+      }
+
+      if (matchingPreset != null) {
         activeStories.add(
-          _ResolvedStory(config: s, targetCategory: s.directCategory!),
+          _ResolvedStory(
+            config: matchingPreset,
+            targetCategory: cat,
+            count: count,
+          ),
         );
       } else {
-        String? match;
-        for (final cat in _categorias) {
-          final catU = cat.toUpperCase();
-          for (final kw in s.keywords) {
-            if (catU.contains(kw.toUpperCase())) {
-              match = cat;
-              break;
-            }
-          }
-          if (match != null) break;
-        }
-        if (match != null &&
-            (_conteoPorCategoria[match.trim().toUpperCase()] ?? 0) > 0) {
-          activeStories.add(_ResolvedStory(config: s, targetCategory: match));
-        }
+        final catColor = CategoryHelper.getColor(cat, false);
+        activeStories.add(
+          _ResolvedStory(
+            config: _StoryConfig(
+              label: cat,
+              icon: CategoryHelper.getIcon(cat),
+              gradient: [catColor, catColor.withValues(alpha: 0.75)],
+              directCategory: cat,
+            ),
+            targetCategory: cat,
+            count: count,
+          ),
+        );
       }
+      categoriasUsadas.add(catKey);
     }
 
     if (activeStories.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      margin: EdgeInsets.only(top: isTablet ? 6 : 4, bottom: isTablet ? 8 : 4),
+      margin: EdgeInsets.only(top: isTablet ? 8 : 4, bottom: isTablet ? 8 : 4),
       padding: EdgeInsets.symmetric(horizontal: isTablet ? 20 : 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: activeStories.map((resolved) {
-            final isSelected =
-                _categoriaSeleccionada.toUpperCase() ==
-                resolved.targetCategory.toUpperCase();
-            final double ringSize = isTablet ? 56 : 50;
-            final double iconSize = isTablet ? 23 : 20;
+      child: Row(
+        children: [
+          if (isTablet) ...[
+            _buildScrollArrowButton(
+              icon: LucideIcons.chevronLeft,
+              isDark: isDark,
+              onTap: () => _scrollCategorias(-320),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _catScrollCtrl,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: activeStories.map((resolved) {
+                  final isSelected =
+                      _categoriaSeleccionada.toUpperCase() ==
+                      resolved.targetCategory.toUpperCase();
+                  final double ringSize = isTablet ? 56 : 50;
+                  final double iconSize = isTablet ? 23 : 20;
 
-            return Padding(
-              padding: EdgeInsets.only(right: isTablet ? 14 : 10),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  setState(() {
-                    if (isSelected) {
-                      _categoriaSeleccionada = 'TODAS';
-                    } else {
-                      _categoriaSeleccionada = resolved.targetCategory;
-                    }
-                    _recomputeProductosFiltrados();
-                  });
-                },
-                child: SizedBox(
-                  width: isTablet ? 72 : 64,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: ringSize,
-                        height: ringSize,
-                        padding: const EdgeInsets.all(2.4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: resolved.config.gradient,
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: resolved.config.gradient.first.withValues(
-                                alpha: isSelected ? 0.45 : 0.22,
+                  return Padding(
+                    padding: EdgeInsets.only(right: isTablet ? 14 : 10),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() {
+                          if (isSelected &&
+                              resolved.targetCategory != 'TODAS') {
+                            _categoriaSeleccionada = 'TODAS';
+                          } else {
+                            _categoriaSeleccionada = resolved.targetCategory;
+                          }
+                          _recomputeProductosFiltrados();
+                        });
+                      },
+                      child: SizedBox(
+                        width: isTablet ? 74 : 64,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: ringSize,
+                                  height: ringSize,
+                                  padding: const EdgeInsets.all(2.4),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: resolved.config.gradient,
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: resolved.config.gradient.first
+                                            .withValues(
+                                              alpha: isSelected ? 0.45 : 0.20,
+                                            ),
+                                        blurRadius: isSelected ? 8 : 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? resolved.config.gradient.first
+                                          : (isDark
+                                                ? const Color(0xFF0F172A)
+                                                : Colors.white),
+                                    ),
+                                    child: Center(
+                                      child: Icon(
+                                        resolved.config.icon,
+                                        size: iconSize,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : (isDark
+                                                  ? Colors.white
+                                                  : const Color(0xFF1E293B)),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (resolved.count > 0)
+                                  Positioned(
+                                    top: -1,
+                                    right: -3,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4.5,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? _colorMarca
+                                            : (isDark
+                                                  ? const Color(0xFF334155)
+                                                  : const Color(0xFFF1F5F9)),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? const Color(0xFF0F172A)
+                                              : Colors.white,
+                                          width: 1.4,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.12,
+                                            ),
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Text(
+                                        '${resolved.count}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : (isDark
+                                                    ? const Color(0xFFF1F5F9)
+                                                    : const Color(0xFF334155)),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              resolved.config.label,
+                              style: GoogleFonts.outfit(
+                                fontSize: isTablet ? 11 : 10,
+                                fontWeight: isSelected
+                                    ? FontWeight.w900
+                                    : FontWeight.w700,
+                                color: isSelected
+                                    ? _colorMarcaTexto(isDark)
+                                    : (isDark
+                                          ? const Color(0xFFE2E8F0)
+                                          : const Color(0xFF334155)),
                               ),
-                              blurRadius: isSelected ? 8 : 5,
-                              offset: const Offset(0, 2),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isSelected
-                                ? resolved.config.gradient.first
-                                : (isDark
-                                      ? const Color(0xFF0F172A)
-                                      : Colors.white),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              resolved.config.icon,
-                              size: iconSize,
-                              color: isSelected
-                                  ? Colors.white
-                                  : (isDark
-                                        ? Colors.white
-                                        : const Color(0xFF1E293B)),
-                            ),
-                          ),
-                        ),
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        resolved.config.label,
-                        style: GoogleFonts.outfit(
-                          fontSize: isTablet ? 11 : 10,
-                          fontWeight: isSelected
-                              ? FontWeight.w900
-                              : FontWeight.w700,
-                          color: isSelected
-                              ? _colorMarcaTexto(isDark)
-                              : (isDark
-                                    ? const Color(0xFFE2E8F0)
-                                    : const Color(0xFF334155)),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                }).toList(),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          ),
+          if (isTablet) ...[
+            const SizedBox(width: 8),
+            _buildScrollArrowButton(
+              icon: LucideIcons.chevronRight,
+              isDark: isDark,
+              onTap: () => _scrollCategorias(320),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -3649,187 +3698,6 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCategoriaChip(
-    String key,
-    String label,
-    bool isDark,
-    bool isTablet, {
-    bool esOferta = false,
-    int? count,
-  }) {
-    final isSelected =
-        _categoriaSeleccionada.toUpperCase() == key.toUpperCase();
-    final Color catAccent = esOferta
-        ? _colorPromocion
-        : (key == 'TODAS'
-              ? _colorMarcaTexto(isDark)
-              : CategoryHelper.getColor(key, isDark));
-    final List<Color> selectedGradient = esOferta
-        ? [
-            HSLColor.fromColor(_colorPromocion)
-                .withLightness(
-                  (HSLColor.fromColor(_colorPromocion).lightness - 0.10).clamp(
-                    0.18,
-                    0.42,
-                  ),
-                )
-                .toColor(),
-            _colorPromocion,
-          ]
-        : (key == 'TODAS'
-              ? [_colorMarcaProfundo, _colorMarca]
-              : CategoryHelper.getGradientColors(key, isDark));
-    final iconData = esOferta
-        ? LucideIcons.flame
-        : (key == 'TODAS'
-              ? (_esGastronomico
-                    ? LucideIcons.utensils
-                    : LucideIcons.layoutGrid)
-              : CategoryHelper.getIcon(key));
-
-    return Padding(
-      padding: EdgeInsets.only(right: isTablet ? 10 : 8),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(isTablet ? 15 : 13),
-          onTap: () {
-            HapticFeedback.selectionClick();
-            setState(() {
-              _categoriaSeleccionada = key;
-              _recomputeProductosFiltrados();
-            });
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutCubic,
-            padding: EdgeInsets.fromLTRB(
-              isTablet ? 8 : 7,
-              isTablet ? 7 : 6,
-              isTablet ? 12 : 10,
-              isTablet ? 7 : 6,
-            ),
-            decoration: BoxDecoration(
-              gradient: isSelected
-                  ? LinearGradient(
-                      colors: selectedGradient,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
-                  : null,
-              color: isSelected
-                  ? null
-                  : (isDark
-                        ? (esOferta
-                              ? _colorPromocion.withValues(alpha: 0.16)
-                              : const Color(0xFF162032))
-                        : (esOferta
-                              ? _colorPromocion.withValues(alpha: 0.08)
-                              : Colors.white)),
-              borderRadius: BorderRadius.circular(isTablet ? 15 : 13),
-              border: Border.all(
-                color: isSelected
-                    ? Colors.transparent
-                    : (esOferta
-                          ? _colorPromocion.withValues(alpha: 0.45)
-                          : (isDark
-                                ? const Color(0xFF283548)
-                                : const Color(0xFFE2E8F0))),
-                width: 1.1,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: selectedGradient.first.withValues(
-                          alpha: isDark ? 0.40 : 0.28,
-                        ),
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : [
-                      if (!isDark)
-                        BoxShadow(
-                          color: const Color(0xFF0F172A)
-                              .withValues(alpha: 0.04),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                    ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Medallón de icono temático con color propio de categoría
-                Container(
-                  width: isTablet ? 28 : 24,
-                  height: isTablet ? 28 : 24,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? Colors.white.withValues(alpha: 0.22)
-                        : catAccent.withValues(alpha: isDark ? 0.22 : 0.13),
-                    borderRadius: BorderRadius.circular(isTablet ? 9 : 7),
-                  ),
-                  child: Icon(
-                    iconData,
-                    size: isTablet ? 15 : 13.5,
-                    color: isSelected ? Colors.white : catAccent,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: isTablet ? 13 : 12,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
-                    color: isSelected
-                        ? Colors.white
-                        : (esOferta
-                              ? (isDark
-                                    ? const Color(0xFFFDA4AF)
-                                    : _colorPromocion)
-                              : (isDark
-                                    ? const Color(0xFFF1F5F9)
-                                    : const Color(0xFF0F172A))),
-                  ),
-                ),
-                if (count != null && count > 0) ...[
-                  const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Colors.white.withValues(alpha: 0.22)
-                          : (isDark
-                                ? const Color(0xFF0F172A)
-                                : const Color(0xFFF1F5F9)),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$count',
-                      style: GoogleFonts.outfit(
-                        fontSize: isTablet ? 11 : 10,
-                        fontWeight: FontWeight.w800,
-                        color: isSelected
-                            ? Colors.white
-                            : (isDark
-                                  ? const Color(0xFF94A3B8)
-                                  : const Color(0xFF475569)),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -7223,6 +7091,11 @@ class _StoryConfig {
 class _ResolvedStory {
   final _StoryConfig config;
   final String targetCategory;
+  final int count;
 
-  const _ResolvedStory({required this.config, required this.targetCategory});
+  const _ResolvedStory({
+    required this.config,
+    required this.targetCategory,
+    this.count = 0,
+  });
 }
