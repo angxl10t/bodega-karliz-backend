@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bodega_mobile/core/theme_provider.dart';
@@ -9,10 +8,6 @@ import 'package:bodega_mobile/core/widgets/accessibility_panel_modal.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(() {
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
 
   group('Accessibility & Ergonomics Tests', () {
     setUp(() {

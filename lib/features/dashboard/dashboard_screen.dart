@@ -872,7 +872,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             context,
             nombreBodega: _nombreBodega,
             telefono: _telefono.isNotEmpty ? _telefono : null,
-            slugOrId: KitMarketingBarrioModal.normalizarSlug(_nombreBodega),
             giroNegocio: _giroNegocio,
           );
         },

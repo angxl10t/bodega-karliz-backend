@@ -120,7 +120,9 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
   String? _savedSlug;
 
   String get _urlCatalogo => KitMarketingBarrioModal.buildUrlCatalogo(
-    slugOrId: widget.slugOrId ?? _savedSlug,
+    slugOrId: (_savedSlug != null && _savedSlug!.trim().isNotEmpty)
+        ? _savedSlug
+        : widget.slugOrId,
     nombreBodega: _nombreBodega,
     bodegaId: _bodegaId,
   );
