@@ -81,6 +81,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   bool _modificarPrecios = false;
   bool _verFinanzas = false;
   String _activePreset = 'estandar';
+  Map<String, bool> _cajerosConPermisosPersonalizados = {};
 
   // Pestaña 3: Hardware & Tickets
   int _anchoPapel = ThermalTicketService.width58mm;
@@ -179,6 +180,15 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       final users = await _usuariosService.listarUsuarios().catchError(
         (_) => <UsuarioItem>[],
       );
+      final customMap = <String, bool>{};
+      for (final u in users) {
+        if (u.rol.toUpperCase() == 'CAJERO') {
+          customMap[u.username] =
+              await PermisosCajeroService.tienePermisosPersonalizados(
+                u.username,
+              );
+        }
+      }
       final ticketCfg = await ConfiguracionTicketService.cargar();
       final permisos = await PermisosCajeroService.obtenerPermisos();
 
@@ -194,6 +204,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
         setState(() {
           _bodegaInfo = info;
           _usuarios = users;
+          _cajerosConPermisosPersonalizados = customMap;
 
           if (info != null) {
             _nombreCtrl.text = info.nombreComercial;
@@ -1280,119 +1291,194 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   Widget _buildUsuarioTile(UsuarioItem u, bool isDark, Color primaryColor) {
     final isAdmin =
         u.rol.toUpperCase() == 'ADMIN' || u.rol.toUpperCase() == 'SUPERADMIN';
+    final esPersonalizado =
+        _cajerosConPermisosPersonalizados[u.username] ?? false;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E2436) : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark ? const Color(0xFF262E44) : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: isAdmin
-                ? primaryColor.withValues(alpha: 0.15)
-                : const Color(0xFF10B981).withValues(alpha: 0.15),
-            foregroundColor: isAdmin ? primaryColor : const Color(0xFF10B981),
-            child: Text(
-              u.username.isNotEmpty ? u.username[0].toUpperCase() : 'U',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
-            ),
+    return InkWell(
+      onTap: !isAdmin ? () => _abrirModalPermisosIndividuales(u) : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E2436) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? const Color(0xFF262E44) : const Color(0xFFE2E8F0),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        u.nombreCompleto?.isNotEmpty == true
-                            ? u.nombreCompleto!
-                            : u.username,
-                        style: GoogleFonts.outfit(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppTheme.textDark,
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: isAdmin
+                  ? primaryColor.withValues(alpha: 0.15)
+                  : const Color(0xFF10B981).withValues(alpha: 0.15),
+              foregroundColor: isAdmin ? primaryColor : const Color(0xFF10B981),
+              child: Text(
+                u.username.isNotEmpty ? u.username[0].toUpperCase() : 'U',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          u.nombreCompleto?.isNotEmpty == true
+                              ? u.nombreCompleto!
+                              : u.username,
+                          style: GoogleFonts.outfit(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isAdmin
+                              ? primaryColor.withValues(alpha: 0.15)
+                              : const Color(0xFF10B981).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          u.rol.toUpperCase(),
+                          style: GoogleFonts.outfit(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: isAdmin
+                                ? primaryColor
+                                : const Color(0xFF10B981),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'Usuario: @${u.username} • Estado: ${u.estado ? "Activo" : "Pausado"}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
                     ),
-                    const SizedBox(width: 6),
+                  ),
+                  if (!isAdmin) ...[
+                    const SizedBox(height: 5),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                        horizontal: 7,
+                        vertical: 2.5,
                       ),
                       decoration: BoxDecoration(
-                        color: isAdmin
-                            ? primaryColor.withValues(alpha: 0.15)
-                            : const Color(0xFF10B981).withValues(alpha: 0.15),
+                        color: esPersonalizado
+                            ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                            : (isDark
+                                  ? const Color(0xFF262E44)
+                                  : const Color(0xFFE2E8F0)),
                         borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        u.rol.toUpperCase(),
-                        style: GoogleFonts.outfit(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w800,
-                          color: isAdmin
-                              ? primaryColor
-                              : const Color(0xFF10B981),
+                        border: Border.all(
+                          color: esPersonalizado
+                              ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                              : Colors.transparent,
+                          width: 0.8,
                         ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            esPersonalizado
+                                ? LucideIcons.sparkles
+                                : LucideIcons.shieldCheck,
+                            size: 11,
+                            color: esPersonalizado
+                                ? const Color(0xFF10B981)
+                                : (isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B)),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            esPersonalizado
+                                ? 'Permisos Personalizados'
+                                : 'Permisos de Tienda',
+                            style: GoogleFonts.outfit(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: esPersonalizado
+                                  ? const Color(0xFF10B981)
+                                  : (isDark
+                                        ? const Color(0xFFCBD5E1)
+                                        : const Color(0xFF475569)),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-                Text(
-                  'Usuario: @${u.username} • Estado: ${u.estado ? "Activo" : "Pausado"}',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!isAdmin)
+                  IconButton(
+                    key: Key('btnPermisos_${u.username}'),
+                    icon: Icon(
+                      esPersonalizado
+                          ? LucideIcons.sliders
+                          : LucideIcons.shieldCheck,
+                      size: 16,
+                      color: esPersonalizado
+                          ? const Color(0xFF10B981)
+                          : primaryColor,
+                    ),
+                    tooltip: 'Privilegios de este cajero',
+                    onPressed: () => _abrirModalPermisosIndividuales(u),
                   ),
+                IconButton(
+                  icon: const Icon(LucideIcons.keyRound, size: 16),
+                  tooltip: 'Cambiar PIN',
+                  onPressed: () => _abrirModalCambiarPin(u),
                 ),
+                IconButton(
+                  icon: Icon(
+                    u.estado ? LucideIcons.pauseCircle : LucideIcons.playCircle,
+                    size: 16,
+                    color: u.estado
+                        ? const Color(0xFFF59E0B)
+                        : const Color(0xFF10B981),
+                  ),
+                  tooltip: u.estado ? 'Pausar cuenta' : 'Reactivar cuenta',
+                  onPressed: () => _toggleEstadoUsuario(u),
+                ),
+                if (!isAdmin)
+                  IconButton(
+                    icon: const Icon(
+                      LucideIcons.trash2,
+                      size: 16,
+                      color: AppTheme.alertRed,
+                    ),
+                    tooltip: 'Eliminar colaborador',
+                    onPressed: () => _confirmarEliminarUsuario(u),
+                  ),
               ],
             ),
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(LucideIcons.keyRound, size: 16),
-                tooltip: 'Cambiar PIN',
-                onPressed: () => _abrirModalCambiarPin(u),
-              ),
-              IconButton(
-                icon: Icon(
-                  u.estado ? LucideIcons.pauseCircle : LucideIcons.playCircle,
-                  size: 16,
-                  color: u.estado
-                      ? const Color(0xFFF59E0B)
-                      : const Color(0xFF10B981),
-                ),
-                tooltip: u.estado ? 'Pausar cuenta' : 'Reactivar cuenta',
-                onPressed: () => _toggleEstadoUsuario(u),
-              ),
-              if (!isAdmin)
-                IconButton(
-                  icon: const Icon(
-                    LucideIcons.trash2,
-                    size: 16,
-                    color: AppTheme.alertRed,
-                  ),
-                  tooltip: 'Eliminar colaborador',
-                  onPressed: () => _confirmarEliminarUsuario(u),
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -3917,6 +4003,470 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _abrirModalPermisosIndividuales(UsuarioItem u) async {
+    final customPerm = await PermisosCajeroService.obtenerPermisosUsuario(
+      u.username,
+    );
+    final basePerm = PermisosCajeroService.currentPermisos;
+
+    bool personalizacionActiva = customPerm != null;
+    bool verCostos = customPerm?.verCostosYMargen ?? basePerm.verCostosYMargen;
+    bool aplicarDescuentos =
+        customPerm?.aplicarDescuentosManuales ??
+        basePerm.aplicarDescuentosManuales;
+    bool anularSinPin =
+        customPerm?.anularVentasSinPin ?? basePerm.anularVentasSinPin;
+    bool modificarPrecios =
+        customPerm?.modificarPreciosVenta ?? basePerm.modificarPreciosVenta;
+    bool verFinanzas =
+        customPerm?.verReportesFinanzas ?? basePerm.verReportesFinanzas;
+
+    String activePreset = '';
+    void detectarPreset() {
+      if (!verCostos &&
+          !aplicarDescuentos &&
+          !anularSinPin &&
+          !modificarPrecios &&
+          !verFinanzas) {
+        activePreset = 'estricto';
+      } else if (!verCostos &&
+          aplicarDescuentos &&
+          !anularSinPin &&
+          !modificarPrecios &&
+          !verFinanzas) {
+        activePreset = 'estandar';
+      } else if (verCostos &&
+          aplicarDescuentos &&
+          anularSinPin &&
+          !modificarPrecios &&
+          verFinanzas) {
+        activePreset = 'confianza';
+      } else {
+        activePreset = 'custom';
+      }
+    }
+
+    detectarPreset();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogCtx, setModalState) {
+          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
+          final primaryColor = Theme.of(dialogCtx).colorScheme.primary;
+
+          return AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            title: Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: personalizacionActiva
+                      ? const Color(0xFF10B981).withValues(alpha: 0.15)
+                      : primaryColor.withValues(alpha: 0.15),
+                  child: Icon(
+                    personalizacionActiva
+                        ? LucideIcons.sparkles
+                        : LucideIcons.shieldCheck,
+                    size: 18,
+                    color: personalizacionActiva
+                        ? const Color(0xFF10B981)
+                        : primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Permisos de @${u.username}',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: isDark ? Colors.white : AppTheme.textDark,
+                        ),
+                      ),
+                      Text(
+                        u.nombreCompleto?.isNotEmpty == true
+                            ? '${u.nombreCompleto!} • Cajero'
+                            : 'Cajero de Mostrador',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 500,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: personalizacionActiva
+                            ? const Color(0xFF10B981).withValues(alpha: 0.1)
+                            : (isDark
+                                  ? const Color(0xFF0F1420)
+                                  : const Color(0xFFF1F5F9)),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: personalizacionActiva
+                              ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                              : (isDark
+                                    ? const Color(0xFF262E44)
+                                    : const Color(0xFFE2E8F0)),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Personalizar privilegios para este cajero',
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  personalizacionActiva
+                                      ? 'Este cajero tiene reglas individuales independientes de la tienda.'
+                                      : 'Hereda automáticamente la Matriz General de la Tienda.',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            key: const Key('switchPersonalizarCajero'),
+                            value: personalizacionActiva,
+                            activeThumbColor: const Color(0xFF10B981),
+                            onChanged: (val) {
+                              setModalState(() {
+                                personalizacionActiva = val;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (personalizacionActiva) ...[
+                      const SizedBox(height: 14),
+                      Text(
+                        'PLANTILLAS RÁPIDAS',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _buildPresetChipModal(
+                            keyName: const Key('preset_estricto'),
+                            label: 'Estricto',
+                            icon: LucideIcons.lock,
+                            isSelected: activePreset == 'estricto',
+                            isDark: isDark,
+                            primaryColor: primaryColor,
+                            onTap: () {
+                              setModalState(() {
+                                verCostos = false;
+                                aplicarDescuentos = false;
+                                anularSinPin = false;
+                                modificarPrecios = false;
+                                verFinanzas = false;
+                                detectarPreset();
+                              });
+                            },
+                          ),
+                          _buildPresetChipModal(
+                            keyName: const Key('preset_regular'),
+                            label: 'Regular',
+                            icon: LucideIcons.sliders,
+                            isSelected: activePreset == 'estandar',
+                            isDark: isDark,
+                            primaryColor: primaryColor,
+                            onTap: () {
+                              setModalState(() {
+                                verCostos = false;
+                                aplicarDescuentos = true;
+                                anularSinPin = false;
+                                modificarPrecios = false;
+                                verFinanzas = false;
+                                detectarPreset();
+                              });
+                            },
+                          ),
+                          _buildPresetChipModal(
+                            keyName: const Key('preset_encargado'),
+                            label: 'Encargado',
+                            icon: LucideIcons.sparkles,
+                            isSelected: activePreset == 'confianza',
+                            isDark: isDark,
+                            primaryColor: primaryColor,
+                            onTap: () {
+                              setModalState(() {
+                                verCostos = true;
+                                aplicarDescuentos = true;
+                                anularSinPin = true;
+                                modificarPrecios = false;
+                                verFinanzas = true;
+                                detectarPreset();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 6),
+                      _buildPermissionToggle(
+                        key: const Key('permIndividualCostos'),
+                        title: 'Ver Precios de Costo y Margen',
+                        desc: 'Permite a este cajero ver precio de compra mayorista.',
+                        badge: 'SENSIBLE',
+                        badgeColor: AppTheme.alertRed,
+                        value: verCostos,
+                        onChanged: (val) => setModalState(() {
+                          verCostos = val;
+                          detectarPreset();
+                        }),
+                        isDark: isDark,
+                        primaryColor: primaryColor,
+                      ),
+                      _buildPermissionToggle(
+                        key: const Key('permIndividualDescuentos'),
+                        title: 'Aplicar Descuentos Manuales',
+                        desc: 'Rebajas directas en soles al momento de cobrar.',
+                        value: aplicarDescuentos,
+                        onChanged: (val) => setModalState(() {
+                          aplicarDescuentos = val;
+                          detectarPreset();
+                        }),
+                        isDark: isDark,
+                        primaryColor: primaryColor,
+                      ),
+                      _buildPermissionToggle(
+                        key: const Key('permIndividualAnular'),
+                        title: 'Anular Ventas sin PIN Maestro',
+                        desc: 'Cancela tickets sin requerir PIN del Administrador.',
+                        badge: 'ALERTA',
+                        badgeColor: AppTheme.alertRed,
+                        value: anularSinPin,
+                        onChanged: (val) => setModalState(() {
+                          anularSinPin = val;
+                          detectarPreset();
+                        }),
+                        isDark: isDark,
+                        primaryColor: primaryColor,
+                      ),
+                      _buildPermissionToggle(
+                        key: const Key('permIndividualPrecios'),
+                        title: 'Modificar Precios de Venta al Cobrar',
+                        desc: 'Permite alterar el precio unitario del catálogo directamente desde la lista de cobro.',
+                        value: modificarPrecios,
+                        onChanged: (val) => setModalState(() {
+                          modificarPrecios = val;
+                          detectarPreset();
+                        }),
+                        isDark: isDark,
+                        primaryColor: primaryColor,
+                      ),
+                      _buildPermissionToggle(
+                        key: const Key('permIndividualFinanzas'),
+                        title: 'Ver Reportes y Finanzas Globales',
+                        desc: 'Acceso a balances mensuales y facturación acumulada.',
+                        value: verFinanzas,
+                        onChanged: (val) => setModalState(() {
+                          verFinanzas = val;
+                          detectarPreset();
+                        }),
+                        isDark: isDark,
+                        primaryColor: primaryColor,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cerrar'),
+              ),
+              if (personalizacionActiva)
+                TextButton(
+                  key: const Key('btnRestablecerPermisosCajero'),
+                  onPressed: () async {
+                    await PermisosCajeroService.eliminarPermisosUsuario(
+                      u.username,
+                    );
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    if (mounted) {
+                      setState(() {
+                        _cajerosConPermisosPersonalizados[u.username] = false;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Se restablecieron los permisos de @${u.username} a los de la tienda.',
+                          ),
+                          backgroundColor: AppTheme.accentGreen,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Restablecer a Tienda'),
+                ),
+              ElevatedButton(
+                key: const Key('btnGuardarPermisosIndividuales'),
+                onPressed: () async {
+                  if (personalizacionActiva) {
+                    final p = PermisosCajero(
+                      verCostosYMargen: verCostos,
+                      aplicarDescuentosManuales: aplicarDescuentos,
+                      anularVentasSinPin: anularSinPin,
+                      modificarPreciosVenta: modificarPrecios,
+                      verReportesFinanzas: verFinanzas,
+                    );
+                    await PermisosCajeroService.guardarPermisosUsuario(
+                      u.username,
+                      p,
+                    );
+                    if (mounted) {
+                      setState(() {
+                        _cajerosConPermisosPersonalizados[u.username] = true;
+                      });
+                    }
+                  } else {
+                    await PermisosCajeroService.eliminarPermisosUsuario(
+                      u.username,
+                    );
+                    if (mounted) {
+                      setState(() {
+                        _cajerosConPermisosPersonalizados[u.username] = false;
+                      });
+                    }
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          personalizacionActiva
+                              ? '¡Permisos individuales de @${u.username} guardados correctamente!'
+                              : 'Permisos de @${u.username} asociados a la política general de la tienda.',
+                        ),
+                        backgroundColor: const Color(0xFF10B981),
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Guardar'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPresetChipModal({
+    Key? keyName,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDark,
+    required Color primaryColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      key: keyName,
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? primaryColor.withValues(alpha: 0.15)
+              : (isDark ? const Color(0xFF0F1420) : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected
+                ? primaryColor
+                : (isDark ? const Color(0xFF262E44) : const Color(0xFFCBD5E1)),
+            width: isSelected ? 1.4 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 13,
+              color: isSelected
+                  ? primaryColor
+                  : (isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B)),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: GoogleFonts.outfit(
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected
+                    ? primaryColor
+                    : (isDark ? Colors.white : AppTheme.textDark),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

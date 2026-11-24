@@ -96,6 +96,7 @@ class PermisosCajero {
 
 class PermisosCajeroService {
   static const String _prefPrefix = 'cajaya_permisos_cajero_bodega_';
+  static const String _userPrefPrefix = 'cajaya_permisos_cajero_usuario_';
 
   static PermisosCajero _cachedPermisos = const PermisosCajero();
   static bool _inicializado = false;
@@ -134,12 +135,7 @@ class PermisosCajeroService {
     return _cachedPermisos.verReportesFinanzas;
   }
 
-  /// Carga los permisos desde almacenamiento seguro o SharedPreferences para la bodega actual
-  static Future<PermisosCajero> obtenerPermisos({String? bodegaId}) async {
-    if (_inicializado && bodegaId == null) {
-      return _cachedPermisos;
-    }
-
+  static Future<String> _resolveBodegaId(String? bodegaId) async {
     String id = bodegaId ?? '';
     if (id.isEmpty) {
       try {
@@ -154,8 +150,51 @@ class PermisosCajeroService {
         id = '1';
       }
     }
+    return id.isNotEmpty ? id : '1';
+  }
 
-    final key = '$_prefPrefix$id';
+  static String _userKey(String bodegaId, String username) {
+    return '$_userPrefPrefix${bodegaId}_${username.trim().toLowerCase()}';
+  }
+
+  static String _bodegaKey(String bodegaId) {
+    return '$_prefPrefix$bodegaId';
+  }
+
+  /// Carga los permisos activos. Si el usuario actual o especificado tiene override individual, se aplica;
+  /// caso contrario se hereda la plantilla general de la bodega.
+  static Future<PermisosCajero> obtenerPermisos({
+    String? bodegaId,
+    String? username,
+    bool forceRefresh = false,
+  }) async {
+    if (_inicializado &&
+        bodegaId == null &&
+        username == null &&
+        !forceRefresh) {
+      return _cachedPermisos;
+    }
+
+    final id = await _resolveBodegaId(bodegaId);
+    String uname = username ?? '';
+    if (uname.isEmpty) {
+      try {
+        uname = await AuthService().getUsername();
+      } catch (_) {}
+    }
+
+    // 1. Si hay usuario especificado o en sesión, verificar si tiene override individual
+    if (uname.isNotEmpty) {
+      final userPermisos = await obtenerPermisosUsuario(uname, bodegaId: id);
+      if (userPermisos != null) {
+        _cachedPermisos = userPermisos;
+        _inicializado = true;
+        return _cachedPermisos;
+      }
+    }
+
+    // 2. Si no tiene override, cargar la política general de la bodega
+    final key = _bodegaKey(id);
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -183,27 +222,13 @@ class PermisosCajeroService {
     return _cachedPermisos;
   }
 
-  /// Guarda los permisos para la bodega actual
+  /// Guarda los permisos generales de la bodega (plantilla base para cajeros)
   static Future<void> guardarPermisos(
     PermisosCajero permisos, {
     String? bodegaId,
   }) async {
-    String id = bodegaId ?? '';
-    if (id.isEmpty) {
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        id = prefs.getString('id_bodega') ?? '';
-      } catch (_) {}
-    }
-    if (id.isEmpty) {
-      try {
-        id = await AuthService().getIdBodega();
-      } catch (_) {
-        id = '1';
-      }
-    }
-
-    final key = '$_prefPrefix$id';
+    final id = await _resolveBodegaId(bodegaId);
+    final key = _bodegaKey(id);
     final raw = jsonEncode(permisos.toJson());
 
     try {
@@ -215,8 +240,120 @@ class PermisosCajeroService {
       await SecureStorageService.write(key, raw);
     } catch (_) {}
 
-    _cachedPermisos = permisos;
+    // Si el usuario actual no tiene override individual, actualizar en memoria
+    String currentUname = '';
+    try {
+      currentUname = await AuthService().getUsername();
+    } catch (_) {}
+
+    if (currentUname.isEmpty ||
+        !(await tienePermisosPersonalizados(currentUname, bodegaId: id))) {
+      _cachedPermisos = permisos;
+    }
     _inicializado = true;
+    permisosRevision.value++;
+  }
+
+  /// Consulta si un cajero específico tiene permisos individuales personalizados (override)
+  static Future<bool> tienePermisosPersonalizados(
+    String username, {
+    String? bodegaId,
+  }) async {
+    if (username.trim().isEmpty) return false;
+    final permisos = await obtenerPermisosUsuario(username, bodegaId: bodegaId);
+    return permisos != null;
+  }
+
+  /// Obtiene los permisos individuales de un usuario específico. Retorna null si no tiene override y usa los de la tienda.
+  static Future<PermisosCajero?> obtenerPermisosUsuario(
+    String username, {
+    String? bodegaId,
+  }) async {
+    if (username.trim().isEmpty) return null;
+    final id = await _resolveBodegaId(bodegaId);
+    final key = _userKey(id, username);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(key);
+      if (raw != null && raw.trim().isNotEmpty) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        return PermisosCajero.fromJson(decoded);
+      }
+    } catch (_) {}
+
+    try {
+      final raw = await SecureStorageService.read(key);
+      if (raw != null && raw.trim().isNotEmpty) {
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        return PermisosCajero.fromJson(decoded);
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  /// Guarda o actualiza los permisos individuales de un cajero específico
+  static Future<void> guardarPermisosUsuario(
+    String username,
+    PermisosCajero permisos, {
+    String? bodegaId,
+  }) async {
+    if (username.trim().isEmpty) return;
+    final id = await _resolveBodegaId(bodegaId);
+    final key = _userKey(id, username);
+    final raw = jsonEncode(permisos.toJson());
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, raw);
+    } catch (_) {}
+
+    try {
+      await SecureStorageService.write(key, raw);
+    } catch (_) {}
+
+    // Si el usuario modificado es el usuario actualmente en sesión, actualizar en memoria
+    String currentUname = '';
+    try {
+      currentUname = await AuthService().getUsername();
+    } catch (_) {}
+
+    if (currentUname.isNotEmpty &&
+        currentUname.trim().toLowerCase() == username.trim().toLowerCase()) {
+      _cachedPermisos = permisos;
+    }
+    permisosRevision.value++;
+  }
+
+  /// Elimina los permisos individuales de un cajero para que vuelva a heredar los de la tienda
+  static Future<void> eliminarPermisosUsuario(
+    String username, {
+    String? bodegaId,
+  }) async {
+    if (username.trim().isEmpty) return;
+    final id = await _resolveBodegaId(bodegaId);
+    final key = _userKey(id, username);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(key);
+    } catch (_) {}
+
+    try {
+      await SecureStorageService.delete(key);
+    } catch (_) {}
+
+    // Si el usuario afectado es el usuario en sesión, recargar los permisos generales
+    String currentUname = '';
+    try {
+      currentUname = await AuthService().getUsername();
+    } catch (_) {}
+
+    if (currentUname.isNotEmpty &&
+        currentUname.trim().toLowerCase() == username.trim().toLowerCase()) {
+      await obtenerPermisos(bodegaId: id, forceRefresh: true);
+    }
     permisosRevision.value++;
   }
 
