@@ -33,6 +33,7 @@ class BodegaInfo {
   final bool limiteAlcanzado;
   final bool catalogoAbierto;
   final bool deliveryActivo;
+  final String? slug;
 
   BodegaInfo({
     required this.idBodega,
@@ -60,6 +61,7 @@ class BodegaInfo {
     this.limiteAlcanzado = false,
     this.catalogoAbierto = true,
     this.deliveryActivo = true,
+    this.slug,
   }) : esNuevoRus = esNuevoRus ?? (regimenTributario == 'NUEVO_RUS');
 
   BodegaInfo copyWith({
@@ -88,6 +90,7 @@ class BodegaInfo {
     bool? limiteAlcanzado,
     bool? catalogoAbierto,
     bool? deliveryActivo,
+    String? slug,
   }) {
     return BodegaInfo(
       idBodega: idBodega ?? this.idBodega,
@@ -117,6 +120,7 @@ class BodegaInfo {
       limiteAlcanzado: limiteAlcanzado ?? this.limiteAlcanzado,
       catalogoAbierto: catalogoAbierto ?? this.catalogoAbierto,
       deliveryActivo: deliveryActivo ?? this.deliveryActivo,
+      slug: slug ?? this.slug,
     );
   }
 
@@ -152,6 +156,7 @@ class BodegaInfo {
       limiteAlcanzado: json['limiteAlcanzado'] == true,
       catalogoAbierto: json['catalogoAbierto'] != false,
       deliveryActivo: json['deliveryActivo'] != false,
+      slug: json['slug'] as String?,
     );
   }
 }
@@ -287,6 +292,7 @@ class BodegaService {
     String? logoUrl,
     bool? catalogoAbierto,
     bool? deliveryActivo,
+    String? slug,
   }) async {
     final body = <String, dynamic>{
       'nombreComercial': nombreComercial,
@@ -302,6 +308,9 @@ class BodegaService {
     }
     if (deliveryActivo != null) {
       body['deliveryActivo'] = deliveryActivo;
+    }
+    if (slug != null && slug.trim().isNotEmpty) {
+      body['slug'] = slug.trim();
     }
 
     try {
@@ -325,6 +334,7 @@ class BodegaService {
           logoUrl: logoUrl,
           catalogoAbierto: catalogoAbierto,
           deliveryActivo: deliveryActivo,
+          slug: slug,
         );
         _actualizarCacheLocal(updated);
         return updated;

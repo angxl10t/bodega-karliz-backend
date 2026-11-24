@@ -207,7 +207,12 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
             _deliveryActivo = info.deliveryActivo;
             _planActual = info.plan;
 
-            if (savedSlug != null && savedSlug.trim().isNotEmpty) {
+            final String? serverSlug = info.slug;
+            if (serverSlug != null && serverSlug.trim().isNotEmpty) {
+              _slugCtrl.text = KitMarketingBarrioModal.normalizarSlug(
+                serverSlug,
+              );
+            } else if (savedSlug != null && savedSlug.trim().isNotEmpty) {
               _slugCtrl.text = KitMarketingBarrioModal.normalizarSlug(
                 savedSlug,
               );
@@ -394,7 +399,15 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     HapticFeedback.mediumImpact();
 
     try {
-      // 1. Guardar datos de bodega y color
+      // 0. Normalizar identificador público web (Slug)
+      final cleanSlug = KitMarketingBarrioModal.normalizarSlug(
+        _slugCtrl.text.trim().isNotEmpty
+            ? _slugCtrl.text.trim()
+            : (_bodegaInfo?.nombreComercial ?? 'mi-tienda'),
+      );
+      _slugCtrl.text = cleanSlug;
+
+      // 1. Guardar datos de bodega, color y slug en base de datos
       if (_bodegaInfo != null) {
         await _bodegaService.actualizarConfiguracion(
           nombreComercial: _nombreCtrl.text.trim().isNotEmpty
@@ -407,6 +420,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           colorPrimario: _selectedHex,
           catalogoAbierto: _catalogoAbierto,
           deliveryActivo: _deliveryActivo,
+          slug: cleanSlug,
         );
       }
 
@@ -443,12 +457,6 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
       await ConfiguracionTicketService.guardar(ticketCfg);
 
       // 5. Guardar configuración de canales y tienda web (persistente)
-      final cleanSlug = KitMarketingBarrioModal.normalizarSlug(
-        _slugCtrl.text.trim().isNotEmpty
-            ? _slugCtrl.text.trim()
-            : (_bodegaInfo?.nombreComercial ?? 'mi-tienda'),
-      );
-      _slugCtrl.text = cleanSlug;
       await SecureStorageService.write('tienda_slug', cleanSlug);
       await SecureStorageService.write(
         'whatsapp_delivery',

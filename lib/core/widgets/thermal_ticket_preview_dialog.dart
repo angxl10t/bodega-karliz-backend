@@ -312,20 +312,24 @@ class _ThermalTicketPreviewDialogState
         );
 
     final receiptText = _generarTextoTicket();
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final double dialogHeight = (screenHeight * 0.82).clamp(520.0, 720.0);
 
     return Dialog(
       backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Container(
+        width: is80mm ? 440.0 : 360.0,
+        height: dialogHeight,
         constraints: BoxConstraints(
           minWidth: is80mm ? 400.0 : 320.0,
           maxWidth: is80mm ? 480.0 : 400.0,
-          maxHeight: 740,
+          minHeight: 500.0,
+          maxHeight: 740.0,
         ),
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Cabecera del Diálogo
@@ -434,7 +438,7 @@ class _ThermalTicketPreviewDialogState
             const SizedBox(height: 10),
 
             // Contenedor Scrollable del Chasis Físico y Ticket
-            Flexible(
+            Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Center(
@@ -576,10 +580,12 @@ class _ThermalTicketPreviewDialogState
                             child: FittedBox(
                               fit: BoxFit.fitWidth,
                               alignment: Alignment.centerLeft,
-                              child: SelectableText(
-                                receiptText,
-                                textAlign: TextAlign.left,
-                                style: textStyle,
+                              child: SelectionArea(
+                                child: Text(
+                                  receiptText,
+                                  textAlign: TextAlign.left,
+                                  style: textStyle,
+                                ),
                               ),
                             ),
                           ),
