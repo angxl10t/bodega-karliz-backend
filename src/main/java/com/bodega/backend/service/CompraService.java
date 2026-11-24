@@ -162,6 +162,10 @@ public class CompraService {
                 nuevoCostoPromedio = precioUnitario;
             }
             producto.setPrecioCosto(nuevoCostoPromedio);
+            // Auto-asociar proveedor habitual si el producto aún no lo tenía asignado
+            if (producto.getProveedor() == null) {
+                producto.setProveedor(proveedor);
+            }
             productosAActualizar.add(producto);
 
             // 4. Registrar en el Kardex (Movimiento Inventario) con protección de longitud VARCHAR(255)

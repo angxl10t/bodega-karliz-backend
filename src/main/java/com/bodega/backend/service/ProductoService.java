@@ -6,11 +6,13 @@ import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.MovimientoInventario;
 import com.bodega.backend.entity.Presentacion;
 import com.bodega.backend.entity.Producto;
+import com.bodega.backend.entity.Proveedor;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.MovimientoInventarioRepository;
 import com.bodega.backend.repository.PresentacionRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.repository.ProveedorRepository;
 import com.bodega.backend.util.MarcaDetectorUtil;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ public class ProductoService {
     private final TenantService tenantService;
     private final AnalyticsService analyticsService;
     private final BodegaRepository bodegaRepository;
+    private final ProveedorRepository proveedorRepository;
 
     public ProductoService(ProductoRepository productoRepository, 
                            CategoriaRepository categoriaRepository,
@@ -42,7 +45,7 @@ public class ProductoService {
                            PresentacionRepository presentacionRepository,
                            TenantService tenantService) {
         this(productoRepository, categoriaRepository, movimientoInventarioRepository,
-             presentacionRepository, tenantService, null, null);
+             presentacionRepository, tenantService, null, null, null);
     }
 
     public ProductoService(ProductoRepository productoRepository, 
@@ -52,7 +55,7 @@ public class ProductoService {
                            TenantService tenantService,
                            BodegaRepository bodegaRepository) {
         this(productoRepository, categoriaRepository, movimientoInventarioRepository,
-             presentacionRepository, tenantService, null, bodegaRepository);
+             presentacionRepository, tenantService, null, bodegaRepository, null);
     }
 
     @Autowired
@@ -62,7 +65,8 @@ public class ProductoService {
                            PresentacionRepository presentacionRepository,
                            TenantService tenantService,
                            @Autowired(required = false) AnalyticsService analyticsService,
-                           @Autowired(required = false) BodegaRepository bodegaRepository) {
+                           @Autowired(required = false) BodegaRepository bodegaRepository,
+                           @Autowired(required = false) ProveedorRepository proveedorRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
@@ -70,6 +74,7 @@ public class ProductoService {
         this.tenantService = tenantService;
         this.analyticsService = analyticsService;
         this.bodegaRepository = bodegaRepository;
+        this.proveedorRepository = proveedorRepository;
     }
 
     @Transactional
@@ -265,6 +270,10 @@ public class ProductoService {
         Producto producto = new Producto();
         producto.setBodega(bodega != null ? bodega : tenantService.getCurrentBodega());
         producto.setCategoria(categoria);
+        if (dto.getIdProveedor() != null && dto.getIdProveedor() > 0 && proveedorRepository != null) {
+            proveedorRepository.findByIdProveedorAndBodega_IdBodega(dto.getIdProveedor(), idBodega)
+                    .ifPresent(producto::setProveedor);
+        }
         producto.setCodigo(dto.getCodigo().trim());
         producto.setCodigoBarras(dto.getCodigoBarras() != null && !dto.getCodigoBarras().isBlank() ? dto.getCodigoBarras().trim() : null);
         producto.setNombre(nombreLimpio);
@@ -476,10 +485,18 @@ public class ProductoService {
                 registrarAuditoriaKardex(producto, "CAMBIO_IMAGEN", BigDecimal.ZERO, "Actualización de foto del producto en catálogo");
             } else if (imagenUrlAnterior == null && nuevaImagen != null) {
                 registrarAuditoriaKardex(producto, "CAMBIO_IMAGEN", BigDecimal.ZERO, "Asignación de imagen al producto en catálogo");
-            } else if (imagenUrlAnterior != null && nuevaImagen == null) {
-                registrarAuditoriaKardex(producto, "CAMBIO_IMAGEN", BigDecimal.ZERO, "Eliminación de imagen del producto en catálogo");
             }
             producto.setImagenUrl(nuevaImagen);
+        }
+
+        if (dto.getIdProveedor() != null) {
+            if (dto.getIdProveedor() <= 0) {
+                producto.setProveedor(null);
+            } else if (proveedorRepository != null) {
+                Proveedor prov = proveedorRepository.findByIdProveedorAndBodega_IdBodega(dto.getIdProveedor(), idBodega)
+                        .orElse(null);
+                producto.setProveedor(prov);
+            }
         }
 
         Producto actualizado = productoRepository.save(producto);
@@ -591,6 +608,10 @@ public class ProductoService {
         dto.setPrecioCosto(producto.getPrecioCosto() != null ? producto.getPrecioCosto() : (producto.getPrecioVenta() != null ? producto.getPrecioVenta().multiply(new BigDecimal("0.75")).setScale(2, java.math.RoundingMode.HALF_UP) : null));
         dto.setImagenUrl(producto.getImagenUrl());
         dto.setEstado(producto.getEstado());
+        if (producto.getProveedor() != null) {
+            dto.setIdProveedor(producto.getProveedor().getIdProveedor());
+            dto.setRazonSocialProveedor(producto.getProveedor().getRazonSocial());
+        }
         return dto;
     }
 
