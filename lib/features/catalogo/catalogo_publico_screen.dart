@@ -2064,51 +2064,6 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                               ],
                                             ),
                                           ),
-                                          if (isShortHeight) ...[
-                                            Container(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: isTablet ? 8 : 7,
-                                                vertical: isTablet ? 4 : 3,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withValues(
-                                                  alpha: 0.18,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                                border: Border.all(
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.35),
-                                                  width: 0.9,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    _esGastronomico
-                                                        ? LucideIcons.utensils
-                                                        : LucideIcons.package,
-                                                    size: 11,
-                                                    color: Colors.white,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    ' ',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: isTablet
-                                                              ? 10.5
-                                                              : 9.5,
-                                                          fontWeight:
-                                                              FontWeight.w800,
-                                                          color: Colors.white,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
                                         ],
                                       ),
                                       if (lema.isNotEmpty &&
@@ -2206,15 +2161,20 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                     color: Colors.white,
                                                   ),
                                                   const SizedBox(width: 5),
-                                                  Text(
-                                                    '${_productos.length} ${_esGastronomico ? (_productos.length == 1 ? "plato disponible" : "platos disponibles") : (_productos.length == 1 ? "producto disponible" : "productos disponibles")}',
-                                                    style:
-                                                        GoogleFonts.plusJakartaSans(
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight.w800,
-                                                          color: Colors.white,
-                                                        ),
+                                                  Flexible(
+                                                    child: Text(
+                                                      '${_productos.length} ${_esGastronomico ? (_productos.length == 1 ? "plato disponible" : "platos disponibles") : (_productos.length == 1 ? "producto disponible" : "productos disponibles")}',
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: Colors.white,
+                                                          ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ],
                                               ),
