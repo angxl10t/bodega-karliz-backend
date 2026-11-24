@@ -186,11 +186,32 @@ class _ComprasScreenState extends State<ComprasScreen>
       }
     }
 
-    // 3. Coincidencia por marca comercial o razón social
+    // 3. Coincidencia por catálogo oficial y marcas distribuidas
+    final rucClean = prov.ruc.trim();
     final razonClean = prov.razonSocial.toLowerCase().trim();
+    final marcasDistribuidas = _obtenerMarcasDistribuidas(rucClean, razonClean);
+
     for (final p in _safeProductos) {
       if (p.idProducto != null && !idsDelProveedor.contains(p.idProducto)) {
         final marca = (p.marca ?? '').toLowerCase().trim();
+        final nombre = p.nombre.toLowerCase().trim();
+
+        // A. Coincidencia con catálogo de marcas de la distribuidora oficial
+        if (marca.isNotEmpty &&
+            marcasDistribuidas.any(
+              (m) => marca == m || marca.contains(m) || m.contains(marca),
+            )) {
+          idsDelProveedor.add(p.idProducto!);
+          continue;
+        }
+
+        // B. Coincidencia por palabras clave en nombre del producto
+        if (marcasDistribuidas.any((m) => nombre.contains(m))) {
+          idsDelProveedor.add(p.idProducto!);
+          continue;
+        }
+
+        // C. Coincidencia directa por razón social / nombre
         if (marca.isNotEmpty &&
             (razonClean.contains(marca) || marca.contains(razonClean))) {
           idsDelProveedor.add(p.idProducto!);
@@ -201,6 +222,288 @@ class _ComprasScreenState extends State<ComprasScreen>
     return _safeProductos
         .where((p) => idsDelProveedor.contains(p.idProducto))
         .toList();
+  }
+
+  List<String> _obtenerMarcasDistribuidas(String ruc, String razon) {
+    final r = ruc.trim();
+    final nom = razon.toLowerCase().trim();
+
+    if (r == '20100107510' ||
+        nom.contains('arca continental') ||
+        nom.contains('coca') ||
+        nom.contains('lindley')) {
+      return const [
+        'inca kola',
+        'inka kola',
+        'coca-cola',
+        'coca cola',
+        'fanta',
+        'sprite',
+        'san luis',
+        'frugos',
+        'monster energy',
+        'powerade',
+        'canada dry',
+        'schweppes',
+      ];
+    }
+    if (r == '20100113610' ||
+        nom.contains('backus') ||
+        nom.contains('johnston')) {
+      return const [
+        'backus',
+        'cristal',
+        'pilsen',
+        'cusqueña',
+        'corona',
+        'budweiser',
+        'stella artois',
+        'san mateo',
+        'guaraná',
+        'guarana',
+        'mike',
+        'barbarian',
+        'maltin',
+      ];
+    }
+    if (r == '20100055237' || nom.contains('alicorp')) {
+      return const [
+        'alicorp',
+        'primor',
+        'cocinero',
+        'cil',
+        'don vittorio',
+        'nicolini',
+        'lavaggi',
+        'blanca flor',
+        'bolívar',
+        'bolivar',
+        'opal',
+        'marsella',
+        'patito',
+        'alacena',
+        'sayón',
+        'sayon',
+        'casino',
+        'margarita',
+        'victoria',
+        'umsha',
+        'sapolio',
+        'dento',
+        'ángel',
+        'angel',
+        '3 ositos',
+        'manty',
+      ];
+    }
+    if (r == '20100190797' || nom.contains('gloria')) {
+      return const [
+        'gloria',
+        'bonlé',
+        'bonle',
+        'pura vida',
+        'tampico',
+        'chicolac',
+        'yomost',
+        'bella holandesa',
+      ];
+    }
+    if (r == '20100177072' || nom.contains('nestl')) {
+      return const [
+        'nestlé',
+        'nestle',
+        'd\'onofrio',
+        'donofrio',
+        'sublime',
+        'triángulo',
+        'triangulo',
+        'princesa',
+        'morochas',
+        'nescafé',
+        'nescafe',
+        'kirma',
+        'milo',
+        'maggi',
+        'sin parar',
+        'peziduri',
+        'frío rico',
+        'frio rico',
+        'ideal',
+      ];
+    }
+    if (r == '20100122978' ||
+        nom.contains('mondelez') ||
+        nom.contains('kraft')) {
+      return const [
+        'mondelez',
+        'kraft',
+        'oreo',
+        'club social',
+        'ritz',
+        'chips ahoy',
+        'field',
+        'coronita',
+        'doña pepa',
+        'dona pepa',
+        'cua cua',
+        'soda field',
+        'vainilla field',
+        'charada',
+        'halls',
+        'trident',
+        'royal',
+        'tang',
+        'clight',
+      ];
+    }
+    if (r == '20297868790' ||
+        nom.contains('pepsico') ||
+        nom.contains('frito') ||
+        nom.contains('cbc')) {
+      return const [
+        'pepsico',
+        'pepsi',
+        '7up',
+        'concordia',
+        'frito-lay',
+        'lay\'s',
+        'lays',
+        'doritos',
+        'cheetos',
+        'cuates',
+        'chizitos',
+        'tortees',
+        'piqueo snack',
+        'karinto',
+        'quaker',
+        'gatorade',
+        'pringles',
+      ];
+    }
+    if (r == '20331061901' ||
+        nom.contains('ajeper') ||
+        nom.contains('grupo aje')) {
+      return const [
+        'ajeper',
+        'big cola',
+        'kola real',
+        'kr',
+        'cielo',
+        'sporade',
+        'cifrut',
+        'pulp',
+        'volt',
+        'free tea',
+      ];
+    }
+    if (r == '20100154308' || nom.contains('san fernando')) {
+      return const ['san fernando', 'la calera'];
+    }
+    if (r == '20100030595' || nom.contains('braedt') || nom.contains('kunz')) {
+      return const ['braedt', 'otto kunz'];
+    }
+    if (r == '20100095451' || nom.contains('laive')) {
+      return const ['laive', 'sbelt'];
+    }
+    if (r == '20383070465' || nom.contains('bimbo')) {
+      return const ['bimbo', 'marinela', 'tía rosa'];
+    }
+    if (r == '20100035121' || nom.contains('molitalia')) {
+      return const [
+        'molitalia',
+        'costa',
+        'ambrosoli',
+        'fanny',
+        'marco polo',
+        'winter',
+      ];
+    }
+    if (r == '20100127163' || nom.contains('procter') || nom.contains('p&g')) {
+      return const [
+        'p&g',
+        'ariel',
+        'ace',
+        'ayudín',
+        'ayudin',
+        'downy',
+        'pampers',
+        'pantene',
+        'head & shoulders',
+        'gillette',
+        'oral-b',
+        'always',
+      ];
+    }
+    if (r == '20100097151' || nom.contains('colgate')) {
+      return const [
+        'colgate',
+        'palmolive',
+        'protex',
+        'kolynos',
+        'suavitel',
+        'ajax',
+      ];
+    }
+    if (r == '20227929424' || nom.contains('kimberly')) {
+      return const [
+        'kimberly-clark',
+        'suave',
+        'scott',
+        'huggies',
+        'kotex',
+        'kleenex',
+      ];
+    }
+    if (r == '20265219981' || nom.contains('softys')) {
+      return const ['softys', 'elite', 'noble', 'premier', 'babysec'];
+    }
+    if (r == '20100119227' || nom.contains('clorox')) {
+      return const ['clorox', 'poett', 'pinesol'];
+    }
+    if (r == '20100141664' || nom.contains('rinti')) {
+      return const [
+        'rinti',
+        'ricocan',
+        'ricocat',
+        'supercan',
+        'mimaskot',
+        'dog chow',
+        'felix',
+        'whiskas',
+        'pedigree',
+      ];
+    }
+    if (r == '20100070970' ||
+        nom.contains('costeño') ||
+        nom.contains('costeno')) {
+      return const ['costeño', 'costeno', 'faraón', 'faraon', 'valle norte'];
+    }
+    if (r == '20100155207' || nom.contains('sibarita')) {
+      return const ['sibarita'];
+    }
+    if (r == '20100085063' || nom.contains('ajinomoto')) {
+      return const ['ajinomoto', 'doña gusta', 'dona gusta'];
+    }
+    if (r == '20100008824' || nom.contains('bat') || nom.contains('tobacco')) {
+      return const ['lucky strike', 'pall mall', 'hamilton'];
+    }
+    if (r == '20456428606' ||
+        nom.contains('philip morris') ||
+        nom.contains('marlboro')) {
+      return const ['marlboro', 'malboro'];
+    }
+    if (r == '20100010993' || nom.contains('tabernero')) {
+      return const [
+        'tabernero',
+        'santiago queirolo',
+        'cartavio',
+        'portón',
+        'porton',
+        'johnnie walker',
+        'smirnoff',
+      ];
+    }
+    return const [];
   }
 
   Widget _buildFiltroChip({

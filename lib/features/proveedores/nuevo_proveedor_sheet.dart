@@ -49,21 +49,116 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
     super.dispose();
   }
 
+  static const List<Map<String, String>> _proveedoresOficialesPeru = [
+    {
+      'ruc': '20100107510',
+      'nombre': 'Arca Continental Lindley S.A. (Coca-Cola / Inca Kola)',
+      'alias': 'Coca-Cola / Inca Kola',
+      'direccion': 'Av. Javier Prado Este 4200, Surco, Lima',
+      'telefono': '01-311-5000',
+    },
+    {
+      'ruc': '20100113610',
+      'nombre': 'Unión de Cervecerías Peruanas Backus y Johnston S.A.A.',
+      'alias': 'Backus (Pilsen / Cristal)',
+      'direccion': 'Av. Nicolás Ayllón 3986, Ate, Lima',
+      'telefono': '01-311-3000',
+    },
+    {
+      'ruc': '20100055237',
+      'nombre': 'Alicorp S.A.A. (Primor / AlaCena / Bolívar)',
+      'alias': 'Alicorp',
+      'direccion': 'Av. Argentina 4793, Carmen de la Legua, Callao',
+      'telefono': '01-315-0800',
+    },
+    {
+      'ruc': '20100190797',
+      'nombre': 'Leche Gloria S.A.',
+      'alias': 'Gloria',
+      'direccion': 'Av. República de Panamá 2461, La Victoria, Lima',
+      'telefono': '01-470-7170',
+    },
+    {
+      'ruc': '20100177072',
+      'nombre': 'Nestlé Perú S.A. (D\'Onofrio / Sublime / Maggi)',
+      'alias': 'Nestlé / D\'Onofrio',
+      'direccion': 'Calle Luis Galvani 493, Industrial Vulcano, Ate',
+      'telefono': '0800-10-210',
+    },
+    {
+      'ruc': '20297868790',
+      'nombre': 'Pepsico Alimentos Perú S.R.L. / CBC (Lay\'s / Pepsi)',
+      'alias': 'Pepsico / Lay\'s',
+      'direccion': 'Av. Francisco Bolognesi 505, Santa Anita, Lima',
+      'telefono': '01-618-2000',
+    },
+    {
+      'ruc': '20100122978',
+      'nombre': 'Mondelez Perú S.A. (Oreo / Field / Trident)',
+      'alias': 'Mondelez / Field',
+      'direccion': 'Av. Venezuela 2470, Bellavista, Callao',
+      'telefono': '01-219-4000',
+    },
+    {
+      'ruc': '20100154308',
+      'nombre': 'San Fernando S.A. (Embutidos, Huevos y Aves)',
+      'alias': 'San Fernando',
+      'direccion': 'Av. República de Panamá 4295, Surquillo, Lima',
+      'telefono': '01-213-5300',
+    },
+    {
+      'ruc': '20331061901',
+      'nombre': 'Ajeper S.A. (Grupo AJE - Big Cola / KR / Sporade)',
+      'alias': 'AJE (Sporade / KR)',
+      'direccion': 'Av. Los Conquistadores 1144, San Isidro, Lima',
+      'telefono': '01-211-5300',
+    },
+    {
+      'ruc': '20383070465',
+      'nombre': 'Bimbo del Perú S.A.',
+      'alias': 'Bimbo',
+      'direccion': 'Av. Venezuela 2470, Cercado de Lima',
+      'telefono': '01-315-7700',
+    },
+    {
+      'ruc': '20100035121',
+      'nombre': 'Molitalia S.A. (Costa / Ambrosoli / Fanny)',
+      'alias': 'Molitalia',
+      'direccion': 'Av. Venezuela 2850, Cercado de Lima',
+      'telefono': '01-513-5000',
+    },
+    {
+      'ruc': '20100127163',
+      'nombre': 'Procter & Gamble del Perú S.R.L. (P&G / Ayudín / Ariel)',
+      'alias': 'P&G (Ayudín / Ariel)',
+      'direccion': 'Av. República de Colombia 791, San Isidro, Lima',
+      'telefono': '0800-55-791',
+    },
+    {
+      'ruc': '20100141664',
+      'nombre': 'Rinti S.A. (Ricocan & Ricocat)',
+      'alias': 'Rinti (Ricocan)',
+      'direccion': 'Av. Minerales 540, Cercado de Lima',
+      'telefono': '01-619-0200',
+    },
+  ];
+
+  void _seleccionarProveedorOficial(Map<String, String> prov) {
+    setState(() {
+      _rucCtrl.text = prov['ruc'] ?? '';
+      _razonSocialCtrl.text = prov['nombre'] ?? '';
+      _direccionCtrl.text = prov['direccion'] ?? '';
+      _telefonoCtrl.text = prov['telefono'] ?? '';
+    });
+  }
+
   void _generarRucDemo() {
     final random = Random();
-    final rucDemo = '20${100000000 + random.nextInt(899999999)}';
-    setState(() {
-      _rucCtrl.text = rucDemo;
-      if (_razonSocialCtrl.text.isEmpty) {
-        _razonSocialCtrl.text = 'Distribuidora Central S.A.C.';
-      }
-      if (_telefonoCtrl.text.isEmpty) {
-        _telefonoCtrl.text = '987${100000 + random.nextInt(899999)}';
-      }
-      if (_direccionCtrl.text.isEmpty) {
-        _direccionCtrl.text = 'Av. Industrial 450, Lima';
-      }
-    });
+    final p =
+        _proveedoresOficialesPeru[random.nextInt(
+          _proveedoresOficialesPeru.length,
+        )];
+    _seleccionarProveedorOficial(p);
   }
 
   Future<void> _guardarProveedor() async {
@@ -348,6 +443,56 @@ class _NuevoProveedorSheetState extends State<NuevoProveedorSheet> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Distribuidores oficiales frecuentes:',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _proveedoresOficialesPeru.map((p) {
+                        final isSelected = _rucCtrl.text.trim() == p['ruc'];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ActionChip(
+                            label: Text(p['alias'] ?? p['ruc']!),
+                            labelStyle: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark
+                                        ? Colors.white70
+                                        : const Color(0xFF334155)),
+                            ),
+                            backgroundColor: isSelected
+                                ? AppTheme.brandPrimary
+                                : (isDark
+                                      ? AppTheme.cardDarkSunken
+                                      : const Color(0xFFF1F5F9)),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? AppTheme.brandPrimary
+                                  : (isDark
+                                        ? AppTheme.borderDark
+                                        : const Color(0xFFE2E8F0)),
+                            ),
+                            onPressed: () => _seleccionarProveedorOficial(p),
+                          ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                   const SizedBox(height: 16),
 

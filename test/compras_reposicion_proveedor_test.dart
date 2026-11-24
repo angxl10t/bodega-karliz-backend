@@ -7,6 +7,7 @@ import 'package:bodega_mobile/features/auth/auth_service.dart';
 import 'package:bodega_mobile/features/compras/compras_screen.dart';
 import 'package:bodega_mobile/features/productos/producto_model.dart';
 import 'package:bodega_mobile/features/productos/producto_service.dart';
+import 'package:bodega_mobile/features/proveedores/nuevo_proveedor_sheet.dart';
 import 'package:bodega_mobile/features/proveedores/proveedor_model.dart';
 import 'package:bodega_mobile/features/proveedores/proveedor_service.dart';
 
@@ -158,6 +159,74 @@ void main() {
         );
         expect(find.textContaining('1 por reponer'), findsWidgets);
         expect(find.text('Cargar Todo'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Muestra productos del portafolio distribuido aunque idProveedor sea null en el producto',
+      (tester) async {
+        // Producto sin idProveedor asignado, pero con marca Inca Kola
+        ProductoService.setMockProductos([
+          Producto(
+            idProducto: 99,
+            nombre: 'Inca Kola 1.5L Retornable',
+            marca: 'Inca Kola',
+            precioVenta: 6.50,
+            stockActual: 3.0,
+            stockMinimo: 8.0,
+            codigo: 'INK15',
+            idProveedor: null,
+          ),
+        ]);
+
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: ComprasScreen())),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Debe asociar Inca Kola a Arca Continental Lindley por marca canónica
+        expect(find.text('1 productos en catálogo'), findsOneWidget);
+        expect(find.text('1 por reponer'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'NuevoProveedorSheet muestra chips de distribuidores oficiales frecuentes y autocompleta RUC',
+      (tester) async {
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: NuevoProveedorSheet())),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Verifica que se renderice la lista de distribuidores oficiales frecuentes
+        expect(
+          find.text('Distribuidores oficiales frecuentes:'),
+          findsOneWidget,
+        );
+        expect(find.text('Coca-Cola / Inca Kola'), findsOneWidget);
+        expect(find.text('Alicorp'), findsOneWidget);
+
+        // Al tocar el chip de Coca-Cola / Inca Kola, debe autocompletar el RUC y Razón Social oficial
+        await tester.tap(find.text('Coca-Cola / Inca Kola'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('20100107510'), findsOneWidget);
+        expect(
+          find.text('Arca Continental Lindley S.A. (Coca-Cola / Inca Kola)'),
+          findsOneWidget,
+        );
       },
     );
   });
