@@ -287,25 +287,30 @@ class _ThermalTicketPreviewDialogState
     final primaryColor = Theme.of(context).colorScheme.primary;
     final bool is80mm = _anchoSeleccionado == ThermalTicketService.width80mm;
 
-    final textStyle = GoogleFonts.firaCode(
-      color: const Color(0xFF111827),
-      fontSize: is80mm ? 10.5 : 11.5,
-      height: 1.34,
-      fontWeight: FontWeight.w500,
-    );
-
-    // Medición exacta y dinámica del ancho de las columnas (32 cols para 58mm, 48 cols para 80mm)
-    final textPainter = TextPainter(
-      text: TextSpan(text: '-' * _anchoSeleccionado, style: textStyle),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    final double textWidth = textPainter.width;
+    // Dimensiones físicas fijas del rollo térmico según estándar ESC/POS (58mm / 80mm).
+    // Deterministas para evitar colapsos o anchos reducidos en la primera apertura
+    // mientras la fuente web (GoogleFonts) se descarga asíncronamente en Web/móvil.
     final double horizontalPadding = is80mm ? 12.0 : 10.0;
-    // Buffer subpixel de 2.0px para garantizar ajuste perfecto sin cortes ni wrap involuntario
-    final double contentWidth = textWidth + 2.0;
-    final double paperWidth = contentWidth + (horizontalPadding * 2);
-    final double headWidth = paperWidth + 32.0;
+    final double contentWidth = is80mm ? 306.0 : 220.0;
+    final double paperWidth = is80mm ? 330.0 : 240.0;
+    final double headWidth = paperWidth + 40.0;
+
+    final textStyle =
+        GoogleFonts.firaCode(
+          color: const Color(0xFF111827),
+          fontSize: is80mm ? 10.5 : 11.5,
+          height: 1.34,
+          fontWeight: FontWeight.w500,
+        ).copyWith(
+          fontFamilyFallback: const [
+            'Courier New',
+            'Consolas',
+            'Menlo',
+            'Monaco',
+            'monospace',
+          ],
+        );
+
     final receiptText = _generarTextoTicket();
 
     return Dialog(
@@ -314,6 +319,7 @@ class _ThermalTicketPreviewDialogState
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Container(
         constraints: BoxConstraints(
+          minWidth: is80mm ? 400.0 : 320.0,
           maxWidth: is80mm ? 480.0 : 400.0,
           maxHeight: 740,
         ),
@@ -443,7 +449,7 @@ class _ThermalTicketPreviewDialogState
                           curve: Curves.easeOutCubic,
                           width: headWidth,
                           height: 42,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: BoxDecoration(
                             color: const Color(0xFF111827),
                             borderRadius: const BorderRadius.vertical(
@@ -465,25 +471,32 @@ class _ThermalTicketPreviewDialogState
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    LucideIcons.printer,
-                                    size: 15,
-                                    color: Color(0xFF9CA3AF),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'CAJAYA THERMAL POS',
-                                    style: GoogleFonts.outfit(
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.8,
-                                      color: const Color(0xFFD1D5DB),
+                              Flexible(
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.printer,
+                                      size: 14,
+                                      color: Color(0xFF9CA3AF),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'CAJAYA THERMAL POS',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.6,
+                                            color: const Color(0xFFD1D5DB),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -560,10 +573,14 @@ class _ThermalTicketPreviewDialogState
                           ),
                           child: SizedBox(
                             width: contentWidth,
-                            child: SelectableText(
-                              receiptText,
-                              textAlign: TextAlign.left,
-                              style: textStyle,
+                            child: FittedBox(
+                              fit: BoxFit.fitWidth,
+                              alignment: Alignment.centerLeft,
+                              child: SelectableText(
+                                receiptText,
+                                textAlign: TextAlign.left,
+                                style: textStyle,
+                              ),
                             ),
                           ),
                         ),

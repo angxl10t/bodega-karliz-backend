@@ -190,11 +190,23 @@ void main() {
       expect(find.text('58mm'), findsOneWidget);
       expect(find.text('Papel 58 mm • 32 columnas ESC/POS'), findsOneWidget);
 
+      // Verify deterministic first-open paper dimensions (240px for 58mm)
+      final paper58Finder = find.byWidgetPredicate(
+        (w) => w is AnimatedContainer && w.constraints?.maxWidth == 240.0,
+      );
+      expect(paper58Finder, findsWidgets);
+
       // Switch to 80mm
       await tester.tap(find.text('80mm'));
       await tester.pumpAndSettle();
 
       expect(find.text('Papel 80 mm • 48 columnas ESC/POS'), findsOneWidget);
+
+      // Verify deterministic paper dimensions for 80mm (330px)
+      final paper80Finder = find.byWidgetPredicate(
+        (w) => w is AnimatedContainer && w.constraints?.maxWidth == 330.0,
+      );
+      expect(paper80Finder, findsWidgets);
     });
   });
 }
