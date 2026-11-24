@@ -128,10 +128,9 @@ class BodegaInfo {
     final reg = json['regimenTributario'] as String? ?? 'NUEVO_RUS';
     final isRus = json['esNuevoRus'] == true || reg == 'NUEVO_RUS';
     return BodegaInfo(
-      idBodega:
-          (json['idBodega'] as num?)?.toInt() ??
-          int.tryParse(json['idBodega']?.toString() ?? '') ??
-          1,
+      idBodega: json['idBodega'] is num
+          ? (json['idBodega'] as num).toInt()
+          : (int.tryParse(json['idBodega']?.toString() ?? '') ?? 1),
       nombreComercial: json['nombreComercial'] ?? 'CajaYa',
       rucDni: json['rucDni'],
       direccion: json['direccion'],
@@ -152,7 +151,9 @@ class BodegaInfo {
       serieBoleta: json['serieBoleta'],
       serieFactura: json['serieFactura'],
       limiteProductos: json['limiteProductos'] as int?,
-      totalProductosActivos: (json['totalProductosActivos'] as num?)?.toInt(),
+      totalProductosActivos: json['totalProductosActivos'] is num
+          ? (json['totalProductosActivos'] as num).toInt()
+          : int.tryParse(json['totalProductosActivos']?.toString() ?? ''),
       limiteAlcanzado: json['limiteAlcanzado'] == true,
       catalogoAbierto: json['catalogoAbierto'] != false,
       deliveryActivo: json['deliveryActivo'] != false,
@@ -1078,10 +1079,9 @@ class PagoSuscripcionItem {
 
   factory PagoSuscripcionItem.fromJson(Map<String, dynamic> json) {
     return PagoSuscripcionItem(
-      idPago:
-          (json['idPago'] as num?)?.toInt() ??
-          int.tryParse(json['idPago']?.toString() ?? '') ??
-          0,
+      idPago: json['idPago'] is num
+          ? (json['idPago'] as num).toInt()
+          : (int.tryParse(json['idPago']?.toString() ?? '') ?? 0),
       idBodega: json['idBodega'],
       nombreBodega: json['nombreBodega'],
       codigoOperacion: json['codigoOperacion'] ?? '',
@@ -1124,10 +1124,9 @@ class StarterPackPresetItem {
 
   factory StarterPackPresetItem.fromJson(Map<String, dynamic> json) {
     return StarterPackPresetItem(
-      idPreset:
-          (json['idPreset'] as num?)?.toInt() ??
-          int.tryParse(json['idPreset']?.toString() ?? '') ??
-          0,
+      idPreset: json['idPreset'] is num
+          ? (json['idPreset'] as num).toInt()
+          : (int.tryParse(json['idPreset']?.toString() ?? '') ?? 0),
       codigoBarras: json['codigoBarras']?.toString() ?? '',
       nombre: json['nombre']?.toString() ?? '',
       marca: json['marca']?.toString(),
@@ -1212,20 +1211,17 @@ class SugerenciaPrecioItem {
       return double.tryParse(v.toString());
     }
 
+    int? parseI(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toInt();
+      return int.tryParse(v.toString());
+    }
+
     return SugerenciaPrecioItem(
-      idSugerencia:
-          (json['idSugerencia'] as num?)?.toInt() ??
-          int.tryParse(json['idSugerencia']?.toString() ?? '') ??
-          0,
-      idBodega:
-          (json['idBodega'] as num?)?.toInt() ??
-          int.tryParse(json['idBodega']?.toString() ?? '') ??
-          0,
+      idSugerencia: parseI(json['idSugerencia']) ?? 0,
+      idBodega: parseI(json['idBodega']) ?? 0,
       nombreBodega: json['nombreBodega']?.toString(),
-      idProducto:
-          (json['idProducto'] as num?)?.toInt() ??
-          int.tryParse(json['idProducto']?.toString() ?? '') ??
-          0,
+      idProducto: parseI(json['idProducto']) ?? 0,
       codigoBarras: json['codigoBarras']?.toString() ?? '',
       nombreActual: json['nombreActual']?.toString() ?? '',
       nombreSugerido: json['nombreSugerido']?.toString(),
