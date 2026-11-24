@@ -160,6 +160,97 @@ class _ComprasScreenState extends State<ComprasScreen>
     });
   }
 
+  int _filtroCatalogoIndex =
+      0; // 0: De este proveedor, 1: Reposición urgente, 2: Todo el catálogo
+
+  List<Producto> _obtenerProductosDeProveedor(Proveedor? prov) {
+    if (prov == null) return _safeProductos;
+
+    final Set<int> idsDelProveedor = {};
+
+    // 1. Vinculación directa en base de datos (idProveedor)
+    for (final p in _safeProductos) {
+      if (p.idProducto != null && p.idProveedor == prov.idProveedor) {
+        idsDelProveedor.add(p.idProducto!);
+      }
+    }
+
+    // 2. Historial de compras registradas para este proveedor
+    for (final c in _historialCompras) {
+      if (c.idProveedor == prov.idProveedor) {
+        for (final d in c.detalles) {
+          if (d.idProducto != null) {
+            idsDelProveedor.add(d.idProducto!);
+          }
+        }
+      }
+    }
+
+    // 3. Coincidencia por marca comercial o razón social
+    final razonClean = prov.razonSocial.toLowerCase().trim();
+    for (final p in _safeProductos) {
+      if (p.idProducto != null && !idsDelProveedor.contains(p.idProducto)) {
+        final marca = (p.marca ?? '').toLowerCase().trim();
+        if (marca.isNotEmpty &&
+            (razonClean.contains(marca) || marca.contains(razonClean))) {
+          idsDelProveedor.add(p.idProducto!);
+        }
+      }
+    }
+
+    return _safeProductos
+        .where((p) => idsDelProveedor.contains(p.idProducto))
+        .toList();
+  }
+
+  Widget _buildFiltroChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+    required Color primaryColor,
+    bool colorAlert = false,
+  }) {
+    final activeBg = colorAlert
+        ? const Color(0xFFEF4444).withValues(alpha: isDark ? 0.25 : 0.12)
+        : primaryColor.withValues(alpha: isDark ? 0.25 : 0.12);
+    final activeBorder = colorAlert ? const Color(0xFFEF4444) : primaryColor;
+    final activeText = colorAlert ? const Color(0xFFEF4444) : primaryColor;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? activeBg
+              : (isDark ? AppTheme.cardDarkSunken : const Color(0xFFF1F5F9)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? activeBorder
+                : (isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0)),
+            width: isSelected ? 1.4 : 1.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11.5,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected
+                ? activeText
+                : (isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B)),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _escanearCodigoParaCompra() async {
     final scannedCode = await KarlizBarcodeScannerModal.scan(
       context,
@@ -549,6 +640,7 @@ class _ComprasScreenState extends State<ComprasScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final searchCtrl = TextEditingController();
     Timer? modalDebounce;
+    int modalFiltroIndex = _proveedorSeleccionado != null ? 0 : 2;
 
     AdaptiveModal.show(
       context: context,
@@ -560,7 +652,19 @@ class _ComprasScreenState extends State<ComprasScreen>
           builder: (context, setModalState) {
             final primaryColor = Theme.of(context).colorScheme.primary;
             final f = filtro.toLowerCase();
-            final prodsFiltrados = _safeProductos.where((p) {
+
+            List<Producto> prodsBase;
+            if (modalFiltroIndex == 0 && _proveedorSeleccionado != null) {
+              prodsBase = _obtenerProductosDeProveedor(_proveedorSeleccionado);
+            } else if (modalFiltroIndex == 1) {
+              prodsBase = _safeProductos
+                  .where((p) => p.stockActual <= p.stockMinimo)
+                  .toList();
+            } else {
+              prodsBase = _safeProductos;
+            }
+
+            final prodsFiltrados = prodsBase.where((p) {
               return p.nombre.toLowerCase().contains(f) ||
                   p.codigo.toLowerCase().contains(f) ||
                   (p.codigoBarras ?? '').toLowerCase().contains(f);
@@ -751,6 +855,46 @@ class _ComprasScreenState extends State<ComprasScreen>
                           },
                         ),
                       ),
+                      const SizedBox(height: 10),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (_proveedorSeleccionado != null) ...[
+                              _buildFiltroChip(
+                                label:
+                                    '📦 ${_proveedorSeleccionado!.razonSocial.length > 20 ? "${_proveedorSeleccionado!.razonSocial.substring(0, 18)}..." : _proveedorSeleccionado!.razonSocial} (${_obtenerProductosDeProveedor(_proveedorSeleccionado).length})',
+                                isSelected: modalFiltroIndex == 0,
+                                onTap: () =>
+                                    setModalState(() => modalFiltroIndex = 0),
+                                isDark: isDark,
+                                primaryColor: primaryColor,
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            _buildFiltroChip(
+                              label:
+                                  '⚠️ Por Reponer (${_safeProductos.where((p) => p.stockActual <= p.stockMinimo).length})',
+                              isSelected: modalFiltroIndex == 1,
+                              onTap: () =>
+                                  setModalState(() => modalFiltroIndex = 1),
+                              isDark: isDark,
+                              primaryColor: primaryColor,
+                              colorAlert: true,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFiltroChip(
+                              label:
+                                  '🌐 Todo el Catálogo (${_safeProductos.length})',
+                              isSelected: modalFiltroIndex == 2,
+                              onTap: () =>
+                                  setModalState(() => modalFiltroIndex = 2),
+                              isDark: isDark,
+                              primaryColor: primaryColor,
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Expanded(
                         child: prodsFiltrados.isEmpty
@@ -778,9 +922,14 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       ),
                                       const SizedBox(height: 12),
                                       Text(
-                                        filtro.isEmpty
-                                            ? 'No hay productos en inventario'
-                                            : 'Sin coincidencias para "$filtro"',
+                                        filtro.isNotEmpty
+                                            ? 'Sin coincidencias para "$filtro"'
+                                            : (modalFiltroIndex == 0 &&
+                                                      _proveedorSeleccionado !=
+                                                          null
+                                                  ? 'Sin productos asignados a este proveedor'
+                                                  : 'No hay productos en inventario'),
+                                        textAlign: TextAlign.center,
                                         style: GoogleFonts.outfit(
                                           fontWeight: FontWeight.w700,
                                           fontSize: 15,
@@ -791,7 +940,12 @@ class _ComprasScreenState extends State<ComprasScreen>
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Prueba buscando por nombre o código de barras.',
+                                        modalFiltroIndex == 0 &&
+                                                _proveedorSeleccionado !=
+                                                    null &&
+                                                filtro.isEmpty
+                                            ? 'Selecciona "Todo el Catálogo" para agregar productos y quedarán vinculados automáticamente.'
+                                            : 'Prueba buscando por nombre o código de barras.',
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
@@ -800,6 +954,23 @@ class _ComprasScreenState extends State<ComprasScreen>
                                           ),
                                         ),
                                       ),
+                                      if (modalFiltroIndex == 0 &&
+                                          _proveedorSeleccionado != null &&
+                                          filtro.isEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        TextButton.icon(
+                                          onPressed: () => setModalState(
+                                            () => modalFiltroIndex = 2,
+                                          ),
+                                          icon: const Icon(
+                                            LucideIcons.layoutGrid,
+                                            size: 15,
+                                          ),
+                                          label: const Text(
+                                            'Ver Todo el Catálogo',
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -1912,265 +2083,549 @@ class _ComprasScreenState extends State<ComprasScreen>
     );
   }
 
-  void _mostrarSugerenciaPedidoModal() {
+  void _mostrarSugerenciaPedidoModal({Proveedor? proveedorInicial}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final productosCriticos = _safeProductos
-        .where((p) => p.stockActual <= p.stockMinimo)
-        .toList();
+    Proveedor? proveedorSeleccionadoModal =
+        proveedorInicial ?? _proveedorSeleccionado;
 
     AdaptiveModal.show(
       context: context,
-      maxWidth: 620,
+      maxWidth: 640,
       builder: (ctx) {
         final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
-        return Align(
-          alignment: isWide ? Alignment.center : Alignment.bottomCenter,
-          heightFactor: isWide ? 1.0 : null,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 620,
-              maxHeight:
-                  MediaQuery.of(context).size.height * (isWide ? 0.85 : 0.8),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-                borderRadius: isWide
-                    ? BorderRadius.circular(24)
-                    : const BorderRadius.vertical(top: Radius.circular(24)),
-                border: isDark
-                    ? Border.all(color: AppTheme.borderDarkElevated, width: 1.2)
-                    : Border.all(
-                        color: isWide
-                            ? AppTheme.borderLight
-                            : Colors.transparent,
-                        width: 1.0,
-                      ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.25),
-                    blurRadius: isWide ? 30 : 20,
-                    offset: isWide ? const Offset(0, 10) : const Offset(0, -4),
-                  ),
-                ],
-              ),
-              padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!isWide) ...[
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(2),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final primaryColor = Theme.of(context).colorScheme.primary;
+
+            final List<Producto> productosBase =
+                proveedorSeleccionadoModal == null
+                ? _safeProductos
+                : _obtenerProductosDeProveedor(proveedorSeleccionadoModal);
+
+            final productosCriticos = productosBase
+                .where((p) => p.stockActual <= p.stockMinimo)
+                .toList();
+
+            return Align(
+              alignment: isWide ? Alignment.center : Alignment.bottomCenter,
+              heightFactor: isWide ? 1.0 : null,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 640,
+                  maxHeight:
+                      MediaQuery.of(context).size.height *
+                      (isWide ? 0.88 : 0.85),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+                    borderRadius: isWide
+                        ? BorderRadius.circular(24)
+                        : const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: isDark
+                        ? Border.all(
+                            color: AppTheme.borderDarkElevated,
+                            width: 1.2,
+                          )
+                        : Border.all(
+                            color: isWide
+                                ? AppTheme.borderLight
+                                : Colors.transparent,
+                            width: 1.0,
+                          ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.45 : 0.25,
                         ),
-                      ),
-                    ),
-                  ],
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentGreen.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          LucideIcons.sparkles,
-                          color: AppTheme.accentGreen,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Sugerencia de Reposición',
-                              style: GoogleFonts.outfit(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.textDark,
-                              ),
-                            ),
-                            Text(
-                              'Productos con stock mínimo o crítico para pedir hoy',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : const Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(LucideIcons.x, size: 20),
-                        tooltip: 'Cerrar',
-                        onPressed: () => Navigator.pop(ctx),
+                        blurRadius: isWide ? 30 : 20,
+                        offset: isWide
+                            ? const Offset(0, 10)
+                            : const Offset(0, -4),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  if (productosCriticos.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 30),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            const Icon(
-                              LucideIcons.checkCircle2,
+                  padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isWide) ...[
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ],
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentGreen.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              LucideIcons.sparkles,
                               color: AppTheme.accentGreen,
-                              size: 40,
+                              size: 20,
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              '¡Tu inventario está abastecido!',
-                              style: GoogleFonts.outfit(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Sugerencia de Reposición',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                ),
+                                Text(
+                                  'Filtrado por proveedor habitual y stock crítico',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    color: isDark
+                                        ? AppTheme.textDarkSecondary
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(LucideIcons.x, size: 20),
+                            tooltip: 'Cerrar',
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+
+                      // Desplegable de Proveedor para Reposición
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 2,
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<Proveedor?>(
+                            value: proveedorSeleccionadoModal,
+                            isExpanded: true,
+                            dropdownColor: isDark
+                                ? AppTheme.cardDarkElevated
+                                : Colors.white,
+                            icon: const Icon(LucideIcons.chevronDown, size: 16),
+                            items: [
+                              DropdownMenuItem<Proveedor?>(
+                                value: null,
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.globe,
+                                      size: 16,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '🌐 Todos los Proveedores (${_safeProductos.where((p) => p.stockActual <= p.stockMinimo).length} por reponer)',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ..._safeProveedores.map((prov) {
+                                final countCriticos =
+                                    _obtenerProductosDeProveedor(prov)
+                                        .where(
+                                          (p) => p.stockActual <= p.stockMinimo,
+                                        )
+                                        .length;
+                                return DropdownMenuItem<Proveedor?>(
+                                  value: prov,
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.building2,
+                                        size: 16,
+                                        color: AppTheme.brandPrimary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          '${prov.razonSocial} ($countCriticos por reponer)',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark
+                                                ? Colors.white
+                                                : AppTheme.textDark,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
+                            onChanged: (prov) {
+                              setModalState(() {
+                                proveedorSeleccionadoModal = prov;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+
+                      if (productosCriticos.isEmpty)
+                        Expanded(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    LucideIcons.checkCircle2,
+                                    color: AppTheme.accentGreen,
+                                    size: 40,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    proveedorSeleccionadoModal != null
+                                        ? '¡${proveedorSeleccionadoModal!.razonSocial} está al día!'
+                                        : '¡Tu inventario está abastecido!',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    proveedorSeleccionadoModal != null
+                                        ? 'No hay productos críticos registrados para este distribuidor.\nPrueba seleccionando "Todos los Proveedores" u otro distribuidor.'
+                                        : 'No hay productos con stock por debajo del límite mínimo.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      color: AppTheme.getAdaptiveMutedText(
+                                        isDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'No hay productos con stock por debajo del límite mínimo.',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: AppTheme.getAdaptiveMutedText(isDark),
+                          ),
+                        )
+                      else ...[
+                        Expanded(
+                          child: ListView.separated(
+                            itemCount: productosCriticos.length,
+                            separatorBuilder: (context, index) =>
+                                const Divider(height: 1),
+                            itemBuilder: (ctx, i) {
+                              final p = productosCriticos[i];
+                              final cantidadSugerida =
+                                  ((p.stockMinimo * 2) - p.stockActual).clamp(
+                                    1.0,
+                                    999.0,
+                                  );
+                              final bool yaEnOrden = _canastaCompras.any(
+                                (c) => c.idProducto == p.idProducto,
+                              );
+
+                              return ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 2,
+                                  horizontal: 4,
+                                ),
+                                leading: CircleAvatar(
+                                  backgroundColor: const Color(0xFFFEE2E2),
+                                  radius: 18,
+                                  child: const Icon(
+                                    LucideIcons.packageMinus,
+                                    size: 16,
+                                    color: AppTheme.alertRed,
+                                  ),
+                                ),
+                                title: Text(
+                                  p.nombre,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  'Stock: ${p.stockActual.toInt()} | Mín: ${p.stockMinimo.toInt()}${p.nombreProveedor != null ? ' • Prov: ${p.nombreProveedor}' : ''}',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: AppTheme.alertRed,
+                                  ),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accentGreen.withValues(
+                                          alpha: 0.12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        'Pedir: ${cantidadSugerida.toInt()}',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppTheme.accentGreen,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    IconButton(
+                                      icon: Icon(
+                                        yaEnOrden
+                                            ? LucideIcons.check
+                                            : LucideIcons.plusCircle,
+                                        size: 19,
+                                        color: yaEnOrden
+                                            ? AppTheme.accentGreen
+                                            : primaryColor,
+                                      ),
+                                      tooltip: yaEnOrden
+                                          ? 'Ya en orden de compra'
+                                          : 'Agregar a orden',
+                                      onPressed: () {
+                                        if (p.idProducto == null) return;
+                                        final idx = _canastaCompras.indexWhere(
+                                          (c) => c.idProducto == p.idProducto,
+                                        );
+                                        setState(() {
+                                          if (idx >= 0) {
+                                            _canastaCompras[idx].cantidad +=
+                                                cantidadSugerida;
+                                          } else {
+                                            _canastaCompras.add(
+                                              CompraCartItem(
+                                                idProducto: p.idProducto!,
+                                                nombreProducto: p.nombre,
+                                                codigo: p.codigo,
+                                                cantidad: cantidadSugerida,
+                                                precioUnitario:
+                                                    p.precioCosto ??
+                                                    (p.precioVenta * 0.75),
+                                              ),
+                                            );
+                                          }
+                                        });
+                                        setModalState(() {});
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 4,
+                              child: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  LucideIcons.shoppingBag,
+                                  size: 16,
+                                ),
+                                label: Text(
+                                  'Cargar Todo',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  for (final p in productosCriticos) {
+                                    if (p.idProducto == null) continue;
+                                    final cant =
+                                        ((p.stockMinimo * 2) - p.stockActual)
+                                            .clamp(1.0, 999.0);
+                                    final idx = _canastaCompras.indexWhere(
+                                      (c) => c.idProducto == p.idProducto,
+                                    );
+                                    if (idx >= 0) {
+                                      _canastaCompras[idx].cantidad = cant;
+                                    } else {
+                                      _canastaCompras.add(
+                                        CompraCartItem(
+                                          idProducto: p.idProducto!,
+                                          nombreProducto: p.nombre,
+                                          codigo: p.codigo,
+                                          cantidad: cant,
+                                          precioUnitario:
+                                              p.precioCosto ??
+                                              (p.precioVenta * 0.75),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                  setState(() {});
+                                  Navigator.pop(ctx);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Se cargaron ${productosCriticos.length} productos a la orden de compra.',
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            OutlinedButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Cerrar Ventana'),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 6,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.accentGreen,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                icon: const Icon(LucideIcons.send, size: 16),
+                                label: Text(
+                                  proveedorSeleccionadoModal != null
+                                      ? 'Pedir por WhatsApp'
+                                      : 'Enviar WhatsApp',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                onPressed: () async {
+                                  final buffer = StringBuffer();
+                                  buffer.writeln(
+                                    '📦 *PEDIDO DE REPOSICIÓN - BODEGA*',
+                                  );
+                                  if (proveedorSeleccionadoModal != null) {
+                                    buffer.writeln(
+                                      'Estimados amigos de *${proveedorSeleccionadoModal!.razonSocial}*, por favor programar el siguiente pedido de reposición:',
+                                    );
+                                  } else {
+                                    buffer.writeln(
+                                      'Hola estimado proveedor, por favor programar el siguiente pedido de reposición:',
+                                    );
+                                  }
+                                  buffer.writeln('');
+                                  for (final p in productosCriticos) {
+                                    final cant =
+                                        ((p.stockMinimo * 2) - p.stockActual)
+                                            .clamp(1.0, 999.0)
+                                            .toInt();
+                                    buffer.writeln(
+                                      '• *${p.nombre}*: $cant unidades',
+                                    );
+                                  }
+                                  buffer.writeln('');
+                                  buffer.writeln('Muchas gracias.');
+
+                                  String phoneUrl = '';
+                                  if (proveedorSeleccionadoModal != null &&
+                                      proveedorSeleccionadoModal!.telefono !=
+                                          null &&
+                                      proveedorSeleccionadoModal!.telefono!
+                                          .trim()
+                                          .isNotEmpty) {
+                                    String digits = proveedorSeleccionadoModal!
+                                        .telefono!
+                                        .replaceAll(RegExp(r'\D'), '');
+                                    if (digits.length == 9 &&
+                                        !digits.startsWith('51')) {
+                                      digits = '51$digits';
+                                    }
+                                    phoneUrl = digits;
+                                  }
+
+                                  final url = Uri.parse(
+                                    'https://wa.me/$phoneUrl?text=${Uri.encodeComponent(buffer.toString())}',
+                                  );
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(
+                                      url,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    )
-                  else ...[
-                    Expanded(
-                      child: ListView.separated(
-                        itemCount: productosCriticos.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1),
-                        itemBuilder: (ctx, i) {
-                          final p = productosCriticos[i];
-                          final cantidadSugerida =
-                              ((p.stockMinimo * 2) - p.stockActual).clamp(
-                                1.0,
-                                999.0,
-                              );
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
-                              backgroundColor: const Color(0xFFFEE2E2),
-                              radius: 18,
-                              child: const Icon(
-                                LucideIcons.packageMinus,
-                                size: 16,
-                                color: AppTheme.alertRed,
-                              ),
-                            ),
-                            title: Text(
-                              p.nombre,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'Stock actual: ${p.stockActual.toInt()} | Mínimo: ${p.stockMinimo.toInt()}',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                color: AppTheme.alertRed,
-                              ),
-                            ),
-                            trailing: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.accentGreen.withValues(
-                                  alpha: 0.12,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                'Pedir: ${cantidadSugerida.toInt()}',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.accentGreen,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accentGreen,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        icon: const Icon(LucideIcons.send, size: 16),
-                        label: Text(
-                          'Enviar Pedido por WhatsApp al Proveedor',
-                          style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        onPressed: () async {
-                          final buffer = StringBuffer();
-                          buffer.writeln('📦 *PEDIDO DE REPOSICIÓN - BODEGA*');
-                          buffer.writeln(
-                            'Hola estimado proveedor, por favor programar el siguiente pedido:',
-                          );
-                          buffer.writeln('');
-                          for (final p in productosCriticos) {
-                            final cant = ((p.stockMinimo * 2) - p.stockActual)
-                                .clamp(1.0, 999.0)
-                                .toInt();
-                            buffer.writeln('• *${p.nombre}*: $cant unidades');
-                          }
-                          buffer.writeln('');
-                          buffer.writeln('Muchas gracias.');
-                          final url = Uri.parse(
-                            'https://wa.me/?text=${Uri.encodeComponent(buffer.toString())}',
-                          );
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(
-                              url,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ],
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -2505,7 +2960,7 @@ class _ComprasScreenState extends State<ComprasScreen>
                 onPressed: _abrirSelectorProveedor,
                 icon: const Icon(LucideIcons.search, size: 15),
                 label: Text(
-                  'Cambiar',
+                  _proveedorSeleccionado != null ? 'Cambiar' : 'Elegir',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -2515,7 +2970,7 @@ class _ComprasScreenState extends State<ComprasScreen>
             ],
           ),
           const SizedBox(height: 6),
-          if (_proveedorSeleccionado != null)
+          if (_proveedorSeleccionado != null) ...[
             InkWell(
               onTap: _abrirSelectorProveedor,
               borderRadius: BorderRadius.circular(16),
@@ -2565,6 +3020,195 @@ class _ComprasScreenState extends State<ComprasScreen>
                               color: isDark
                                   ? AppTheme.textDarkSecondary
                                   : const Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      LucideIcons.chevronRight,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : const Color(0xFF94A3B8),
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Builder(
+              builder: (context) {
+                final prodsDelProveedor = _obtenerProductosDeProveedor(
+                  _proveedorSeleccionado,
+                );
+                final criticosProv = prodsDelProveedor
+                    .where((p) => p.stockActual <= p.stockMinimo)
+                    .length;
+
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 4.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(
+                          alpha: isDark ? 0.2 : 0.08,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: primaryColor.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            LucideIcons.package,
+                            size: 13,
+                            color: primaryColor,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '${prodsDelProveedor.length} productos en catálogo',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (criticosProv > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 4.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444)
+                              .withValues(alpha: isDark ? 0.2 : 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: const Color(0xFFEF4444)
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              LucideIcons.alertTriangle,
+                              size: 13,
+                              color: Color(0xFFEF4444),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              '$criticosProv por reponer',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFEF4444),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        backgroundColor: const Color(0xFF10B981)
+                            .withValues(alpha: isDark ? 0.2 : 0.1),
+                        foregroundColor: const Color(0xFF10B981),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => _mostrarSugerenciaPedidoModal(
+                        proveedorInicial: _proveedorSeleccionado,
+                      ),
+                      icon: const Icon(LucideIcons.sparkles, size: 14),
+                      label: Text(
+                        'Pedir Reposición',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ] else
+            InkWell(
+              onTap: _abrirSelectorProveedor,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF8F9FB),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.borderDark
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.surfaceTintDark
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        LucideIcons.building2,
+                        color: isDark
+                            ? Colors.white60
+                            : const Color(0xFF64748B),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ningún distribuidor seleccionado',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13.5,
+                              color: isDark
+                                  ? Colors.white70
+                                  : AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Toca aquí para seleccionar y filtrar sus productos para reposición',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ],
@@ -2673,16 +3317,27 @@ class _ComprasScreenState extends State<ComprasScreen>
   ) {
     final primaryColor = Theme.of(context).colorScheme.primary;
     final f = _desktopFiltroTexto.toLowerCase().trim();
-    final productosMostrados = f.isEmpty
-        ? _safeProductos.take(8).toList()
-        : _safeProductos
-              .where((p) {
-                return p.nombre.toLowerCase().contains(f) ||
-                    p.codigo.toLowerCase().contains(f) ||
-                    (p.codigoBarras ?? '').toLowerCase().contains(f);
-              })
-              .take(12)
-              .toList();
+
+    List<Producto> productosBase;
+    if (_filtroCatalogoIndex == 0 && _proveedorSeleccionado != null) {
+      productosBase = _obtenerProductosDeProveedor(_proveedorSeleccionado);
+    } else if (_filtroCatalogoIndex == 1) {
+      productosBase = _safeProductos
+          .where((p) => p.stockActual <= p.stockMinimo)
+          .toList();
+    } else {
+      productosBase = _safeProductos;
+    }
+
+    final productosFiltrados = f.isEmpty
+        ? productosBase
+        : productosBase.where((p) {
+            return p.nombre.toLowerCase().contains(f) ||
+                p.codigo.toLowerCase().contains(f) ||
+                (p.codigoBarras ?? '').toLowerCase().contains(f);
+          }).toList();
+
+    final productosMostrados = productosFiltrados.take(12).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -2805,16 +3460,75 @@ class _ComprasScreenState extends State<ComprasScreen>
             ),
           ),
           const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                if (_proveedorSeleccionado != null) ...[
+                  _buildFiltroChip(
+                    label:
+                        '📦 ${_proveedorSeleccionado!.razonSocial.length > 20 ? "${_proveedorSeleccionado!.razonSocial.substring(0, 18)}..." : _proveedorSeleccionado!.razonSocial} (${_obtenerProductosDeProveedor(_proveedorSeleccionado).length})',
+                    isSelected: _filtroCatalogoIndex == 0,
+                    onTap: () => setState(() => _filtroCatalogoIndex = 0),
+                    isDark: isDark,
+                    primaryColor: primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                _buildFiltroChip(
+                  label:
+                      '⚠️ Por Reponer (${_safeProductos.where((p) => p.stockActual <= p.stockMinimo).length})',
+                  isSelected: _filtroCatalogoIndex == 1,
+                  onTap: () => setState(() => _filtroCatalogoIndex = 1),
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                  colorAlert: true,
+                ),
+                const SizedBox(width: 8),
+                _buildFiltroChip(
+                  label: '🌐 Todo el Catálogo (${_safeProductos.length})',
+                  isSelected: _filtroCatalogoIndex == 2,
+                  onTap: () => setState(() => _filtroCatalogoIndex = 2),
+                  isDark: isDark,
+                  primaryColor: primaryColor,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
           if (productosMostrados.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Center(
-                child: Text(
-                  'No se encontraron productos para "$_desktopFiltroTexto"',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12.5,
-                    color: AppTheme.getAdaptiveMutedText(isDark),
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _desktopFiltroTexto.isNotEmpty
+                          ? 'No se encontraron productos para "$_desktopFiltroTexto"'
+                          : (_filtroCatalogoIndex == 0 &&
+                                    _proveedorSeleccionado != null
+                                ? 'Este proveedor no tiene productos asignados todavía'
+                                : 'No hay productos en este filtro'),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.getAdaptiveMutedText(isDark),
+                      ),
+                    ),
+                    if (_filtroCatalogoIndex == 0 &&
+                        _proveedorSeleccionado != null &&
+                        _desktopFiltroTexto.isEmpty) ...[
+                      const SizedBox(height: 6),
+                      TextButton.icon(
+                        onPressed: () =>
+                            setState(() => _filtroCatalogoIndex = 2),
+                        icon: const Icon(LucideIcons.layoutGrid, size: 14),
+                        label: const Text('Ver Todo el Catálogo para vincular'),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             )

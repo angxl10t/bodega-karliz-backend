@@ -21,6 +21,8 @@ class Producto {
   final DateTime? fechaVencimiento;
   final double? precioCosto;
   final String? imagenUrl;
+  final int? idProveedor;
+  final String? nombreProveedor;
 
   Producto({
     this.idProducto,
@@ -37,6 +39,8 @@ class Producto {
     this.fechaVencimiento,
     this.precioCosto,
     this.imagenUrl,
+    this.idProveedor,
+    this.nombreProveedor,
   });
 
   /// Días restantes para el vencimiento (negativo si ya expiró)
@@ -133,6 +137,13 @@ class Producto {
           (json['precioCosto'] as num?)?.toDouble() ??
           (json['precio_costo'] as num?)?.toDouble(),
       imagenUrl: json['imagenUrl'] as String? ?? json['imagen_url'] as String?,
+      idProveedor:
+          (json['idProveedor'] as num?)?.toInt() ??
+          (json['id_proveedor'] as num?)?.toInt(),
+      nombreProveedor:
+          json['razonSocialProveedor'] as String? ??
+          json['nombreProveedor'] as String? ??
+          json['proveedor'] as String?,
     );
   }
 
@@ -140,6 +151,7 @@ class Producto {
     return {
       if (idProducto != null) 'idProducto': idProducto,
       'idCategoria': idCategoria ?? 1,
+      if (idProveedor != null) 'idProveedor': idProveedor,
       'codigo': codigo,
       if (codigoBarras != null) 'codigoBarras': codigoBarras,
       'nombre': nombre,
@@ -172,6 +184,8 @@ class Producto {
     DateTime? fechaVencimiento,
     double? precioCosto,
     String? imagenUrl,
+    int? idProveedor,
+    String? nombreProveedor,
   }) {
     return Producto(
       idProducto: idProducto ?? this.idProducto,
@@ -188,6 +202,8 @@ class Producto {
       fechaVencimiento: fechaVencimiento ?? this.fechaVencimiento,
       precioCosto: precioCosto ?? this.precioCosto,
       imagenUrl: imagenUrl ?? this.imagenUrl,
+      idProveedor: idProveedor ?? this.idProveedor,
+      nombreProveedor: nombreProveedor ?? this.nombreProveedor,
     );
   }
 

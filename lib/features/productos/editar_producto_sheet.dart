@@ -18,6 +18,8 @@ import 'producto_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/permisos_cajero_service.dart';
 import '../../core/secure_storage_service.dart';
+import '../proveedores/proveedor_model.dart';
+import '../proveedores/proveedor_service.dart';
 
 class EditarProductoSheet extends StatefulWidget {
   final Producto producto;
@@ -56,9 +58,12 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
 
   final ProductoService _productoService = ProductoService();
   final CategoriaService _categoriaService = CategoriaService();
+  final ProveedorService _proveedorService = ProveedorService();
 
   List<Categoria> _categorias = [];
+  List<Proveedor> _proveedores = [];
   int? _idCategoriaSeleccionada;
+  int? _idProveedorSeleccionado;
   bool _isLoadingCategorias = true;
   bool _isGuardando = false;
   String _giroNegocio = 'BODEGA';
@@ -100,6 +105,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
           : '',
     );
     _idCategoriaSeleccionada = widget.producto.idCategoria ?? 1;
+    _idProveedorSeleccionado = widget.producto.idProveedor;
     _imagenUrl = widget.producto.imagenUrl;
 
     _fotoSugerida = CatalogoImagenesService.buscarSugerencia(
@@ -193,13 +199,16 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     final results = await Future.wait([
       _categoriaService.getCategorias(),
       SecureStorageService.read('giro_negocio'),
+      _proveedorService.getProveedores(),
     ]);
     if (mounted) {
       final cats = results[0] as List<Categoria>;
       final giro = results[1] as String?;
+      final provs = results[2] as List<Proveedor>;
       setState(() {
         if (giro != null && giro.isNotEmpty) _giroNegocio = giro;
         _categorias = cats;
+        _proveedores = provs;
         _isLoadingCategorias = false;
         if (cats.any((c) => c.idCategoria == widget.producto.idCategoria)) {
           _idCategoriaSeleccionada = widget.producto.idCategoria;
@@ -253,6 +262,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
     final actualizado = Producto(
       idProducto: widget.producto.idProducto,
       idCategoria: _idCategoriaSeleccionada ?? 1,
+      idProveedor: _idProveedorSeleccionado,
       codigo: widget.producto.codigo,
       codigoBarras: barcodeClean.isNotEmpty ? barcodeClean : null,
       marca: _marcaCtrl.text.trim().isNotEmpty ? _marcaCtrl.text.trim() : null,
@@ -743,6 +753,108 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 14),
+
+                  // Distribuidor / Proveedor Habitual
+                  Text(
+                    'Distribuidor / Proveedor Habitual (Opcional)',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: inputBg,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int?>(
+                        value: _idProveedorSeleccionado,
+                        isExpanded: true,
+                        dropdownColor: isDark
+                            ? AppTheme.cardDarkElevated
+                            : Colors.white,
+                        icon: const Icon(LucideIcons.chevronDown, size: 16),
+                        hint: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.truck,
+                              size: 16,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Sin asignar (Abastecimiento general)',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                color: AppTheme.getAdaptiveHintText(isDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                        items: [
+                          DropdownMenuItem<int?>(
+                            value: null,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  LucideIcons.truck,
+                                  size: 16,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Sin asignar (Abastecimiento general)',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: AppTheme.getAdaptiveHintText(isDark),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ..._proveedores.map((prov) {
+                            return DropdownMenuItem<int?>(
+                              value: prov.idProveedor,
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.building2,
+                                    size: 16,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      '${prov.razonSocial} (RUC: ${prov.ruc})',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: (val) {
+                          setState(() => _idProveedorSeleccionado = val);
+                        },
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 14),
 
                   // Código de Barras y Stock Mínimo

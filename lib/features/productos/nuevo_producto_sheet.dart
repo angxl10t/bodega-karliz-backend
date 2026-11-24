@@ -18,6 +18,8 @@ import 'producto_service.dart';
 import '../auth/auth_service.dart';
 import '../../core/permisos_cajero_service.dart';
 import '../../core/secure_storage_service.dart';
+import '../proveedores/proveedor_model.dart';
+import '../proveedores/proveedor_service.dart';
 
 class NuevoProductoSheet extends StatefulWidget {
   final VoidCallback onProductoCreado;
@@ -51,10 +53,13 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
 
   final ProductoService _productoService = ProductoService();
   final CategoriaService _categoriaService = CategoriaService();
+  final ProveedorService _proveedorService = ProveedorService();
 
   List<Categoria> _categorias = [];
   List<Producto> _todosLosProductos = [];
+  List<Proveedor> _proveedores = [];
   int? _idCategoriaSeleccionada;
+  int? _idProveedorSeleccionado;
   bool _isLoadingCategorias = true;
   bool _isGuardando = false;
   bool _mostrarOpcionesAvanzadas = false;
@@ -231,15 +236,18 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
         _categoriaService.getCategorias(),
         _productoService.getProductos(),
         SecureStorageService.read('giro_negocio'),
+        _proveedorService.getProveedores(),
       ]);
       if (mounted) {
         final cats = results[0] as List<Categoria>;
         final prods = results[1] as List<Producto>;
         final giro = results[2] as String?;
+        final provs = results[3] as List<Proveedor>;
         setState(() {
           if (giro != null && giro.isNotEmpty) _giroNegocio = giro;
           _categorias = cats;
           _todosLosProductos = prods;
+          _proveedores = provs;
           _isLoadingCategorias = false;
           if (cats.isNotEmpty) {
             _idCategoriaSeleccionada = cats.first.idCategoria;
@@ -425,6 +433,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
         : null;
     final nuevo = Producto(
       idCategoria: _idCategoriaSeleccionada ?? 1,
+      idProveedor: _idProveedorSeleccionado,
       codigo: _codigoCtrl.text.trim(),
       codigoBarras: barcodeClean.isNotEmpty ? barcodeClean : null,
       marca: _marcaCtrl.text.trim().isNotEmpty ? _marcaCtrl.text.trim() : null,
@@ -1038,6 +1047,111 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(18),
                           borderSide: BorderSide(color: borderColor),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Distribuidor / Proveedor Habitual (Opcional)',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppTheme.textDarkSecondary
+                            : const Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: inputBg,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: borderColor),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 3,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<int?>(
+                          value: _idProveedorSeleccionado,
+                          isExpanded: true,
+                          dropdownColor: isDark
+                              ? AppTheme.cardDarkElevated
+                              : Colors.white,
+                          icon: const Icon(LucideIcons.chevronDown, size: 16),
+                          hint: Row(
+                            children: [
+                              const Icon(
+                                LucideIcons.truck,
+                                size: 16,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Sin asignar (Abastecimiento general)',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  color: AppTheme.getAdaptiveHintText(isDark),
+                                ),
+                              ),
+                            ],
+                          ),
+                          items: [
+                            DropdownMenuItem<int?>(
+                              value: null,
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    LucideIcons.truck,
+                                    size: 16,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Sin asignar (Abastecimiento general)',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      color: AppTheme.getAdaptiveHintText(
+                                        isDark,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            ..._proveedores.map((prov) {
+                              return DropdownMenuItem<int?>(
+                                value: prov.idProveedor,
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      LucideIcons.building2,
+                                      size: 16,
+                                      color: AppTheme.brandPrimary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '${prov.razonSocial} (RUC: ${prov.ruc})',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark
+                                              ? Colors.white
+                                              : AppTheme.textDark,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            setState(() => _idProveedorSeleccionado = val);
+                          },
                         ),
                       ),
                     ),
