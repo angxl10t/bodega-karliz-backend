@@ -121,6 +121,7 @@ class _VentasScreenState extends State<VentasScreen>
   String _nombreBodega = 'CajaYa POS';
   String? _rucBodega;
   String? _direccionBodega;
+  String? _telefonoBodega;
   String? _lemaBodega;
 
   bool _identificarCliente = false;
@@ -452,6 +453,7 @@ class _VentasScreenState extends State<VentasScreen>
       SecureStorageService.read('direccion_bodega'),
       SecureStorageService.read('lema_comercial'),
       SecureStorageService.read('giro_negocio'),
+      SecureStorageService.read('telefono_bodega'),
     ]);
     final reg = results[0];
     final sunat = results[1];
@@ -460,6 +462,7 @@ class _VentasScreenState extends State<VentasScreen>
     final dir = results[4];
     final lema = results[5];
     final giro = results[6];
+    final tel = results[7];
 
     if (mounted) {
       setState(() {
@@ -472,6 +475,7 @@ class _VentasScreenState extends State<VentasScreen>
         _rucBodega = ruc;
         _direccionBodega = dir;
         _lemaBodega = lema;
+        _telefonoBodega = tel;
 
         if (_regimenTributario == 'INFORMAL') {
           _tipoComprobante = 'TICKET';
@@ -6534,6 +6538,7 @@ class _VentasScreenState extends State<VentasScreen>
       nombreComercio: _nombreBodega,
       rucDni: _rucBodega,
       direccion: _direccionBodega,
+      telefono: _telefonoBodega,
       lemaComercial: _lemaBodega,
       tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
       serieCorrelativo: ventaGenerada?.serieCorrelativo,
@@ -6565,6 +6570,7 @@ class _VentasScreenState extends State<VentasScreen>
       nombreComercio: _nombreBodega,
       rucDni: _rucBodega,
       direccion: _direccionBodega,
+      telefono: _telefonoBodega,
       lemaComercial: _lemaBodega,
       tipoComprobante: ventaGenerada?.tipoComprobante ?? _tipoComprobante,
       serieCorrelativo: ventaGenerada?.serieCorrelativo,
@@ -6640,6 +6646,7 @@ class _VentasScreenState extends State<VentasScreen>
       nombreComercio: _nombreBodega,
       rucDni: _rucBodega,
       direccion: _direccionBodega,
+      telefono: _telefonoBodega,
       lemaComercial: _lemaBodega,
       regimenTributario: _regimenTributario,
     );

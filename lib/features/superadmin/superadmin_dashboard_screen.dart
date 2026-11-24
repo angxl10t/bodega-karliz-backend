@@ -5301,12 +5301,22 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               ? marcaCtrl.text.trim()
                               : null,
                           'categoria': categoriaCtrl.text.trim().toUpperCase(),
-                          'precioVenta': double.parse(
-                            precioVentaCtrl.text.trim(),
-                          ),
-                          'precioCosto': double.parse(
-                            precioCostoCtrl.text.trim(),
-                          ),
+                          'precioVenta':
+                              double.tryParse(
+                                precioVentaCtrl.text.trim().replaceAll(
+                                  ',',
+                                  '.',
+                                ),
+                              ) ??
+                              0.0,
+                          'precioCosto':
+                              double.tryParse(
+                                precioCostoCtrl.text.trim().replaceAll(
+                                  ',',
+                                  '.',
+                                ),
+                              ) ??
+                              0.0,
                           'imagenUrl': imagenUrlCtrl.text.trim().isNotEmpty
                               ? imagenUrlCtrl.text.trim()
                               : null,
@@ -5331,11 +5341,18 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                               difundidas = await _bodegaService
                                   .difundirSugerenciaPrecio({
                                     'codigoBarras': codigoCtrl.text.trim(),
-                                    'precioVentaSugerido': double.parse(
-                                      precioVentaCtrl.text.trim(),
-                                    ),
+                                    'precioVentaSugerido':
+                                        double.tryParse(
+                                          precioVentaCtrl.text
+                                              .trim()
+                                              .replaceAll(',', '.'),
+                                        ) ??
+                                        0.0,
                                     'precioCostoSugerido': double.tryParse(
-                                      precioCostoCtrl.text.trim(),
+                                      precioCostoCtrl.text.trim().replaceAll(
+                                        ',',
+                                        '.',
+                                      ),
                                     ),
                                     'nombreSugerido': nombreCtrl.text.trim(),
                                     'marcaSugerida':

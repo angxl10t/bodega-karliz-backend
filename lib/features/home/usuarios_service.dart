@@ -29,9 +29,10 @@ class UsuarioItem {
 
   factory UsuarioItem.fromJson(Map<String, dynamic> json) {
     return UsuarioItem(
-      idUsuario: json['idUsuario'] is int
-          ? json['idUsuario']
-          : int.parse(json['idUsuario'].toString()),
+      idUsuario:
+          (json['idUsuario'] as num?)?.toInt() ??
+          int.tryParse(json['idUsuario']?.toString() ?? '') ??
+          0,
       username: json['username'] ?? '',
       nombreCompleto: json['nombreCompleto'],
       email: json['email'],

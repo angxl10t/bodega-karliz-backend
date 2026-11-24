@@ -3549,9 +3549,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     bool isDark,
     _CatalogoDeviceConfig config,
   ) {
-    final int id = (prod['idProducto'] is int)
-        ? prod['idProducto'] as int
-        : int.parse(prod['idProducto'].toString());
+    final int id = (prod['idProducto'] is num)
+        ? (prod['idProducto'] as num).toInt()
+        : int.tryParse(prod['idProducto']?.toString() ?? '') ?? 0;
     final String nombre = prod['nombre']?.toString() ?? 'Producto';
     final String categoria = prod['categoria']?.toString() ?? 'General';
     final String codigo = prod['codigo']?.toString() ?? '';
@@ -4136,9 +4136,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   }
 
   void _mostrarDetalleProductoOnline(Map<String, dynamic> prod) {
-    final int id = (prod['idProducto'] is int)
-        ? prod['idProducto'] as int
-        : int.parse(prod['idProducto'].toString());
+    final int id = (prod['idProducto'] is num)
+        ? (prod['idProducto'] as num).toInt()
+        : int.tryParse(prod['idProducto']?.toString() ?? '') ?? 0;
     final String nombre = prod['nombre']?.toString() ?? 'Producto';
     final String categoria = prod['categoria']?.toString() ?? 'General';
     final String marca = prod['marca']?.toString() ?? '';
