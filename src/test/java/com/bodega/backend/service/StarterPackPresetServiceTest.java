@@ -7,6 +7,7 @@ import com.bodega.backend.entity.StarterPackPreset;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.repository.ProveedorRepository;
 import com.bodega.backend.repository.StarterPackPresetRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,9 @@ class StarterPackPresetServiceTest {
     @Mock
     private StarterPackPresetRepository starterPackPresetRepository;
 
+    @Mock
+    private ProveedorRepository proveedorRepository;
+
     private StarterPackService starterPackService;
 
     @BeforeEach
@@ -50,7 +54,8 @@ class StarterPackPresetServiceTest {
                 bodegaRepository,
                 categoriaRepository,
                 productoRepository,
-                starterPackPresetRepository
+                starterPackPresetRepository,
+                proveedorRepository
         );
     }
 

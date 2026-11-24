@@ -4,10 +4,12 @@ import com.bodega.backend.dto.StarterPackPresetDTO;
 import com.bodega.backend.entity.Bodega;
 import com.bodega.backend.entity.Categoria;
 import com.bodega.backend.entity.Producto;
+import com.bodega.backend.entity.Proveedor;
 import com.bodega.backend.entity.StarterPackPreset;
 import com.bodega.backend.repository.BodegaRepository;
 import com.bodega.backend.repository.CategoriaRepository;
 import com.bodega.backend.repository.ProductoRepository;
+import com.bodega.backend.repository.ProveedorRepository;
 import com.bodega.backend.repository.StarterPackPresetRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,17 +35,20 @@ public class StarterPackService {
     private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
     private final StarterPackPresetRepository starterPackPresetRepository;
+    private final ProveedorRepository proveedorRepository;
 
     public StarterPackService(JdbcTemplate jdbcTemplate,
                               BodegaRepository bodegaRepository,
                               CategoriaRepository categoriaRepository,
                               ProductoRepository productoRepository,
-                              StarterPackPresetRepository starterPackPresetRepository) {
+                              StarterPackPresetRepository starterPackPresetRepository,
+                              ProveedorRepository proveedorRepository) {
         this.jdbcTemplate = jdbcTemplate;
         this.bodegaRepository = bodegaRepository;
         this.categoriaRepository = categoriaRepository;
         this.productoRepository = productoRepository;
         this.starterPackPresetRepository = starterPackPresetRepository;
+        this.proveedorRepository = proveedorRepository;
     }
 
     public static final String[][] CATEGORIAS_CANONICAS = {
@@ -63,6 +68,38 @@ public class StarterPackService {
     };
 
     /**
+     * Proveedores y distribuidores oficiales canónicos del mercado bodeguero peruano.
+     * Formato: {RUC SUNAT, Razón Social / Distribuidora, Dirección oficial, Teléfono de contacto}
+     */
+    public static final String[][] PROVEEDORES_CANONICOS = {
+        {"20100107510", "Arca Continental Lindley S.A. (Coca-Cola / Inca Kola)", "Av. Javier Prado Este 4200, Santiago de Surco, Lima", "01-311-5000"},
+        {"20100113610", "Unión de Cervecerías Peruanas Backus y Johnston S.A.A.", "Av. Nicolás Ayllón 3986, Ate, Lima", "01-311-3000"},
+        {"20100055237", "Alicorp S.A.A. (Abarrotes, Aceites y Limpieza)", "Av. Argentina 4793, Carmen de la Legua Reynoso, Callao", "01-315-0800"},
+        {"20100190797", "Leche Gloria S.A.", "Av. República de Panamá 2461, La Victoria, Lima", "01-470-7170"},
+        {"20100177072", "Nestlé Perú S.A. (Lácteos, Chocolates y Helados)", "Calle Luis Galvani 493, Urb. Industrial Vulcano, Ate, Lima", "0800-10-210"},
+        {"20100122978", "Mondelez Perú S.A. (Kraft / Field / Nabisco)", "Av. Venezuela 2470, Bellavista, Callao", "01-219-4000"},
+        {"20297868790", "Pepsico Alimentos Perú S.R.L. / CBC", "Av. Francisco Bolognesi 505, Santa Anita, Lima", "01-618-2000"},
+        {"20331061901", "Ajeper S.A. (Grupo AJE - Big Cola / KR / Sporade)", "Av. Los Conquistadores 1144, San Isidro, Lima", "01-211-5300"},
+        {"20100154308", "San Fernando S.A. (Embutidos, Aves y Huevos)", "Av. República de Panamá 4295, Surquillo, Lima", "01-213-5300"},
+        {"20100030595", "Braedt S.A. (Fiambrería Fina & Otto Kunz)", "Av. Elmer Faucett 474, Carmen de la Legua, Callao", "01-517-1800"},
+        {"20100095451", "Laive S.A. (Lácteos y Fiambrería)", "Av. Nicolás Hermoza 115, Ate, Lima", "01-619-3600"},
+        {"20383070465", "Bimbo del Perú S.A. (Panadería y Desayuno)", "Av. Venezuela 2470, Cercado de Lima", "01-315-7700"},
+        {"20100035121", "Molitalia S.A. (Fideos, Harinas y Confitería)", "Av. Venezuela 2850, Cercado de Lima", "01-513-5000"},
+        {"20100127163", "Procter & Gamble del Perú S.R.L. (P&G)", "Av. República de Colombia 791, San Isidro, Lima", "0800-55-791"},
+        {"20100097151", "Colgate-Palmolive Perú S.A.", "Av. Juan de Arona 151, San Isidro, Lima", "01-211-3700"},
+        {"20227929424", "Kimberly-Clark Perú S.R.L. (Papelería y Cuidado)", "Av. Elmer Faucett 356, Callao", "01-614-2200"},
+        {"20265219981", "Softys Perú S.A. (Elite / Papelería Institucional)", "Av. Santa Rosa 350, Santa Anita, Lima", "01-317-2000"},
+        {"20100119227", "Clorox Perú S.A. (Desinfección y Limpieza)", "Av. Los Frutales 419, Ate, Lima", "01-617-6400"},
+        {"20100141664", "Rinti S.A. (Ricocan & Ricocat Alimento Balanceado)", "Av. Minerales 540, Cercado de Lima", "01-619-0200"},
+        {"20100070970", "Costeño Alimentos S.A.C. (Arroz y Menestras)", "Carretera Central Km 18.2, Chaclacayo, Lima", "01-317-5000"},
+        {"20100155207", "Sibarita del Perú S.A. (Condimentos y Especias)", "Jr. Antonio Polo 741, Pueblo Libre, Lima", "01-461-1222"},
+        {"20100085063", "Ajinomoto del Perú S.A. (Sazonadores y Caldos)", "Av. República de Panamá 2455, La Victoria, Lima", "01-615-5400"},
+        {"20100008824", "British American Tobacco del Perú S.A.C. (BAT)", "Av. Rivera Navarrete 501, San Isidro, Lima", "01-611-3000"},
+        {"20456428606", "Philip Morris Perú S.R.L. (Marlboro & Tabacos)", "Av. Santo Toribio 173, San Isidro, Lima", "01-610-8500"},
+        {"20100010993", "Bodegas y Viñedos Tabernero S.A.C. (Piscos y Licores)", "Av. Grau 430, Miraflores, Lima", "01-446-8800"}
+    };
+
+    /**
      * Catálogo comercial expandido de productos de alta rotación para bodegas peruanas.
      * Formato: {Código de barras EAN-13, Nombre completo comercial, Marca, Categoría Canónica, Precio Venta Ref, Precio Costo Ref, Imagen URL}
      */
@@ -72,10 +109,10 @@ public class StarterPackService {
         {"7750106001027", "Inca Kola Sabor Original 1.5 Litros", "Inca Kola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/inka_kola.png"},
         {"7750106000013", "Inca Kola Sabor Original 3 Litros", "Inca Kola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/inka_kola_3l.png"},
         {"7750106001034", "Inca Kola Sin Azúcar Zero 500ml", "Inca Kola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/inka_kola_500ml.png"},
-        {"7750106000025", "Coca Cola Sabor Original 500ml", "Coca Cola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/coca_cola_500ml.png"},
-        {"7750106002017", "Coca Cola Sabor Original 1.5 Litros", "Coca Cola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/coca_cola.png"},
-        {"7751234567890", "Coca Cola Sabor Original 3 Litros", "Coca Cola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/coca_cola_3l.png"},
-        {"7750106000032", "Coca Cola Sin Azúcar Zero 500ml", "Coca Cola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/coca_cola_500ml.png"},
+        {"7750106000025", "Coca Cola Sabor Original 500ml", "Coca-Cola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/coca_cola_500ml.png"},
+        {"7750106002017", "Coca Cola Sabor Original 1.5 Litros", "Coca-Cola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/coca_cola.png"},
+        {"7751234567890", "Coca Cola Sabor Original 3 Litros", "Coca-Cola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/coca_cola_3l.png"},
+        {"7750106000032", "Coca Cola Sin Azúcar Zero 500ml", "Coca-Cola", "Gaseosas y Bebidas", "3.00", "2.30", "packshots/coca_cola_500ml.png"},
         {"7750182220378", "Gaseosa Fanta Naranja 500ml", "Fanta", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/fanta_500ml.png"},
         {"7750182495301", "Gaseosa Fanta Naranja 3 Litros", "Fanta", "Gaseosas y Bebidas", "10.50", "8.40", "packshots/fanta_3l.png"},
         {"7750182000321", "Gaseosa Sprite Lima Limón 500ml", "Sprite", "Gaseosas y Bebidas", "2.50", "1.90", "packshots/sprite_500ml.png"},
@@ -179,7 +216,7 @@ public class StarterPackService {
         {"7750109004034", "Fideos Lavaggi Canuto Corto 450g", "Lavaggi", "Abarrotes y Despensa", "2.30", "1.80", "packshots/fideos_canuto_lavaggi.png"},
         {"7750109004072", "Trozos de Atún Primor en Aceite 170g", "Primor", "Abarrotes y Despensa", "5.20", "4.20", "packshots/atun_primor.png"},
         {"7750109004102", "Filete de Atún Fanny en Aceite 140g", "Fanny", "Abarrotes y Despensa", "4.80", "3.80", "packshots/atun_fanny_140g.png"},
-        {"7750109004119", "Mayonesa Alacena Doypack 850g", "Alacena", "Abarrotes y Despensa", "9.80", "7.80", "packshots/mayonesa_alacena_850g.png"},
+        {"7750109004119", "Mayonesa AlaCena Doypack 850g", "AlaCena", "Abarrotes y Despensa", "9.80", "7.80", "packshots/mayonesa_alacena_850g.png"},
         {"7750243030335", "Crema de Ají Tarí AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "4.80", "3.80", "packshots/crema_tari_400g.png"},
         {"7750114006079", "Salsa de Rocoto Uchucuta AlaCena Doypack 400g", "AlaCena", "Abarrotes y Despensa", "5.80", "4.60", "packshots/salsa_uchucuta_alacena.png"},
         {"7750109004126", "Salsa de Tomate Tuco Sibarita 260g", "Sibarita", "Abarrotes y Despensa", "2.80", "2.20", "packshots/tuco_sibarita.png"},
@@ -283,8 +320,8 @@ public class StarterPackService {
         // --- 14. VARIANTES DE TAMAÑO, SABOR Y PRESENTACIÓN (PERSONAL, 1L, 1.5L, 5KG, SIX-PACKS) ---
         {"7750106001102", "Inca Kola Sabor Original 1 Litro", "Inca Kola", "Gaseosas y Bebidas", "4.50", "3.60", "packshots/inka_kola.png"},
         {"7750106001119", "Inca Kola Sabor Original Lata 355ml", "Inca Kola", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/inka_kola_500ml.png"},
-        {"7750106002109", "Coca Cola Sabor Original 1 Litro", "Coca Cola", "Gaseosas y Bebidas", "4.50", "3.60", "packshots/coca_cola.png"},
-        {"7750106002116", "Coca Cola Sabor Original Lata 355ml", "Coca Cola", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/coca_cola_500ml.png"},
+        {"7750106002109", "Coca Cola Sabor Original 1 Litro", "Coca-Cola", "Gaseosas y Bebidas", "4.50", "3.60", "packshots/coca_cola.png"},
+        {"7750106002116", "Coca Cola Sabor Original Lata 355ml", "Coca-Cola", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/coca_cola_500ml.png"},
         {"7750182220385", "Gaseosa Fanta Naranja 1.5 Litros", "Fanta", "Gaseosas y Bebidas", "5.80", "4.60", "packshots/fanta.png"},
         {"7750182000338", "Gaseosa Sprite Lima Limón 1.5 Litros", "Sprite", "Gaseosas y Bebidas", "5.80", "4.60", "packshots/sprite.png"},
         {"775117011960",  "Agua Mineral San Mateo Con Gas 600ml", "San Mateo", "Gaseosas y Bebidas", "1.60", "1.15", "packshots/agua_san_mateo_600ml.png"},
@@ -315,8 +352,8 @@ public class StarterPackService {
         // --- 15. EXPANSIÓN COMERCIAL OLA 3 (40 VARIANTES ZERO, PERSONALES, SACHETS, 5KG Y SIX-PACKS) ---
         {"7750106001126", "Inca Kola Sin Azúcar Zero 1.5 Litros", "Inca Kola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/inka_kola.png"},
         {"7750106001133", "Inca Kola Sin Azúcar Zero 3 Litros", "Inca Kola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/inka_kola_3l.png"},
-        {"7750106002123", "Coca Cola Sin Azúcar Zero 1.5 Litros", "Coca Cola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/coca_cola.png"},
-        {"7750106002130", "Coca Cola Sin Azúcar Zero 3 Litros", "Coca Cola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/coca_cola_3l.png"},
+        {"7750106002123", "Coca Cola Sin Azúcar Zero 1.5 Litros", "Coca-Cola", "Gaseosas y Bebidas", "6.50", "5.20", "packshots/coca_cola.png"},
+        {"7750106002130", "Coca Cola Sin Azúcar Zero 3 Litros", "Coca-Cola", "Gaseosas y Bebidas", "12.00", "9.80", "packshots/coca_cola_3l.png"},
         {"7750106003038", "Agua San Luis Sin Gas 2.5 Litros", "San Luis", "Gaseosas y Bebidas", "3.50", "2.70", "packshots/agua_san_luis.png"},
         {"7750670010047", "Agua Cielo Sin Gas 2.5 Litros", "Cielo", "Gaseosas y Bebidas", "2.80", "2.15", "packshots/agua_cielo.png"},
         {"7750106008057", "Jugo Frugos del Valle Durazno Botella 300ml", "Frugos", "Gaseosas y Bebidas", "1.80", "1.35", "packshots/frugos_durazno.png"},
@@ -536,7 +573,7 @@ public class StarterPackService {
         {"POL008", "Porción de Arroz Chaufa Pollero", "La Brasa", "Porciones y Guarniciones", "7.00", "3.80", "packshots/arroz_chaufa_porcion.png"},
         {"POL009", "Jarra de Chicha Morada Casera 1 Litro", "La Brasa", "Bebidas y Gaseosas", "9.00", "4.00", "packshots/chicha_morada_jarra.png"},
         {"POL010", "Inca Kola Sabor Original 1.5 Litros", "Inca Kola", "Bebidas y Gaseosas", "7.50", "5.20", "packshots/inka_kola.png"},
-        {"POL011", "Coca Cola Sabor Original 1.5 Litros", "Coca Cola", "Bebidas y Gaseosas", "7.50", "5.20", "packshots/coca_cola.png"},
+        {"POL011", "Coca Cola Sabor Original 1.5 Litros", "Coca-Cola", "Bebidas y Gaseosas", "7.50", "5.20", "packshots/coca_cola.png"},
         {"POL012", "Inca Kola Personal 500ml", "Inca Kola", "Bebidas y Gaseosas", "3.50", "2.30", "packshots/inka_kola_500ml.png"},
         {"POL013", "Porción de Crema de Ají Pollero Extra", "La Brasa", "Salsas y Cremas", "2.00", "0.80", "packshots/salsas_aji_pollero.png"},
         {"POL014", "Combo Banquete Familiar (1 Pollo + Papas + Ensalada + Gaseosa 1.5L)", "La Brasa", "Combos Familiares", "69.90", "46.00", "packshots/combo_familiar_polleria.png"}
@@ -634,6 +671,272 @@ public class StarterPackService {
             map.put(nombre.toLowerCase().trim(), cat);
         }
         return map;
+    }
+
+    public static final String RUC_ARCA_CONTINENTAL = "20100107510";
+    public static final String RUC_BACKUS = "20100113610";
+    public static final String RUC_ALICORP = "20100055237";
+    public static final String RUC_GLORIA = "20100190797";
+    public static final String RUC_NESTLE = "20100177072";
+    public static final String RUC_MONDELEZ = "20100122978";
+    public static final String RUC_PEPSICO = "20297868790";
+    public static final String RUC_AJE = "20331061901";
+    public static final String RUC_SAN_FERNANDO = "20100154308";
+    public static final String RUC_BRAEDT = "20100030595";
+    public static final String RUC_LAIVE = "20100095451";
+    public static final String RUC_BIMBO = "20383070465";
+    public static final String RUC_MOLITALIA = "20100035121";
+    public static final String RUC_PG = "20100127163";
+    public static final String RUC_COLGATE = "20100097151";
+    public static final String RUC_KIMBERLY_CLARK = "20227929424";
+    public static final String RUC_SOFTYS = "20265219981";
+    public static final String RUC_CLOROX = "20100119227";
+    public static final String RUC_RINTI = "20100141664";
+    public static final String RUC_COSTENO = "20100070970";
+    public static final String RUC_SIBARITA = "20100155207";
+    public static final String RUC_AJINOMOTO = "20100085063";
+    public static final String RUC_BAT = "20100008824";
+    public static final String RUC_PHILIP_MORRIS = "20456428606";
+    public static final String RUC_TABERNERO = "20100010993";
+
+    /**
+     * Asegura que existan los 25 proveedores oficiales canónicos para el tenant/bodega indicado
+     * y desactiva registros duplicados o falsos (ej. Mayorista Alianza S.A.C., RUCs ficticios 20999%).
+     */
+    @Transactional
+    public Map<String, Proveedor> asegurarProveedoresCanonicos(Bodega bodega) {
+        Map<String, Proveedor> mapPorRuc = new HashMap<>();
+        if (bodega == null || bodega.getIdBodega() == null || proveedorRepository == null) return mapPorRuc;
+
+        Long idBodega = bodega.getIdBodega();
+
+        // 1. Desactivar proveedores ficticios o repetidos como 'Mayorista Alianza S.A.C.' o RUCs de prueba
+        if (jdbcTemplate != null) {
+            try {
+                jdbcTemplate.update(
+                    "UPDATE proveedores SET estado = false " +
+                    "WHERE id_bodega = ? AND (" +
+                    "  razon_social ILIKE '%Mayorista Alianza%' " +
+                    "  OR ruc LIKE '20999%' " +
+                    "  OR ruc IN ('20123456789', '20000000001', '20999999999')" +
+                    ")",
+                    idBodega
+                );
+            } catch (Exception e) {
+                log.debug("[StarterPackService] Desactivación de proveedores obsoletos omitida: {}", e.getMessage());
+            }
+        }
+
+        // 2. Sembrar o reactivar los 25 proveedores canónicos
+        for (String[] def : PROVEEDORES_CANONICOS) {
+            String ruc = def[0].trim();
+            String razonSocial = def[1].trim();
+            String direccion = def[2].trim();
+            String telefono = def[3].trim();
+
+            Optional<Proveedor> opt = proveedorRepository.findByBodega_IdBodegaAndRuc(idBodega, ruc);
+            Proveedor prov;
+            if (opt.isPresent()) {
+                prov = opt.get();
+                boolean modificado = false;
+                if (!Boolean.TRUE.equals(prov.getEstado())) {
+                    prov.setEstado(true);
+                    modificado = true;
+                }
+                if (prov.getRazonSocial() == null || !prov.getRazonSocial().equals(razonSocial)) {
+                    prov.setRazonSocial(razonSocial);
+                    modificado = true;
+                }
+                if (prov.getDireccion() == null || !prov.getDireccion().equals(direccion)) {
+                    prov.setDireccion(direccion);
+                    modificado = true;
+                }
+                if (prov.getTelefono() == null || !prov.getTelefono().equals(telefono)) {
+                    prov.setTelefono(telefono);
+                    modificado = true;
+                }
+                if (modificado) {
+                    prov = proveedorRepository.save(prov);
+                }
+            } else {
+                prov = new Proveedor();
+                prov.setRuc(ruc);
+                prov.setRazonSocial(razonSocial);
+                prov.setDireccion(direccion);
+                prov.setTelefono(telefono);
+                prov.setEstado(true);
+                prov.setBodega(bodega);
+                prov = proveedorRepository.save(prov);
+            }
+            mapPorRuc.put(ruc, prov);
+        }
+        return mapPorRuc;
+    }
+
+    /**
+     * Mapea de manera determinista y canónica cualquier marca o producto hacia el RUC oficial
+     * del proveedor/distribuidor real correspondiente en el mercado peruano.
+     */
+    public static String resolverRucProveedor(String marca, String nombre, String categoria) {
+        String m = marca != null ? marca.trim().toLowerCase(Locale.ROOT) : "";
+        String n = nombre != null ? nombre.trim().toLowerCase(Locale.ROOT) : "";
+
+        // Arca Continental Lindley S.A.
+        if (contieneAlguno(m, "coca cola", "coca-cola", "inca kola", "inka kola", "fanta", "sprite", "san luis", "frugos", "monster energy", "powerade", "canada dry", "schweppes")
+                || contieneAlguno(n, "coca cola", "coca-cola", "inca kola", "fanta", "sprite", "san luis", "frugos", "monster energy", "powerade")) {
+            return RUC_ARCA_CONTINENTAL;
+        }
+
+        // Backus y Johnston
+        if (contieneAlguno(m, "backus", "cristal", "pilsen", "cusqueña", "corona", "budweiser", "stella artois", "san mateo", "guaraná", "guarana", "mike", "barbarian", "maltin")
+                || contieneAlguno(n, "cerveza cristal", "cerveza pilsen", "cerveza cusqueña", "cerveza corona", "cerveza budweiser", "san mateo")) {
+            return RUC_BACKUS;
+        }
+
+        // Leche Gloria S.A.
+        if (contieneAlguno(m, "gloria", "bonlé", "bonle", "pura vida", "tampico", "chicolac", "yomost", "soya gloria")
+                || contieneAlguno(n, "leche gloria", "bonlé", "bonle", "tampico")) {
+            return RUC_GLORIA;
+        }
+
+        // Nestlé Perú S.A.
+        if (contieneAlguno(m, "nestlé", "nestle", "d'onofrio", "donofrio", "sublime", "triángulo", "triangulo", "princesa", "morochas", "nescafé", "nescafe", "kirma", "milo", "maggi", "sin parar", "peziduri", "frío rico", "frio rico", "ideal")
+                || contieneAlguno(n, "d'onofrio", "donofrio", "sublime", "triángulo", "nescafé", "kirma", "maggi", "peziduri", "frío rico")) {
+            return RUC_NESTLE;
+        }
+
+        // Mondelez Perú S.A.
+        if (contieneAlguno(m, "mondelez", "kraft", "oreo", "club social", "ritz", "chips ahoy", "field", "coronita", "doña pepa", "dona pepa", "cua cua", "soda field", "vainilla field", "charada", "halls", "trident", "sparkies", "bubbaloo", "royal", "tang", "clight")
+                || contieneAlguno(n, "oreo", "club social", "field", "cua cua", "doña pepa", "halls", "trident", "flan royal", "gelatina royal", "polvo para hornear royal")) {
+            return RUC_MONDELEZ;
+        }
+
+        // Pepsico Alimentos Perú S.R.L. / CBC
+        if (contieneAlguno(m, "pepsico", "pepsi", "7up", "concordia", "frito-lay", "frito lay", "lay's", "lays", "doritos", "cheetos", "cuates", "chizitos", "tortees", "piqueo snack", "karinto", "natuchips", "quaker", "gatorade", "evervess", "pringles")
+                || contieneAlguno(n, "pepsi", "7up", "lays", "lay's", "doritos", "cheetos", "cuates", "chizitos", "piqueo snack", "quaker", "gatorade", "pringles")) {
+            return RUC_PEPSICO;
+        }
+
+        // Ajeper S.A. (Grupo AJE)
+        if (contieneAlguno(m, "aje", "ajeper", "big cola", "kola real", "kr", "sabor de oro", "cielo", "sporade", "cifrut", "pulp", "volt", "free tea")
+                || contieneAlguno(n, "kola real", "sporade", "cifrut", "agua cielo", "volt")) {
+            return RUC_AJE;
+        }
+
+        // San Fernando S.A.
+        if (contieneAlguno(m, "san fernando", "la calera")
+                || contieneAlguno(n, "san fernando", "nuggets san fernando", "jamonada san fernando", "hot dog san fernando")) {
+            return RUC_SAN_FERNANDO;
+        }
+
+        // Braedt S.A. & Otto Kunz
+        if (contieneAlguno(m, "braedt", "otto kunz") || contieneAlguno(n, "braedt", "otto kunz")) {
+            return RUC_BRAEDT;
+        }
+
+        // Laive S.A.
+        if (contieneAlguno(m, "laive", "sbelt", "bio laive") || contieneAlguno(n, "laive", "queso edam laive", "mantequilla laive")) {
+            return RUC_LAIVE;
+        }
+
+        // Bimbo del Perú S.A.
+        if (contieneAlguno(m, "bimbo", "marinela", "gansito", "pingüinos", "pinguinos", "submarinos", "tía rosa")
+                || contieneAlguno(n, "bimbo", "pan de molde bimbo", "tostadas bimbo")) {
+            return RUC_BIMBO;
+        }
+
+        // Molitalia S.A.
+        if (contieneAlguno(m, "molitalia", "costa", "ambrosoli", "fanny", "marco polo", "winter")
+                || contieneAlguno(n, "molitalia", "fideos molitalia", "galleta costa", "atún fanny")) {
+            return RUC_MOLITALIA;
+        }
+
+        // Procter & Gamble del Perú S.R.L. (P&G)
+        if (contieneAlguno(m, "procter", "p&g", "ariel", "ace", "ayudín", "ayudin", "downy", "pampers", "pantene", "head & shoulders", "gillette", "oral-b", "always")
+                || contieneAlguno(n, "ariel", "detergente ace", "ayudín", "ayudin", "pantene", "head & shoulders", "gillette")) {
+            return RUC_PG;
+        }
+
+        // Colgate-Palmolive Perú S.A.
+        if (contieneAlguno(m, "colgate", "palmolive", "protex", "plax", "kolynos", "suavitel", "ajax")
+                || contieneAlguno(n, "colgate", "kolynos", "suavitel")) {
+            return RUC_COLGATE;
+        }
+
+        // Kimberly-Clark Perú S.R.L.
+        if (contieneAlguno(m, "kimberly", "suave", "scott", "huggies", "kotex", "plenitud", "kleenex")
+                || contieneAlguno(n, "papel higiénico suave", "huggies", "toallas kotex")) {
+            return RUC_KIMBERLY_CLARK;
+        }
+
+        // Softys Perú S.A.
+        if (contieneAlguno(m, "softys", "elite", "noble", "premier", "babysec", "ladysoft", "cotidian")
+                || contieneAlguno(n, "elite", "babysec")) {
+            return RUC_SOFTYS;
+        }
+
+        // Clorox Perú S.A.
+        if (contieneAlguno(m, "clorox", "poett", "pinesol") || contieneAlguno(n, "clorox", "poett")) {
+            return RUC_CLOROX;
+        }
+
+        // Rinti S.A.
+        if (contieneAlguno(m, "rinti", "ricocan", "ricocat", "supercan", "supercat", "thor", "canbo", "mimaskot", "dog chow", "dogui", "felix", "whiskas", "pedigree")
+                || contieneAlguno(n, "ricocan", "ricocat", "mimaskot", "dog chow", "whiskas", "pedigree")) {
+            return RUC_RINTI;
+        }
+
+        // Costeño Alimentos S.A.C.
+        if (contieneAlguno(m, "costeño", "costeno", "paisana", "faraón", "faraon", "valle norte")
+                || contieneAlguno(n, "costeño", "arroz faraón", "valle norte")) {
+            return RUC_COSTENO;
+        }
+
+        // Sibarita del Perú S.A.
+        if (contieneAlguno(m, "sibarita", "amarillito") || contieneAlguno(n, "sibarita")) {
+            return RUC_SIBARITA;
+        }
+
+        // Ajinomoto del Perú S.A.
+        if (contieneAlguno(m, "ajinomoto", "aji-no-men", "ajinomen", "doña gusta", "dona gusta", "aji-no-sillao", "sazón sa-són")
+                || contieneAlguno(n, "ajinomoto", "ajinomen", "doña gusta")) {
+            return RUC_AJINOMOTO;
+        }
+
+        // British American Tobacco del Perú S.A.C. (BAT)
+        if (contieneAlguno(m, "lucky strike", "pall mall", "kent", "dunhill", "hamilton", "belmont")
+                || contieneAlguno(n, "lucky strike", "pall mall", "hamilton")) {
+            return RUC_BAT;
+        }
+
+        // Philip Morris Perú S.R.L.
+        if (contieneAlguno(m, "philip morris", "marlboro", "malboro", "l&m", "chesterfield")
+                || contieneAlguno(n, "marlboro", "malboro")) {
+            return RUC_PHILIP_MORRIS;
+        }
+
+        // Bodegas y Viñedos Tabernero S.A.C.
+        if (contieneAlguno(m, "tabernero", "vittoria", "queirolo", "santiago queirolo", "cartavio", "portón", "porton", "flor de caña", "johnnie walker", "smirnoff", "four loko", "tres cruces")
+                || contieneAlguno(n, "tabernero", "queirolo", "cartavio", "pisco", "ron ")) {
+            return RUC_TABERNERO;
+        }
+
+        // Alicorp S.A.A. (Primor, Cocinero, Don Vittorio, AlaCena, Bolívar, Sapolio, Patito, Ángel, etc.)
+        if (contieneAlguno(m, "alicorp", "primor", "cocinero", "cil", "don vittorio", "nicolini", "lavaggi", "blanca flor", "bolívar", "bolivar", "opal", "marsella", "patito", "alacena", "sayón", "sayon", "casino", "margarita", "victoria", "umsha", "sapolio", "dento", "ángel", "angel", "3 ositos", "manty")
+                || contieneAlguno(n, "primor", "don vittorio", "alacena", "bolívar", "sapolio", "patito", "blanca flor", "lavaggi")) {
+            return RUC_ALICORP;
+        }
+
+        // Fallback predeterminado a Alicorp como principal distribuidor de consumo masivo
+        return RUC_ALICORP;
+    }
+
+    private static boolean contieneAlguno(String texto, String... terminos) {
+        if (texto == null || texto.isEmpty()) return false;
+        for (String t : terminos) {
+            if (texto.contains(t)) return true;
+        }
+        return false;
     }
 
     /**
@@ -803,6 +1106,7 @@ public class StarterPackService {
                 nombreBodega, idBodega, giro, stockNuevo);
 
         Map<String, Categoria> categoriasMap = asegurarCategoriasCanonicas(bodegaManaged);
+        Map<String, Proveedor> proveedoresMap = asegurarProveedoresCanonicos(bodegaManaged);
 
         Categoria fallbackCat = categoriaRepository.findByBodega_IdBodegaAndEstadoTrue(idBodega).stream()
                 .findFirst().orElse(null);
@@ -914,6 +1218,26 @@ public class StarterPackService {
                         actualizados++;
                     } catch (Exception ignored) {}
                 }
+
+                // Vincular id_proveedor oficial si el producto actual no lo tiene asignado
+                if (jdbcTemplate != null) {
+                    try {
+                        String rucProv = resolverRucProveedor(marca, nombre, catNombre);
+                        Proveedor provObj = proveedoresMap.get(rucProv);
+                        if (provObj != null && provObj.getIdProveedor() != null) {
+                            jdbcTemplate.update(
+                                    "UPDATE productos SET id_proveedor = ? WHERE id_producto = ? AND id_proveedor IS NULL",
+                                    provObj.getIdProveedor(), idExistente
+                            );
+                        }
+                        if (marca != null && !marca.isBlank()) {
+                            jdbcTemplate.update(
+                                    "UPDATE productos SET marca = ? WHERE id_producto = ? AND (marca IS NULL OR marca = '')",
+                                    marca, idExistente
+                            );
+                        }
+                    } catch (Exception ignored) {}
+                }
                 continue;
             }
 
@@ -928,6 +1252,9 @@ public class StarterPackService {
             }
             codigosExistentes.add(codigo);
 
+            String rucProv = resolverRucProveedor(marca, nombre, catNombre);
+            Proveedor provObj = proveedoresMap.get(rucProv);
+
             Producto p = new Producto();
             p.setCodigo(codigo);
             p.setCodigoBarras(eanTrim);
@@ -941,6 +1268,7 @@ public class StarterPackService {
             p.setImagenUrl(imagenUrl);
             p.setCategoria(categoria);
             p.setBodega(bodegaManaged);
+            p.setProveedor(provObj);
             p.setEstado(true);
 
             nuevosPorGuardar.add(p);
@@ -1076,17 +1404,101 @@ public class StarterPackService {
     }
 
     /**
+     * Normaliza marcas comerciales (typos, tildes, grafías oficiales) y vincula
+     * retroactivamente todos los productos de cada bodega a su proveedor oficial correspondiente.
+     */
+    public void vincularProductosAProveedoresReales() {
+        if (jdbcTemplate == null) return;
+        try {
+            log.info("[StarterPackService] Normalizando marcas y vinculando productos huérfanos a proveedores oficiales...");
+
+            // 1. Normalización de marcas oficiales
+            String[] updateMarcas = {
+                "UPDATE productos SET marca = 'AlaCena' WHERE marca ILIKE 'Alacena%' OR marca ILIKE 'Ala Cena%'",
+                "UPDATE productos SET marca = 'Coca-Cola' WHERE marca ILIKE 'Coca Cola%' OR marca = 'CocaCola'",
+                "UPDATE productos SET marca = 'Inca Kola' WHERE marca ILIKE 'Inka Kola%'",
+                "UPDATE productos SET marca = 'Lay''s' WHERE marca ILIKE 'Lays%'",
+                "UPDATE productos SET marca = 'Nestlé' WHERE marca ILIKE 'Nestle%'",
+                "UPDATE productos SET marca = 'Bolívar' WHERE marca ILIKE 'Bolivar%'",
+                "UPDATE productos SET marca = 'Ángel' WHERE marca ILIKE 'Angel%'",
+                "UPDATE productos SET marca = 'Bonlé' WHERE marca ILIKE 'Bonle%'",
+                "UPDATE productos SET marca = 'D''Onofrio' WHERE marca ILIKE 'Donofrio%' OR marca ILIKE 'D''onofrio%'",
+                "UPDATE productos SET marca = 'Marlboro' WHERE marca ILIKE 'Malboro%'"
+            };
+            for (String sql : updateMarcas) {
+                try {
+                    jdbcTemplate.execute(sql);
+                } catch (Exception ignored) {}
+            }
+
+            // 2. Vinculación masiva de productos huérfanos según proveedor canónico por tenant
+            String sqlVinculacion =
+                "UPDATE productos p " +
+                "SET id_proveedor = prov.id_proveedor " +
+                "FROM proveedores prov " +
+                "WHERE p.id_bodega = prov.id_bodega " +
+                "  AND p.id_proveedor IS NULL " +
+                "  AND prov.estado = true " +
+                "  AND ( " +
+                "    (prov.ruc = '20100107510' AND (p.marca IN ('Inca Kola', 'Coca-Cola', 'Coca Cola', 'Fanta', 'Sprite', 'San Luis', 'Frugos', 'Monster Energy', 'Powerade', 'Canada Dry', 'Schweppes') OR p.nombre ILIKE '%Coca Cola%' OR p.nombre ILIKE '%Inca Kola%' OR p.nombre ILIKE '%San Luis%')) OR " +
+                "    (prov.ruc = '20100113610' AND (p.marca IN ('Backus', 'Cristal', 'Pilsen Callao', 'Pilsen', 'Cusqueña', 'Corona', 'Budweiser', 'Stella Artois', 'San Mateo', 'Guaraná', 'Mike''s', 'Barbarian', 'Maltin Power') OR p.nombre ILIKE '%San Mateo%' OR p.nombre ILIKE '%Guaraná Backus%' OR p.nombre ILIKE '%Cerveza%')) OR " +
+                "    (prov.ruc = '20100190797' AND (p.marca IN ('Gloria', 'Bonlé', 'Pura Vida', 'Tampico', 'Chicolac', 'Yomost', 'Bella Holandesa') OR p.nombre ILIKE '%Gloria%' OR p.nombre ILIKE '%Bonlé%')) OR " +
+                "    (prov.ruc = '20100177072' AND (p.marca IN ('Nestlé', 'D''Onofrio', 'Sublime', 'Triángulo', 'Princesa', 'Morochas', 'Nescafé', 'Kirma', 'Milo', 'Maggi', 'Sin Parar', 'Peziduri', 'Frío Rico', 'Ideal') OR p.nombre ILIKE '%D''Onofrio%' OR p.nombre ILIKE '%Sublime%' OR p.nombre ILIKE '%Peziduri%' OR p.nombre ILIKE '%Nescafé%')) OR " +
+                "    (prov.ruc = '20100122978' AND (p.marca IN ('Mondelez', 'Kraft', 'Oreo', 'Club Social', 'Ritz', 'Chips Ahoy!', 'Field', 'Coronita', 'Doña Pepa', 'Cua Cua', 'Soda Field', 'Vainilla Field', 'Charada', 'Halls', 'Trident', 'Royal', 'Tang', 'Clight') OR p.nombre ILIKE '%Oreo%' OR p.nombre ILIKE '%Cua Cua%' OR p.nombre ILIKE '%Doña Pepa%' OR p.nombre ILIKE '%Royal%')) OR " +
+                "    (prov.ruc = '20297868790' AND (p.marca IN ('Pepsico', 'Pepsi', '7Up', 'Concordia', 'Frito-Lay', 'Lay''s', 'Doritos', 'Cheetos', 'Cuates', 'Chizitos', 'Tortees', 'Piqueo Snack', 'Karinto', 'Quaker', 'Gatorade', 'Pringles') OR p.nombre ILIKE '%Pepsi%' OR p.nombre ILIKE '%Doritos%' OR p.nombre ILIKE '%Lay''s%' OR p.nombre ILIKE '%Quaker%')) OR " +
+                "    (prov.ruc = '20331061901' AND (p.marca IN ('Ajeper', 'Big Cola', 'Kola Real', 'KR', 'Cielo', 'Sporade', 'Cifrut', 'Pulp', 'Volt', 'Free Tea') OR p.nombre ILIKE '%Sporade%' OR p.nombre ILIKE '%Cifrut%' OR p.nombre ILIKE '%Kola Real%' OR p.nombre ILIKE '%Volt%')) OR " +
+                "    (prov.ruc = '20100154308' AND (p.marca IN ('San Fernando', 'La Calera') OR p.nombre ILIKE '%San Fernando%')) OR " +
+                "    (prov.ruc = '20100030595' AND (p.marca IN ('Braedt', 'Otto Kunz') OR p.nombre ILIKE '%Braedt%' OR p.nombre ILIKE '%Otto Kunz%')) OR " +
+                "    (prov.ruc = '20100095451' AND (p.marca IN ('Laive', 'Sbelt') OR p.nombre ILIKE '%Laive%')) OR " +
+                "    (prov.ruc = '20383070465' AND (p.marca IN ('Bimbo', 'Marinela', 'Tía Rosa') OR p.nombre ILIKE '%Bimbo%')) OR " +
+                "    (prov.ruc = '20100035121' AND (p.marca IN ('Molitalia', 'Costa', 'Ambrosoli', 'Fanny', 'Marco Polo') OR p.nombre ILIKE '%Molitalia%' OR p.nombre ILIKE '%Fanny%')) OR " +
+                "    (prov.ruc = '20100127163' AND (p.marca IN ('P&G', 'Ariel', 'Ace', 'Ayudín', 'Downy', 'Pampers', 'Pantene', 'Head & Shoulders', 'Gillette', 'Oral-B', 'Always') OR p.nombre ILIKE '%Ayudín%' OR p.nombre ILIKE '%Pantene%' OR p.nombre ILIKE '%Ariel%')) OR " +
+                "    (prov.ruc = '20100097151' AND (p.marca IN ('Colgate', 'Palmolive', 'Protex', 'Kolynos', 'Suavitel', 'Ajax') OR p.nombre ILIKE '%Colgate%' OR p.nombre ILIKE '%Kolynos%')) OR " +
+                "    (prov.ruc = '20227929424' AND (p.marca IN ('Kimberly-Clark', 'Suave', 'Scott', 'Huggies', 'Kotex', 'Kleenex') OR p.nombre ILIKE '%Suave%' OR p.nombre ILIKE '%Huggies%')) OR " +
+                "    (prov.ruc = '20265219981' AND (p.marca IN ('Softys', 'Elite', 'Noble', 'Premier', 'Babysec') OR p.nombre ILIKE '%Elite%')) OR " +
+                "    (prov.ruc = '20100119227' AND (p.marca IN ('Clorox', 'Poett', 'Pinesol') OR p.nombre ILIKE '%Clorox%' OR p.nombre ILIKE '%Poett%')) OR " +
+                "    (prov.ruc = '20100141664' AND (p.marca IN ('Rinti', 'Ricocan', 'Ricocat', 'Supercan', 'Mimaskot', 'Dog Chow', 'Felix', 'Whiskas', 'Pedigree') OR p.nombre ILIKE '%Ricocan%' OR p.nombre ILIKE '%Ricocat%')) OR " +
+                "    (prov.ruc = '20100070970' AND (p.marca IN ('Costeño', 'Faraón', 'Valle Norte') OR p.nombre ILIKE '%Costeño%' OR p.nombre ILIKE '%Faraón%')) OR " +
+                "    (prov.ruc = '20100155207' AND (p.marca = 'Sibarita' OR p.nombre ILIKE '%Sibarita%')) OR " +
+                "    (prov.ruc = '20100085063' AND (p.marca IN ('Ajinomoto', 'Doña Gusta') OR p.nombre ILIKE '%Ajinomoto%' OR p.nombre ILIKE '%Doña Gusta%')) OR " +
+                "    (prov.ruc = '20100008824' AND (p.marca IN ('Lucky Strike', 'Pall Mall', 'Hamilton') OR p.nombre ILIKE '%Hamilton%' OR p.nombre ILIKE '%Lucky Strike%')) OR " +
+                "    (prov.ruc = '20456428606' AND (p.marca = 'Marlboro' OR p.nombre ILIKE '%Marlboro%')) OR " +
+                "    (prov.ruc = '20100010993' AND (p.marca IN ('Tabernero', 'Santiago Queirolo', 'Cartavio', 'Portón', 'Johnnie Walker', 'Smirnoff') OR p.nombre ILIKE '%Tabernero%' OR p.nombre ILIKE '%Cartavio%')) OR " +
+                "    (prov.ruc = '20100055237' AND (p.marca IN ('Alicorp', 'Primor', 'Cocinero', 'Don Vittorio', 'Nicolini', 'Lavaggi', 'Blanca Flor', 'Bolívar', 'Opal', 'Marsella', 'Patito', 'AlaCena', 'Sayón', 'Casino', 'Margarita', 'Victoria', 'Umsha', 'Sapolio', 'Ángel', '3 Ositos', 'Manty') OR p.nombre ILIKE '%Primor%' OR p.nombre ILIKE '%Don Vittorio%' OR p.nombre ILIKE '%AlaCena%' OR p.nombre ILIKE '%Bolívar%' OR p.nombre ILIKE '%Sapolio%')) " +
+                "  )";
+            int vinculados = jdbcTemplate.update(sqlVinculacion);
+            log.info("[StarterPackService] {} productos huérfanos vinculados a sus distribuidores canónicos.", vinculados);
+
+            // 3. Vincular los restantes huérfanos por defecto a Alicorp (principal mayorista de canal tradicional)
+            jdbcTemplate.update(
+                "UPDATE productos p " +
+                "SET id_proveedor = prov.id_proveedor " +
+                "FROM proveedores prov " +
+                "WHERE p.id_bodega = prov.id_bodega " +
+                "  AND p.id_proveedor IS NULL " +
+                "  AND prov.estado = true " +
+                "  AND prov.ruc = '20100055237'"
+            );
+        } catch (Exception e) {
+            log.warn("[StarterPackService] Error al vincular productos a proveedores reales: {}", e.getMessage());
+        }
+    }
+
+    /**
      * Enriquecimiento integral del catálogo comercial (Olas 1-7: 407 productos y 13 categorías):
      * 1. Sincroniza el Preset Global del SuperAdmin.
      * 2. Repara imágenes heredadas rotas o externas.
-     * 3. Agrega productos faltantes en Bodega KARLIZ (cualquier ID cuyo nombre incluya KARLIZ)
+     * 3. Asegura los 25 proveedores oficiales canónicos para cada bodega y desactiva registros falsos.
+     * 4. Agrega productos faltantes en Bodega KARLIZ (cualquier ID cuyo nombre incluya KARLIZ)
      *    con stock comercial visible (18 unid.) y en las demás bodegas activas con stock = 0
      *    (preservando su inventario real).
+     * 5. Vincula el 100% de los productos con su proveedor y normaliza marcas oficiales.
      */
     public void enriquecerCatalogoBodegaKarliz(Bodega bodegaKarliz) {
         try {
             int presetsNuevos = sincronizarPresetGlobalConCatalogoComercial();
             repararImagenesLegadasEnProductos();
+            vincularProductosAProveedoresReales();
 
             int karlizNuevos = 0;
             int otrasBodegas = 0;
@@ -1113,6 +1525,10 @@ public class StarterPackService {
                 if (!Boolean.TRUE.equals(b.getEstado())) {
                     continue;
                 }
+
+                // Asegurar proveedores canónicos y purgar duplicados en cada bodega
+                asegurarProveedoresCanonicos(b);
+
                 String nombre = b.getNombreComercial() != null ? b.getNombreComercial().trim() : "";
                 String nomUpper = nombre.toUpperCase(Locale.ROOT);
                 String giro = b.getGiroNegocio() != null ? b.getGiroNegocio().trim().toUpperCase(Locale.ROOT) : "";
@@ -1133,12 +1549,22 @@ public class StarterPackService {
                 int creados = provisionarStarterPackParaBodega(b, stockIni);
                 if (esKarliz) {
                     karlizNuevos += creados;
+                    if (jdbcTemplate != null) {
+                        try {
+                            jdbcTemplate.update(
+                                "UPDATE productos SET stock_actual = 18.000 WHERE id_bodega = ? AND (stock_actual = 0 OR stock_actual IS NULL)",
+                                b.getIdBodega()
+                            );
+                        } catch (Exception ignored) {}
+                    }
                 } else {
                     otrasBodegas++;
                     otrosProductos += creados;
                 }
                 detalle.add("B" + b.getIdBodega() + "(+" + creados + ")");
             }
+
+            vincularProductosAProveedoresReales();
 
             ultimoResumenSincronizacion = "OK(presets_nuevos=" + presetsNuevos
                     + ",karliz_nuevos=" + karlizNuevos
