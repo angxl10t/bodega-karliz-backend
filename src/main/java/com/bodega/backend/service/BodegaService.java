@@ -606,6 +606,30 @@ public class BodegaService {
             bodega.setDeliveryActivo(dto.getDeliveryActivo());
         }
 
+        if (dto.getSlug() != null) {
+            String rawSlug = dto.getSlug().trim();
+            if (rawSlug.isEmpty()) {
+                bodega.setSlug(null);
+            } else {
+                String cleanSlug = rawSlug.toLowerCase(java.util.Locale.ROOT)
+                        .replaceAll("[áàäâ]", "a")
+                        .replaceAll("[éèëê]", "e")
+                        .replaceAll("[íìïî]", "i")
+                        .replaceAll("[óòöô]", "o")
+                        .replaceAll("[úùüû]", "u")
+                        .replaceAll("[ñ]", "n")
+                        .replaceAll("[^a-z0-9-]", "-")
+                        .replaceAll("-+", "-")
+                        .replaceAll("^-|-$", "");
+                if (!cleanSlug.isEmpty()) {
+                    if (bodegaRepository.existsBySlugIgnoreCaseAndIdBodegaNot(cleanSlug, bodega.getIdBodega())) {
+                        throw new RuntimeException("El enlace web personalizado '" + cleanSlug + "' ya está en uso por otra tienda.");
+                    }
+                    bodega.setSlug(cleanSlug);
+                }
+            }
+        }
+
         Bodega guardada = bodegaRepository.save(bodega);
 
 
@@ -1273,6 +1297,7 @@ public class BodegaService {
         dto.setRegimenTributario(b.getRegimenTributario() != null ? b.getRegimenTributario() : "NUEVO_RUS");
         dto.setEsNuevoRus(b.getRegimenTributario() == null || "NUEVO_RUS".equalsIgnoreCase(b.getRegimenTributario()));
         dto.setGiroNegocio(b.getGiroNegocio() != null ? b.getGiroNegocio() : "BODEGA");
+        dto.setSlug(b.getSlug());
 
 
 

@@ -7,6 +7,9 @@ import lombok.Data;
 @Data
 public class ActualizarBodegaDTO {
 
+    @Size(max = 100, message = "El slug personalizado no puede exceder 100 caracteres")
+    private String slug;
+
     @Size(min = 3, max = 150, message = "El nombre debe tener entre 3 y 150 caracteres")
     private String nombreComercial;
 

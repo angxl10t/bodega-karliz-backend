@@ -6,6 +6,7 @@ import java.time.OffsetDateTime;
 @Data
 public class BodegaDTO {
     private Long idBodega;
+    private String slug;
     private String nombreComercial;
     private String rucDni;
     private String direccion;

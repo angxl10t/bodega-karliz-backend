@@ -15,6 +15,9 @@ import org.springframework.data.repository.query.Param;
 @Repository
 public interface BodegaRepository extends JpaRepository<Bodega, Long> {
     Optional<Bodega> findByIdBodegaAndEstadoTrue(Long idBodega);
+    Optional<Bodega> findBySlugIgnoreCaseAndEstadoTrue(String slug);
+    boolean existsBySlugIgnoreCaseAndIdBodegaNot(String slug, Long idBodega);
+    boolean existsBySlugIgnoreCase(String slug);
     Optional<Bodega> findByRucDni(String rucDni);
     List<Bodega> findByEstadoTrueOrderByNombreComercialAsc();
     boolean existsByRucDni(String rucDni);

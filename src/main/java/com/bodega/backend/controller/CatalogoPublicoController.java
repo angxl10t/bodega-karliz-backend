@@ -117,6 +117,10 @@ public class CatalogoPublicoController {
         boolean catalogoAbierto = bodega.getCatalogoAbierto() == null || bodega.getCatalogoAbierto();
         boolean deliveryActivo = bodega.getDeliveryActivo() == null || bodega.getDeliveryActivo();
 
+        String slugBodega = (bodega.getSlug() != null && !bodega.getSlug().isBlank())
+                ? bodega.getSlug()
+                : normalizarSlug(bodega.getNombreComercial());
+        bodegaData.put("slug", slugBodega);
         bodegaData.put("plan", plan);
         bodegaData.put("esPro", esPro);
         bodegaData.put("abierto", catalogoAbierto);
@@ -125,6 +129,7 @@ public class CatalogoPublicoController {
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("bodega", bodegaData);
+        response.put("slug", slugBodega);
         response.put("giroNegocio", bodega.getGiroNegocio() != null ? bodega.getGiroNegocio() : "BODEGA");
         response.put("esPro", esPro);
         response.put("abierto", catalogoAbierto);
@@ -347,8 +352,21 @@ public class CatalogoPublicoController {
         }
 
         String targetSlug = normalizarSlug(raw);
+        if (!targetSlug.isBlank()) {
+            Optional<Bodega> bodegaPorSlug = bodegaRepository.findBySlugIgnoreCaseAndEstadoTrue(targetSlug);
+            if (bodegaPorSlug.isPresent()) {
+                return bodegaPorSlug.get();
+            }
+        }
+
         List<Bodega> bodegas = bodegaRepository.findByEstadoTrueOrderByNombreComercialAsc();
         for (Bodega b : bodegas) {
+            if (b.getSlug() != null && !b.getSlug().isBlank()) {
+                String bCustomSlug = normalizarSlug(b.getSlug());
+                if (bCustomSlug.equals(targetSlug) || bCustomSlug.replace("-", "").equals(targetSlug.replace("-", ""))) {
+                    return b;
+                }
+            }
             String bSlug = normalizarSlug(b.getNombreComercial());
             if (bSlug.equals(targetSlug) || bSlug.replace("-", "").equals(targetSlug.replace("-", ""))) {
                 return b;
@@ -356,6 +374,12 @@ public class CatalogoPublicoController {
         }
 
         for (Bodega b : bodegas) {
+            if (b.getSlug() != null && !b.getSlug().isBlank()) {
+                String bCustomSlug = normalizarSlug(b.getSlug());
+                if (bCustomSlug.contains(targetSlug) || targetSlug.contains(bCustomSlug)) {
+                    return b;
+                }
+            }
             String bSlug = normalizarSlug(b.getNombreComercial());
             if (bSlug.contains(targetSlug) || targetSlug.contains(bSlug)) {
                 return b;

@@ -10,7 +10,8 @@ import java.time.OffsetDateTime;
 @Entity
 @Table(name = "bodegas", indexes = {
     @Index(name = "idx_bodegas_estado", columnList = "estado"),
-    @Index(name = "idx_bodegas_plan", columnList = "plan")
+    @Index(name = "idx_bodegas_plan", columnList = "plan"),
+    @Index(name = "idx_bodegas_slug", columnList = "slug")
 })
 public class Bodega {
 
@@ -18,6 +19,9 @@ public class Bodega {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_bodega")
     private Long idBodega;
+
+    @Column(name = "slug", length = 100)
+    private String slug;
 
     @Column(name = "nombre_comercial", nullable = false, length = 150)
     private String nombreComercial;
