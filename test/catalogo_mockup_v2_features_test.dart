@@ -98,10 +98,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verificar que el placeholder del campo de notas se adapte al vuelto en efectivo
-      expect(
-        find.textContaining('¿Con cuánto pagas?'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('¿Con cuánto pagas?'), findsOneWidget);
 
       // Tocar en Yape nuevamente
       await tester.tap(find.text('Yape'));
