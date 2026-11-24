@@ -366,6 +366,13 @@ void main() {
     testWidgets(
       'Promotional pricing hierarchy renders base price with strikethrough and promo hero price with savings badge',
       (tester) async {
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
         final mockClient = MockClient((request) async {
           final data = {
             'esPro': true,

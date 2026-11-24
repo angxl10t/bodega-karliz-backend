@@ -58,7 +58,7 @@ void main() {
         final nombre0 = p0['nombre'] as String;
 
         // Scroll down so product cards are comfortably in view above the bottom bar on compact screens
-        await tester.drag(find.byType(CustomScrollView), const Offset(0, -440));
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, -520));
         await tester.pumpAndSettle();
 
         expect(find.text(nombre0), findsWidgets);

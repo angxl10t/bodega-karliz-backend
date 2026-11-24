@@ -144,6 +144,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
   bool _isEnviandoPedido = false;
   String _modalidadEntrega = 'DELIVERY'; // 'DELIVERY' | 'RECOJO'
+  String _metodoPagoSeleccionado =
+      'YAPE'; // 'YAPE' | 'PLIN' | 'EFECTIVO' | 'TARJETA'
+  bool _dejarGarantiaBotellas = false; // false = Canje envases vacíos (S/ 0.00), true = Garantía (+S/ 2.00 c/u)
   final TextEditingController _searchCtrl = TextEditingController();
   final TextEditingController _notasPedidoCtrl = TextEditingController();
   final ScrollController _catScrollCtrl = ScrollController();
@@ -644,6 +647,27 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
     return total;
   }
 
+  int get _totalBotellasRetornables {
+    int total = 0;
+    for (final item in _carrito.values) {
+      final prod =
+          _productosPorId[item.idProducto.toString()] ??
+          const <String, dynamic>{};
+      if (_esProductoRetornable(prod)) {
+        total += item.cantidad;
+      }
+    }
+    return total;
+  }
+
+  double get _montoGarantiaBotellas {
+    if (!_dejarGarantiaBotellas) return 0.0;
+    return _totalBotellasRetornables * 2.0;
+  }
+
+  double get _totalMontoFinalConGarantia =>
+      _totalMontoCarrito + _montoGarantiaBotellas;
+
   void _modificarCantidad(
     int idProducto,
     int delta, {
@@ -779,7 +803,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
 
       buffer.writeln('--------------------------------');
       buffer.writeln(
-        '*Total a Pagar: S/ ${_totalMontoCarrito.toStringAsFixed(2)}*',
+        '*Total a Pagar: S/ ${_totalMontoFinalConGarantia.toStringAsFixed(2)}*',
       );
       if (_totalAhorroCarrito > 0) {
         buffer.writeln(
@@ -793,8 +817,17 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         return _esProductoRetornable(p);
       });
       if (incluyeRetornables) {
-        buffer.writeln('(Incluye botellas retornables)');
+        if (_dejarGarantiaBotellas) {
+          buffer.writeln(
+            '• Envases: Dejaré depósito de garantía (+S/ ${_montoGarantiaBotellas.toStringAsFixed(2)})',
+          );
+        } else {
+          buffer.writeln(
+            '• Envases: Tengo botellas vacías listas para canje (S/ 0.00)',
+          );
+        }
       }
+      buffer.writeln('• Método de Pago: $_metodoPagoSeleccionado');
       buffer.writeln('');
       if (_esGastronomico) {
         if (_modalidadEntrega == 'RECOJO' ||
@@ -834,7 +867,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
         telefonoCliente: limpio,
         notas: notas,
         items: itemsParaBandeja,
-        total: _totalMontoCarrito,
+        total: _totalMontoFinalConGarantia,
         ahorroPromociones: _totalAhorroCarrito,
         incluyeRetornables: incluyeRetornables,
         estado: 'PENDIENTE',
@@ -2057,6 +2090,47 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                           crossAxisAlignment:
                                               WrapCrossAlignment.center,
                                           children: [
+                                            // Valoración y Calificación de la Tienda
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 9,
+                                                    vertical: 4,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.18,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: const Color(0xFFFDE047)
+                                                      .withValues(alpha: 0.45),
+                                                  width: 0.9,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.star,
+                                                    size: 12,
+                                                    color: Color(0xFFFACC15),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '4.9 (184)',
+                                                    style:
+                                                        GoogleFonts.plusJakartaSans(
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color: Colors.white,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                             // Estado Abierto / Cerrado
                                             Container(
                                               padding:
@@ -2696,6 +2770,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               child: _buildPromocionesHeroBanner(isDark, isTablet),
             ),
 
+            // Historias / Destacados Rápidos ("Stories" tipo Instagram / Rappi)
+            SliverToBoxAdapter(child: _buildStoriesRow(isDark, isTablet)),
+
             // Barra de Categorías con Iconos Temáticos, Conteo y Flechas Desktop
             SliverToBoxAdapter(
               child: Padding(
@@ -2840,6 +2917,245 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
               ),
             SliverToBoxAdapter(child: _buildFooterLegal(context, isDark)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoriesRow(bool isDark, bool isTablet) {
+    if (_productos.isEmpty) return const SizedBox.shrink();
+
+    final List<_StoryConfig> stories = [];
+
+    if (_esGastronomico) {
+      if (_ofertasCount > 0) {
+        stories.add(
+          const _StoryConfig(
+            label: 'Ofertas Flash',
+            icon: LucideIcons.flame,
+            gradient: [Color(0xFFF43F5E), Color(0xFFF59E0B)],
+            directCategory: 'OFERTAS',
+          ),
+        );
+      }
+      stories.addAll(const [
+        _StoryConfig(
+          label: 'Pollos Brasa',
+          icon: LucideIcons.drumstick,
+          gradient: [Color(0xFFEA580C), Color(0xFFF97316)],
+          keywords: ['POLLO', 'BRASA', 'COMBO'],
+        ),
+        _StoryConfig(
+          label: 'Chifa & Chaufa',
+          icon: LucideIcons.utensilsCrossed,
+          gradient: [Color(0xFFDC2626), Color(0xFFB91C1C)],
+          keywords: ['CHIFA', 'CHAUFA', 'AEROPUERTO', 'TALLARIN'],
+        ),
+        _StoryConfig(
+          label: 'Guarniciones',
+          icon: LucideIcons.utensils,
+          gradient: [Color(0xFFEAB308), Color(0xFFCA8A04)],
+          keywords: ['GUARNICION', 'PAPA', 'PORCION'],
+        ),
+        _StoryConfig(
+          label: 'Jarras & Bebidas',
+          icon: LucideIcons.cupSoda,
+          gradient: [Color(0xFF0284C7), Color(0xFF0369A1)],
+          keywords: ['BEBIDA', 'JARRA', 'CHICHA', 'REFRESCO', 'GASEOSA'],
+        ),
+        _StoryConfig(
+          label: 'Salsas & Ají',
+          icon: LucideIcons.sparkles,
+          gradient: [Color(0xFF16A34A), Color(0xFF15803D)],
+          keywords: ['SALSA', 'AJI', 'CREMA', 'EXTRA'],
+        ),
+      ]);
+    } else {
+      if (_ofertasCount > 0) {
+        stories.add(
+          const _StoryConfig(
+            label: 'Ofertas Flash',
+            icon: LucideIcons.flame,
+            gradient: [Color(0xFFF43F5E), Color(0xFFF59E0B)],
+            directCategory: 'OFERTAS',
+          ),
+        );
+      }
+      stories.addAll(const [
+        _StoryConfig(
+          label: 'Chelas & Licores',
+          icon: LucideIcons.bottleWine,
+          gradient: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
+          keywords: ['ALCOHOL', 'LICOR', 'CERVEZA', 'VINOS'],
+        ),
+        _StoryConfig(
+          label: 'Gaseosas',
+          icon: LucideIcons.cupSoda,
+          gradient: [Color(0xFF38BDF8), Color(0xFF2563EB)],
+          keywords: ['GASEOSA', 'BEBIDA', 'REFRESCO', 'AGUA'],
+        ),
+        _StoryConfig(
+          label: 'Snacks Snax',
+          icon: LucideIcons.cookie,
+          gradient: [Color(0xFFFBBF24), Color(0xFFEA580C)],
+          keywords: ['SNACK', 'PIQUEO', 'PAPAS', 'DORITOS'],
+        ),
+        _StoryConfig(
+          label: 'Lácteos Gloria',
+          icon: LucideIcons.milk,
+          gradient: [Color(0xFF60A5FA), Color(0xFF6366F1)],
+          keywords: ['LÁCTEO', 'LACTEO', 'LECHE', 'YOGURT', 'QUESO', 'HUEVO'],
+        ),
+        _StoryConfig(
+          label: 'Despensa Básica',
+          icon: LucideIcons.shoppingBag,
+          gradient: [Color(0xFF34D399), Color(0xFF059669)],
+          keywords: [
+            'ABARROTE',
+            'DESPENSA',
+            'VÍVERE',
+            'ARROZ',
+            'AZÚCAR',
+            'ACEITE',
+          ],
+        ),
+        _StoryConfig(
+          label: 'Hogar & Aseo',
+          icon: LucideIcons.sparkles,
+          gradient: [Color(0xFF22D3EE), Color(0xFF0D9488)],
+          keywords: ['LIMPIEZA', 'ASEO', 'HOGAR', 'DETERGENTE', 'JABÓN'],
+        ),
+      ]);
+    }
+
+    final activeStories = <_ResolvedStory>[];
+    for (final s in stories) {
+      if (s.directCategory != null) {
+        activeStories.add(
+          _ResolvedStory(config: s, targetCategory: s.directCategory!),
+        );
+      } else {
+        String? match;
+        for (final cat in _categorias) {
+          final catU = cat.toUpperCase();
+          for (final kw in s.keywords) {
+            if (catU.contains(kw.toUpperCase())) {
+              match = cat;
+              break;
+            }
+          }
+          if (match != null) break;
+        }
+        if (match != null &&
+            (_conteoPorCategoria[match.trim().toUpperCase()] ?? 0) > 0) {
+          activeStories.add(_ResolvedStory(config: s, targetCategory: match));
+        }
+      }
+    }
+
+    if (activeStories.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: EdgeInsets.only(top: isTablet ? 6 : 4, bottom: isTablet ? 8 : 4),
+      padding: EdgeInsets.symmetric(horizontal: isTablet ? 20 : 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: activeStories.map((resolved) {
+            final isSelected =
+                _categoriaSeleccionada.toUpperCase() ==
+                resolved.targetCategory.toUpperCase();
+            final double ringSize = isTablet ? 56 : 50;
+            final double iconSize = isTablet ? 23 : 20;
+
+            return Padding(
+              padding: EdgeInsets.only(right: isTablet ? 14 : 10),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() {
+                    if (isSelected) {
+                      _categoriaSeleccionada = 'TODAS';
+                    } else {
+                      _categoriaSeleccionada = resolved.targetCategory;
+                    }
+                    _recomputeProductosFiltrados();
+                  });
+                },
+                child: SizedBox(
+                  width: isTablet ? 72 : 64,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: ringSize,
+                        height: ringSize,
+                        padding: const EdgeInsets.all(2.4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: resolved.config.gradient,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: resolved.config.gradient.first.withValues(
+                                alpha: isSelected ? 0.45 : 0.22,
+                              ),
+                              blurRadius: isSelected ? 8 : 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? resolved.config.gradient.first
+                                : (isDark
+                                      ? const Color(0xFF0F172A)
+                                      : Colors.white),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              resolved.config.icon,
+                              size: iconSize,
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B)),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        resolved.config.label,
+                        style: GoogleFonts.outfit(
+                          fontSize: isTablet ? 11 : 10,
+                          fontWeight: isSelected
+                              ? FontWeight.w900
+                              : FontWeight.w700,
+                          color: isSelected
+                              ? _colorMarcaTexto(isDark)
+                              : (isDark
+                                    ? const Color(0xFFE2E8F0)
+                                    : const Color(0xFF334155)),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );
@@ -5939,53 +6255,277 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                         ),
                       ),
 
-                      // Aviso de Botellas Retornables si el carrito las contiene
+                      // Asistente Interactivo de Botellas Retornables
                       Builder(
                         builder: (_) {
-                          final bool tieneRetornables = _carrito.values.any((
-                            item,
-                          ) {
-                            final p =
-                                _productosPorId[item.idProducto.toString()] ??
-                                const <String, dynamic>{};
-                            return _esProductoRetornable(p);
-                          });
-                          if (!tieneRetornables) return const SizedBox.shrink();
+                          if (_totalBotellasRetornables == 0) {
+                            return const SizedBox.shrink();
+                          }
                           return Container(
-                            margin: const EdgeInsets.fromLTRB(18, 0, 18, 6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
+                            margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0284C7)
-                                  .withValues(alpha: isDark ? 0.20 : 0.10),
-                              borderRadius: BorderRadius.circular(12),
+                              color: isDark
+                                  ? const Color(0xFF082F49)
+                                        .withValues(alpha: 0.50)
+                                  : const Color(0xFFF0F9FF),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
                                 color: const Color(0xFF0284C7)
-                                    .withValues(alpha: 0.35),
-                                width: 0.8,
+                                    .withValues(alpha: isDark ? 0.45 : 0.35),
+                                width: 1.0,
                               ),
                             ),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(
-                                  LucideIcons.bottleWine,
-                                  size: 16,
-                                  color: Color(0xFF0284C7),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Tu pedido incluye botellas retornables. Recuerda tener tus envases vacíos a cambio al recibir o se cobrará garantía.',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? const Color(0xFF7DD3FC)
-                                          : const Color(0xFF0369A1),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0284C7)
+                                            .withValues(alpha: 0.18),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.bottleWine,
+                                        size: 16,
+                                        color: Color(0xFF0284C7),
+                                      ),
                                     ),
-                                  ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Envases Retornables ($_totalBotellasRetornables ${_totalBotellasRetornables == 1 ? "botella" : "botellas"})',
+                                            style: GoogleFonts.outfit(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w800,
+                                              color: isDark
+                                                  ? const Color(0xFF7DD3FC)
+                                                  : const Color(0xFF0369A1),
+                                            ),
+                                          ),
+                                          Text(
+                                            '¿Cuentas con envases vacíos para entregar al recibir?',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: isDark
+                                                  ? const Color(0xFFBAE6FD)
+                                                  : const Color(0xFF075985),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    // Opción 1: Tengo envases vacíos (S/ 0.00 canje)
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () {
+                                          HapticFeedback.selectionClick();
+                                          setModalState(() {
+                                            _dejarGarantiaBotellas = false;
+                                          });
+                                          setState(() {});
+                                        },
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 160,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                            horizontal: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: !_dejarGarantiaBotellas
+                                                ? const Color(0xFF0284C7)
+                                                : (isDark
+                                                      ? const Color(0xFF0F172A)
+                                                      : Colors.white),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: !_dejarGarantiaBotellas
+                                                  ? const Color(0xFF0284C7)
+                                                  : (isDark
+                                                        ? const Color(
+                                                            0xFF334155,
+                                                          )
+                                                        : const Color(
+                                                            0xFFCBD5E1,
+                                                          )),
+                                              width: 1.2,
+                                            ),
+                                            boxShadow: !_dejarGarantiaBotellas
+                                                ? [
+                                                    BoxShadow(
+                                                      color: const Color(
+                                                        0xFF0284C7,
+                                                      ).withValues(alpha: 0.25),
+                                                      blurRadius: 6,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ]
+                                                : null,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                !_dejarGarantiaBotellas
+                                                    ? LucideIcons.checkCircle2
+                                                    : LucideIcons.circle,
+                                                size: 13,
+                                                color: !_dejarGarantiaBotellas
+                                                    ? Colors.white
+                                                    : (isDark
+                                                          ? Colors.white60
+                                                          : const Color(
+                                                              0xFF64748B,
+                                                            )),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Flexible(
+                                                child: Text(
+                                                  'Canje (S/ 0.00)',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color:
+                                                        !_dejarGarantiaBotellas
+                                                        ? Colors.white
+                                                        : (isDark
+                                                              ? Colors.white
+                                                              : const Color(
+                                                                  0xFF0F172A,
+                                                                )),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // Opción 2: Dejar garantía (+S/ 2.00 c/u)
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () {
+                                          HapticFeedback.selectionClick();
+                                          setModalState(() {
+                                            _dejarGarantiaBotellas = true;
+                                          });
+                                          setState(() {});
+                                        },
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(
+                                            milliseconds: 160,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                            horizontal: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _dejarGarantiaBotellas
+                                                ? const Color(0xFFD97706)
+                                                : (isDark
+                                                      ? const Color(0xFF0F172A)
+                                                      : Colors.white),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            border: Border.all(
+                                              color: _dejarGarantiaBotellas
+                                                  ? const Color(0xFFD97706)
+                                                  : (isDark
+                                                        ? const Color(
+                                                            0xFF334155,
+                                                          )
+                                                        : const Color(
+                                                            0xFFCBD5E1,
+                                                          )),
+                                              width: 1.2,
+                                            ),
+                                            boxShadow: _dejarGarantiaBotellas
+                                                ? [
+                                                    BoxShadow(
+                                                      color: const Color(
+                                                        0xFFD97706,
+                                                      ).withValues(alpha: 0.25),
+                                                      blurRadius: 6,
+                                                      offset: const Offset(
+                                                        0,
+                                                        2,
+                                                      ),
+                                                    ),
+                                                  ]
+                                                : null,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                _dejarGarantiaBotellas
+                                                    ? LucideIcons.checkCircle2
+                                                    : LucideIcons.circle,
+                                                size: 13,
+                                                color: _dejarGarantiaBotellas
+                                                    ? Colors.white
+                                                    : (isDark
+                                                          ? Colors.white60
+                                                          : const Color(
+                                                              0xFF64748B,
+                                                            )),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Flexible(
+                                                child: Text(
+                                                  'Garantía (+S/ 2.00)',
+                                                  style: GoogleFonts.outfit(
+                                                    fontSize: 11.5,
+                                                    fontWeight: FontWeight.w800,
+                                                    color:
+                                                        _dejarGarantiaBotellas
+                                                        ? Colors.white
+                                                        : (isDark
+                                                              ? Colors.white
+                                                              : const Color(
+                                                                  0xFF0F172A,
+                                                                )),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -5997,7 +6537,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 18,
-                          vertical: 8,
+                          vertical: 6,
                         ),
                         child: TextField(
                           controller: notasCtrl,
@@ -6006,7 +6546,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                             color: isDark ? Colors.white : AppTheme.textDark,
                           ),
                           decoration: InputDecoration(
-                            hintText: _hintNotasPedido,
+                            hintText: _metodoPagoSeleccionado == 'EFECTIVO'
+                                ? '¿Con cuánto pagas? (ej. Billete de 50 para vuelto)'
+                                : _hintNotasPedido,
                             hintStyle: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               color: isDark
@@ -6038,6 +6580,69 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                             ),
                           ),
+                        ),
+                      ),
+
+                      // Selector Visual de Método de Pago
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 6,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Método de Pago',
+                              style: GoogleFonts.outfit(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF475569),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                _buildMetodoPagoChip(
+                                  label: 'Yape',
+                                  metodo: 'YAPE',
+                                  icon: LucideIcons.smartphone,
+                                  accentColor: const Color(0xFF7C3AED),
+                                  isDark: isDark,
+                                  setModalState: setModalState,
+                                ),
+                                const SizedBox(width: 6),
+                                _buildMetodoPagoChip(
+                                  label: 'Plin',
+                                  metodo: 'PLIN',
+                                  icon: LucideIcons.zap,
+                                  accentColor: const Color(0xFF0284C7),
+                                  isDark: isDark,
+                                  setModalState: setModalState,
+                                ),
+                                const SizedBox(width: 6),
+                                _buildMetodoPagoChip(
+                                  label: 'Efectivo',
+                                  metodo: 'EFECTIVO',
+                                  icon: LucideIcons.banknote,
+                                  accentColor: const Color(0xFF16A34A),
+                                  isDark: isDark,
+                                  setModalState: setModalState,
+                                ),
+                                const SizedBox(width: 6),
+                                _buildMetodoPagoChip(
+                                  label: 'Tarjeta',
+                                  metodo: 'TARJETA',
+                                  icon: LucideIcons.creditCard,
+                                  accentColor: const Color(0xFFEA580C),
+                                  isDark: isDark,
+                                  setModalState: setModalState,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
 
@@ -6084,6 +6689,42 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                               ),
                               const SizedBox(height: 6),
                             ],
+                            if (_dejarGarantiaBotellas &&
+                                _totalBotellasRetornables > 0) ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.bottleWine,
+                                        size: 13,
+                                        color: Color(0xFFD97706),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'Garantía Envases ($_totalBotellasRetornables x S/ 2.00):',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFFD97706),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    '+ S/ ${_montoGarantiaBotellas.toStringAsFixed(2)}',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      color: const Color(0xFFD97706),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                            ],
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -6103,7 +6744,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'S/ ${_totalMontoCarrito.toStringAsFixed(2)}',
+                                  'S/ ${_totalMontoFinalConGarantia.toStringAsFixed(2)}',
                                   style: GoogleFonts.outfit(
                                     fontSize: 21,
                                     fontWeight: FontWeight.w900,
@@ -6202,6 +6843,81 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildMetodoPagoChip({
+    required String label,
+    required String metodo,
+    required IconData icon,
+    required Color accentColor,
+    required bool isDark,
+    required void Function(void Function()) setModalState,
+  }) {
+    final bool isSelected = _metodoPagoSeleccionado == metodo;
+    return Expanded(
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          setModalState(() {
+            _metodoPagoSeleccionado = metodo;
+          });
+          setState(() {});
+        },
+        borderRadius: BorderRadius.circular(10),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? accentColor.withValues(alpha: isDark ? 0.25 : 0.14)
+                : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC)),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected
+                  ? accentColor
+                  : (isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFCBD5E1)),
+              width: isSelected ? 1.6 : 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.20),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected
+                    ? accentColor
+                    : (isDark ? Colors.white70 : const Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                  color: isSelected
+                      ? accentColor
+                      : (isDark ? Colors.white : const Color(0xFF1E293B)),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -6337,7 +7053,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                   ],
                                 ),
                                 Text(
-                                  'S/ ${_totalMontoCarrito.toStringAsFixed(2)}',
+                                  'S/ ${_totalMontoFinalConGarantia.toStringAsFixed(2)}',
                                   style: GoogleFonts.outfit(
                                     fontSize: isTablet ? 21 : 16.5,
                                     fontWeight: FontWeight.w900,
@@ -6486,4 +7202,27 @@ class _CatalogoDeviceConfig {
     required this.gridSpacing,
     required this.isTablet,
   });
+}
+
+class _StoryConfig {
+  final String label;
+  final IconData icon;
+  final List<Color> gradient;
+  final String? directCategory;
+  final List<String> keywords;
+
+  const _StoryConfig({
+    required this.label,
+    required this.icon,
+    required this.gradient,
+    this.directCategory,
+    this.keywords = const [],
+  });
+}
+
+class _ResolvedStory {
+  final _StoryConfig config;
+  final String targetCategory;
+
+  const _ResolvedStory({required this.config, required this.targetCategory});
 }
