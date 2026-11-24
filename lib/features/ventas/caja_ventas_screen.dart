@@ -247,11 +247,12 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       }
 
       final partes = clave.split('-');
-      final fecha = DateTime(
-        int.parse(partes[0]),
-        int.parse(partes[1]),
-        int.parse(partes[2]),
-      );
+      final y = partes.isNotEmpty
+          ? (int.tryParse(partes[0]) ?? DateTime.now().year)
+          : DateTime.now().year;
+      final m = partes.length > 1 ? (int.tryParse(partes[1]) ?? 1) : 1;
+      final d = partes.length > 2 ? (int.tryParse(partes[2]) ?? 1) : 1;
+      final fecha = DateTime(y, m, d);
 
       resultado.add(
         CierreCaja(

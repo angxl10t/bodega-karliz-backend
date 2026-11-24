@@ -89,7 +89,9 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
     setState(() => _isSubmitting = true);
 
     try {
-      final double? monto = double.tryParse(_montoCtrl.text.trim());
+      final double? monto = double.tryParse(
+        _montoCtrl.text.replaceAll(',', '.').trim(),
+      );
       final Map<String, dynamic> body = {
         if (widget.idBodega != null) 'idBodega': widget.idBodega,
         'nombreReclamante': _nombreCtrl.text.trim(),

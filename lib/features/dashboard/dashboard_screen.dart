@@ -641,7 +641,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
             onPressed: () {
-              final val = double.tryParse(ctrl.text.trim());
+              final val = double.tryParse(
+                ctrl.text.replaceAll(',', '.').trim(),
+              );
               if (val != null && val > 0) {
                 _guardarMetaDiaria(val);
                 Navigator.pop(ctx);

@@ -79,7 +79,8 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
   }
 
   Future<void> _procesarAbono() async {
-    final monto = double.tryParse(_montoCtrl.text.trim()) ?? 0.0;
+    final monto =
+        double.tryParse(_montoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
     if (monto <= 0) {
       setState(() => _errorMsg = 'El monto a abonar debe ser mayor a S/ 0.00');
       return;
@@ -146,10 +147,20 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
         '✨ *Saldo Restante:* S/ ${_abonoCreado!.saldoRestante.toStringAsFixed(2)}\n\n'
         '¡Muchas gracias por su puntualidad!';
 
-    final uri = Uri.parse(
-      'https://wa.me/$tel?text=${Uri.encodeComponent(mensaje)}',
-    );
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(
+        'https://wa.me/$tel?text=${Uri.encodeComponent(mensaje)}',
+      );
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint(
+        'No se pudo abrir WhatsApp para enviar constancia de abono: $e',
+      );
+    }
   }
 
   Future<void> _imprimirComprobanteTermico() async {

@@ -821,9 +821,10 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
       return;
     }
 
-    final cant = double.tryParse(_cantidadCtrl.text.trim()) ?? 0.0;
+    final cant =
+        double.tryParse(_cantidadCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
     final costo =
-        double.tryParse(_costoCtrl.text.trim()) ??
+        double.tryParse(_costoCtrl.text.replaceAll(',', '.').trim()) ??
         _productoSeleccionado!.costoUnitarioEstimado;
 
     if (cant <= 0) {
@@ -1272,11 +1273,17 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
                                 builder: (_) {
                                   final cant =
                                       double.tryParse(
-                                        _cantidadCtrl.text.trim(),
+                                        _cantidadCtrl.text
+                                            .replaceAll(',', '.')
+                                            .trim(),
                                       ) ??
                                       0.0;
                                   final cost =
-                                      double.tryParse(_costoCtrl.text.trim()) ??
+                                      double.tryParse(
+                                        _costoCtrl.text
+                                            .replaceAll(',', '.')
+                                            .trim(),
+                                      ) ??
                                       0.0;
                                   final total = cant * cost;
                                   return Container(

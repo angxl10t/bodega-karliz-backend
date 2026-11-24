@@ -995,7 +995,9 @@ class _VentasScreenState extends State<VentasScreen>
       setState(() {
         item.cantidad += inc;
         if (item.producto.esPesableOGranel) {
-          item.cantidad = double.parse(item.cantidad.toStringAsFixed(3));
+          item.cantidad =
+              double.tryParse(item.cantidad.toStringAsFixed(3)) ??
+              item.cantidad;
         }
         _actualizarMontoExactoSiCorresponde(totalAnterior);
       });
@@ -1019,9 +1021,9 @@ class _VentasScreenState extends State<VentasScreen>
       final item = _carrito[index];
       if (item.producto.esPesableOGranel) {
         if (item.cantidad > 0.25) {
-          item.cantidad = double.parse(
-            (item.cantidad - 0.25).toStringAsFixed(3),
-          );
+          item.cantidad =
+              double.tryParse((item.cantidad - 0.25).toStringAsFixed(3)) ??
+              (item.cantidad - 0.25);
         } else {
           _carrito.removeAt(index);
         }

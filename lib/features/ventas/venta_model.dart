@@ -64,13 +64,16 @@ class CartItem {
   });
 
   double get subtotalBruto =>
-      double.parse((producto.precioVenta * cantidad).toStringAsFixed(2));
-  double get subtotal => double.parse(
-    ((subtotalBruto - descuentoManual).clamp(
-      0.0,
-      double.infinity,
-    )).toStringAsFixed(2),
-  );
+      double.tryParse((producto.precioVenta * cantidad).toStringAsFixed(2)) ??
+      0.0;
+  double get subtotal =>
+      double.tryParse(
+        ((subtotalBruto - descuentoManual).clamp(
+          0.0,
+          double.infinity,
+        )).toStringAsFixed(2),
+      ) ??
+      0.0;
 
   Map<String, dynamic> toJson() => {
     'producto': producto.toJson(),

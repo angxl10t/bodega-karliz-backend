@@ -216,7 +216,8 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
       final double valDescuento =
           (_tipoPromocion == 'DOS_POR_UNO' || _tipoPromocion == 'TRES_POR_DOS')
           ? 0.0
-          : (double.tryParse(_descuentoCtrl.text.trim()) ?? 0.0);
+          : (double.tryParse(_descuentoCtrl.text.replaceAll(',', '.').trim()) ??
+                0.0);
 
       String? fInicioStr;
       if (_fechaInicio != null) {

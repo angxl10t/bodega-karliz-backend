@@ -309,7 +309,16 @@ class ClienteService {
     final urlString =
         'https://wa.me/$tel?text=${Uri.encodeComponent(mensajeCompleto)}';
 
-    final uri = Uri.parse(urlString);
-    return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(urlString);
+      if (await canLaunchUrl(uri)) {
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        return await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint('Error abriendo WhatsApp para recordar fiado: $e');
+      return false;
+    }
   }
 }

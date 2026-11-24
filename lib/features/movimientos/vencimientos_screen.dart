@@ -107,9 +107,9 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
 
   Future<void> _mostrarDialogoRemate(Producto p) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final precioSugerido = double.parse(
-      (p.precioVenta * 0.75).toStringAsFixed(2),
-    );
+    final precioSugerido =
+        double.tryParse((p.precioVenta * 0.75).toStringAsFixed(2)) ??
+        (p.precioVenta * 0.75);
     final recuperable = precioSugerido * p.stockActual;
 
     final confirmar = await showDialog<bool>(

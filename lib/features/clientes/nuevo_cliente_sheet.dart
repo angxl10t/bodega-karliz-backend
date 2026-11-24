@@ -145,7 +145,8 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
       _errorMsg = null;
     });
 
-    final limite = double.tryParse(_limiteCtrl.text.trim()) ?? 200.0;
+    final limite =
+        double.tryParse(_limiteCtrl.text.replaceAll(',', '.').trim()) ?? 200.0;
     final data = {
       'nombreCompleto': _nombreCtrl.text.trim(),
       'documento': _docCtrl.text.trim().isNotEmpty

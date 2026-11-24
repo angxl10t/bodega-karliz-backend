@@ -90,10 +90,10 @@ class Cliente {
       notas: json['notas'] as String?,
       estado: json['estado'] as bool? ?? true,
       fechaRegistro: json['fechaRegistro'] != null
-          ? DateTime.tryParse(json['fechaRegistro'])
+          ? DateTime.tryParse(json['fechaRegistro'].toString())
           : null,
       fechaUltimoPago: json['fechaUltimoPago'] != null
-          ? DateTime.tryParse(json['fechaUltimoPago'])
+          ? DateTime.tryParse(json['fechaUltimoPago'].toString())
           : null,
     );
   }
@@ -152,7 +152,7 @@ class AbonoCredito {
       notas: json['notas'] as String?,
       usuarioRegistro: json['usuarioRegistro'] as String?,
       fechaAbono: json['fechaAbono'] != null
-          ? DateTime.tryParse(json['fechaAbono']) ?? DateTime.now()
+          ? DateTime.tryParse(json['fechaAbono'].toString()) ?? DateTime.now()
           : DateTime.now(),
     );
   }

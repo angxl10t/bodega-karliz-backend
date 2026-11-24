@@ -5159,7 +5159,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 ),
                               ),
                               validator: (v) {
-                                final n = double.tryParse(v ?? '');
+                                final n = double.tryParse(
+                                  (v ?? '').replaceAll(',', '.').trim(),
+                                );
                                 if (n == null || n < 0)
                                   return 'Precio inválido';
                                 return null;
@@ -5182,7 +5184,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 ),
                               ),
                               validator: (v) {
-                                final n = double.tryParse(v ?? '');
+                                final n = double.tryParse(
+                                  (v ?? '').replaceAll(',', '.').trim(),
+                                );
                                 if (n == null || n < 0) return 'Costo inválido';
                                 return null;
                               },
@@ -5680,7 +5684,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 onPressed: enviando
                     ? null
                     : () async {
-                        final v = double.tryParse(precioVentaCtrl.text.trim());
+                        final v = double.tryParse(
+                          precioVentaCtrl.text.replaceAll(',', '.').trim(),
+                        );
                         if (v == null || v <= 0) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -5701,7 +5707,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                                 'codigoBarras': item.codigoBarras,
                                 'precioVentaSugerido': v,
                                 'precioCostoSugerido': double.tryParse(
-                                  precioCostoCtrl.text.trim(),
+                                  precioCostoCtrl.text
+                                      .replaceAll(',', '.')
+                                      .trim(),
                                 ),
                                 'nombreSugerido':
                                     nombreCtrl.text.trim().isNotEmpty
