@@ -33,7 +33,13 @@ class CategoryHelper {
         lower == 'bebidas') {
       return 'Gaseosas y Bebidas';
     }
-    if (lower == 'licores y cervezas') return 'Bebidas Alcohólicas';
+    if (lower == 'licores y cervezas' ||
+        lower == 'cervezas y licores' ||
+        lower == 'bebidas alcoholicas' ||
+        lower == 'licores' ||
+        lower == 'cervezas') {
+      return 'Bebidas Alcohólicas';
+    }
     if (lower == 'snacks y golosinas') return 'Snacks y Piqueos';
     if (lower == 'lacteos y huevos') return 'Lácteos y Derivados';
     if (lower == 'abarrotes y fideos') return 'Abarrotes y Despensa';
@@ -62,6 +68,7 @@ class CategoryHelper {
       return LucideIcons.layoutGrid;
     }
     // Bebidas Alcohólicas ANTES que Bebidas genéricas para diferenciar icono
+    // Adopta LucideIcons.bottleWine (botella de vidrio oficial unificada para licores/cervezas)
     if (cat.contains('alcohol') ||
         cat.contains('licor') ||
         cat.contains('cervez') ||
@@ -69,7 +76,7 @@ class CategoryHelper {
         cat.contains('pisco') ||
         cat.contains('whisky') ||
         cat.contains('ron')) {
-      return LucideIcons.wine;
+      return LucideIcons.bottleWine;
     }
     if (cat.contains('bebid') ||
         cat.contains('gaseos') ||

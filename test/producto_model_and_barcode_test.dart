@@ -286,7 +286,10 @@ void main() {
     test('Correctly maps retail categories to Lucide icons', () {
       expect(CategoryHelper.getIcon('Bebidas'), LucideIcons.cupSoda);
       expect(CategoryHelper.getIcon('Gaseosas y Jugos'), LucideIcons.cupSoda);
-      expect(CategoryHelper.getIcon('Bebidas Alcohólicas'), LucideIcons.wine);
+      expect(
+        CategoryHelper.getIcon('Bebidas Alcohólicas'),
+        LucideIcons.bottleWine,
+      );
       expect(CategoryHelper.getIcon('Snacks y Piqueos'), LucideIcons.popcorn);
       expect(CategoryHelper.getIcon('Abarrotes'), LucideIcons.shoppingBasket);
       expect(
