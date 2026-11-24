@@ -111,6 +111,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   String _lemaBodega = '';
   String _username = 'Cajero';
   String _plan = 'BASICO';
+  String _regimenTributario = 'NUEVO_RUS';
 
   DateTime _fechaSeleccionada = DateTime.now();
   bool _filtrarVentasPorFecha = false;
@@ -355,6 +356,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
 
     try {
       final auth = AuthService();
+      ConfiguracionTicketService.cargar();
       final arqueoHoyFuture = _ventaService.getArqueoCompleto(
         _fechaSeleccionada,
       );
@@ -368,6 +370,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       final telefonoFuture = auth.getTelefonoBodega();
       final lemaFuture = auth.getLemaComercial();
       final planFuture = auth.getPlanBodega();
+      final regimenFuture = auth.getRegimenTributario();
 
       final results = await Future.wait([
         arqueoHoyFuture,
@@ -381,6 +384,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         telefonoFuture,
         lemaFuture,
         planFuture,
+        regimenFuture,
       ]);
 
       final arqueoHoy = results[0] as CierreCaja?;
@@ -394,6 +398,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       final telefono = (results[8] as String?) ?? '';
       final lema = (results[9] as String?) ?? '';
       final plan = (results[10] as String?) ?? 'BASICO';
+      final regimen = (results[11] as String?) ?? 'NUEVO_RUS';
 
       if (historial.isEmpty && ventas.isNotEmpty) {
         historial = _calcularHistorialDesdeVentas(ventas);
@@ -420,6 +425,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           _telefonoBodega = telefono;
           _lemaBodega = lema;
           _plan = plan;
+          _regimenTributario = regimen;
           _isLoading = false;
         });
       }
@@ -6925,6 +6931,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       direccion: _direccionBodega.isNotEmpty ? _direccionBodega : null,
       telefono: _telefonoBodega.isNotEmpty ? _telefonoBodega : null,
       lemaComercial: _lemaBodega.isNotEmpty ? _lemaBodega : null,
+      regimenTributario: _regimenTributario,
     );
   }
 }
