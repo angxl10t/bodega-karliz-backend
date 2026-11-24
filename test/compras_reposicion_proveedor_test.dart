@@ -152,7 +152,10 @@ void main() {
 
         // Debe abrir el modal con el título de sugerencia de reposición
         expect(find.text('Sugerencia de Reposición'), findsOneWidget);
-        expect(find.textContaining('Arca Continental Lindley S.A.'), findsWidgets);
+        expect(
+          find.textContaining('Arca Continental Lindley S.A.'),
+          findsWidgets,
+        );
         expect(find.textContaining('1 por reponer'), findsWidgets);
         expect(find.text('Cargar Todo'), findsOneWidget);
       },
