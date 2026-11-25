@@ -375,6 +375,10 @@ class _ProductosScreenState extends State<ProductosScreen>
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final screenWidth = MediaQuery.of(context).size.width;
     final isNarrowScreen = screenWidth < 600;
+    final isMobileFullScroll =
+        !ResponsiveLayout.isPhysicalTablet(context) &&
+        (ResponsiveLayout.isMobile(context) ||
+            MediaQuery.sizeOf(context).height < 520);
 
     final items = _safeTodos;
     final int bajoStockCount = items.where((p) {
@@ -395,702 +399,313 @@ class _ProductosScreenState extends State<ProductosScreen>
         .length;
     final int totalAlertasStock = bajoStockCount + criticoCount;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: RefreshIndicator(
-        onRefresh: () => _cargarProductos(forceRefresh: true),
-        color: AppTheme.brandPrimary,
-        child: Column(
+    final topSections = <Widget>[
+      // 1. Cabecera Compacta Integrada (Título + Resumen Minimalista + Acciones de Alto Nivel)
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        color: cardBg,
+        child: Row(
           children: [
-            // 1. Cabecera Compacta Integrada (Título + Resumen Minimalista + Acciones de Alto Nivel)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: cardBg,
-              child: Row(
+            if (ModalRoute.of(context)?.canPop ?? false) ...[
+              IconButton(
+                icon: const Icon(LucideIcons.arrowLeft, size: 20),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                tooltip: 'Regresar',
+                onPressed: () => Navigator.maybePop(context),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (ModalRoute.of(context)?.canPop ?? false) ...[
-                    IconButton(
-                      icon: const Icon(LucideIcons.arrowLeft, size: 20),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minWidth: 36,
-                        minHeight: 36,
-                      ),
-                      tooltip: 'Regresar',
-                      onPressed: () => Navigator.maybePop(context),
+                  Text(
+                    _esGastronomico ? 'Carta & Menú' : 'Stock & Inventario',
+                    style: GoogleFonts.outfit(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                      color: isDark ? Colors.white : AppTheme.textDark,
                     ),
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  const SizedBox(height: 2),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _esGastronomico
-                              ? 'Carta & Menú'
-                              : 'Stock & Inventario',
-                          style: GoogleFonts.outfit(
-                            fontSize: 16.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.2,
-                            color: isDark ? Colors.white : AppTheme.textDark,
+                          '${items.length} ${_esGastronomico ? "platos/ítems" : "items"}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${items.length} ${_esGastronomico ? "platos/ítems" : "items"}',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.getAdaptiveMutedText(isDark),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 3,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.getAdaptiveMutedText(isDark),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                totalAlertasStock > 0
-                                    ? '$totalAlertasStock ${_esGastronomico ? "insumos por agotar" : "por agotar"}'
-                                    : (_esGastronomico
-                                          ? 'Carta disponible'
-                                          : 'Stock saludable'),
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: totalAlertasStock > 0
-                                      ? (isDark
-                                            ? const Color(0xFFFBBF24)
-                                            : const Color(0xFFD97706))
-                                      : AppTheme.accentGreen,
-                                ),
-                              ),
-                              if (_bodegaInfo != null) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  width: 3,
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.getAdaptiveMutedText(
-                                      isDark,
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                _buildCuotaPlanBadge(isDark),
-                              ],
-                            ],
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 3,
+                          height: 3,
+                          decoration: BoxDecoration(
+                            color: AppTheme.getAdaptiveMutedText(isDark),
+                            shape: BoxShape.circle,
                           ),
                         ),
+                        const SizedBox(width: 6),
+                        Text(
+                          totalAlertasStock > 0
+                              ? '$totalAlertasStock ${_esGastronomico ? "insumos por agotar" : "por agotar"}'
+                              : (_esGastronomico
+                                    ? 'Carta disponible'
+                                    : 'Stock saludable'),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: totalAlertasStock > 0
+                                ? (isDark
+                                      ? const Color(0xFFFBBF24)
+                                      : const Color(0xFFD97706))
+                                : AppTheme.accentGreen,
+                          ),
+                        ),
+                        if (_bodegaInfo != null) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 3,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: AppTheme.getAdaptiveMutedText(isDark),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          _buildCuotaPlanBadge(isDark),
+                        ],
                       ],
                     ),
                   ),
+                ],
+              ),
+            ),
 
-                  // Menú Integral de Inventario y Auditoría
-                  PopupMenuButton<String>(
-                    tooltip: 'Herramientas de Inventario',
-                    offset: const Offset(0, 42),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    color: isDark ? AppTheme.cardDarkElevated : Colors.white,
-                    elevation: 8,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isNarrowScreen ? 7 : 10,
-                        vertical: 6.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppTheme.cardDarkHighlight
-                            : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isDark
-                              ? AppTheme.borderDarkElevated
-                              : const Color(0xFFCBD5E1),
-                          width: 0.8,
+            // Menú Integral de Inventario y Auditoría
+            PopupMenuButton<String>(
+              tooltip: 'Herramientas de Inventario',
+              offset: const Offset(0, 42),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              color: isDark ? AppTheme.cardDarkElevated : Colors.white,
+              elevation: 8,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isNarrowScreen ? 7 : 10,
+                  vertical: 6.5,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppTheme.cardDarkHighlight
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark
+                        ? AppTheme.borderDarkElevated
+                        : const Color(0xFFCBD5E1),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(
+                          LucideIcons.boxes,
+                          size: 14,
+                          color: AppTheme.brandPrimary,
                         ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              const Icon(
-                                LucideIcons.boxes,
-                                size: 14,
-                                color: AppTheme.brandPrimary,
-                              ),
-                              if (!_esGastronomico &&
-                                  _safeTodos.any(
-                                    (p) =>
-                                        p.controlaVencimiento &&
-                                        p.semaforoVencimiento ==
-                                            SemaforoVencimiento.critico,
-                                  ))
-                                Positioned(
-                                  top: -2,
-                                  right: -2,
-                                  child: Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFEF4444),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          if (!isNarrowScreen) ...[
-                            const SizedBox(width: 5),
-                            Text(
-                              'Inventario',
-                              style: GoogleFonts.outfit(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.textDark,
+                        if (!_esGastronomico &&
+                            _safeTodos.any(
+                              (p) =>
+                                  p.controlaVencimiento &&
+                                  p.semaforoVencimiento ==
+                                      SemaforoVencimiento.critico,
+                            ))
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFEF4444),
+                                shape: BoxShape.circle,
                               ),
                             ),
-                            const SizedBox(width: 3),
-                          ],
-                          Icon(
-                            LucideIcons.chevronDown,
-                            size: 12,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : AppTheme.textMuted,
                           ),
-                        ],
-                      ),
-                    ),
-                    onSelected: (val) async {
-                      HapticFeedback.selectionClick();
-                      if (val == 'vencimientos') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const VencimientosScreen(),
-                          ),
-                        ).then((_) => _cargarProductos());
-                      } else if (val == 'mermas') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const MermasScreen(),
-                          ),
-                        ).then((_) => _cargarProductos());
-                      } else if (val == 'auditoria') {
-                        final esBasico =
-                            _bodegaInfo?.plan.toUpperCase() != 'PRO';
-                        if (esBasico) {
-                          PlanUpgradeModal.show(
-                            context,
-                            featureName: 'Auditoría Rápida por Pasillo',
-                            featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo.',
-                            icon: LucideIcons.clipboardCheck,
-                            onPlanUpdated: _cargarProductos,
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AuditoriaCiegaScreen(),
-                            ),
-                          ).then((_) => _cargarProductos());
-                        }
-                      } else if (val == 'hueso') {
-                        final esBasico =
-                            _bodegaInfo?.plan.toUpperCase() != 'PRO';
-                        if (esBasico) {
-                          PlanUpgradeModal.show(
-                            context,
-                            featureName: 'Detector de Productos Hueso',
-                            featureDescription: 'Identifica qué productos llevan más de 30 días sin ventas para armar combos, liquidar ofertas y recuperar tu capital de trabajo inmovilizado en góndola.',
-                            icon: LucideIcons.archive,
-                            onPlanUpdated: _cargarProductos,
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const DashboardBiScreen(
-                                initialTabRotacion: 1,
-                              ),
-                            ),
-                          ).then((_) => _cargarProductos());
-                        }
-                      } else if (val == 'kardex') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const KardexScreen(),
-                          ),
-                        );
-                      } else if (val == 'sugerencias') {
-                        await SugerenciasPrecioModal.show(
-                          context,
-                          onActualizado: () {
-                            _cargarProductos(forceRefresh: true);
-                            _verificarSugerencias();
-                          },
-                        );
-                        _cargarProductos(forceRefresh: true);
-                        _verificarSugerencias();
-                      }
-                    },
-                    itemBuilder: (ctx) => [
-                      PopupMenuItem(
-                        value: 'sugerencias',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF7C3AED)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                LucideIcons.sparkles,
-                                size: 15,
-                                color: Color(0xFF7C3AED),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Sugerencias de Precios',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? Colors.white
-                                              : AppTheme.textDark,
-                                        ),
-                                      ),
-                                      if (_sugerenciasPendientes > 0) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                            vertical: 1,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF7C3AED),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '$_sugerenciasPendientes',
-                                            style: GoogleFonts.outfit(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  Text(
-                                    'Propuestas del SuperAdmin para tus productos',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (!_esGastronomico) ...[
-                        const PopupMenuDivider(),
-                        PopupMenuItem(
-                          value: 'vencimientos',
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEF4444)
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.calendarClock,
-                                  size: 15,
-                                  color: Color(0xFFEF4444),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Control de Vencimientos',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: isDark
-                                            ? Colors.white
-                                            : AppTheme.textDark,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Monitoreo preventivo por lotes',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       ],
-                      PopupMenuItem(
-                        value: 'mermas',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDC2626)
-                                    .withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                LucideIcons.trash2,
-                                size: 15,
-                                color: Color(0xFFDC2626),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    _esGastronomico
-                                        ? 'Mermas de Cocina'
-                                        : 'Registro de Mermas',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
-                                    ),
-                                  ),
-                                  Text(
-                                    _esGastronomico
-                                        ? 'Desperdicios y sobrantes de cocina'
-                                        : 'Bajas por rotura o caducidad',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                    ),
+                    if (!isNarrowScreen) ...[
+                      const SizedBox(width: 5),
+                      Text(
+                        'Inventario',
+                        style: GoogleFonts.outfit(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.textDark,
                         ),
                       ),
-                      if (!_esGastronomico)
-                        PopupMenuItem(
-                          value: 'auditoria',
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6366F1)
-                                      .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.clipboardCheck,
-                                  size: 15,
-                                  color: Color(0xFF6366F1),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Auditoría Rápida por Pasillo',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 12.5,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark
-                                                ? Colors.white
-                                                : AppTheme.textDark,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 4,
-                                            vertical: 1,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                ((_bodegaInfo?.plan
-                                                                .toUpperCase() !=
-                                                            'PRO')
-                                                        ? const Color(
-                                                            0xFFD97706,
-                                                          )
-                                                        : const Color(
-                                                            0xFF10B981,
-                                                          ))
-                                                    .withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              if (_bodegaInfo?.plan
-                                                      .toUpperCase() !=
-                                                  'PRO') ...[
-                                                const Icon(
-                                                  LucideIcons.lock,
-                                                  size: 8,
-                                                  color: Color(0xFFD97706),
-                                                ),
-                                                const SizedBox(width: 2),
-                                              ],
-                                              Text(
-                                                'PRO',
-                                                style: GoogleFonts.outfit(
-                                                  fontSize: 8.5,
-                                                  fontWeight: FontWeight.w900,
-                                                  color:
-                                                      (_bodegaInfo?.plan
-                                                              .toUpperCase() !=
-                                                          'PRO')
-                                                      ? const Color(0xFFD97706)
-                                                      : const Color(0xFF059669),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      '5 min de conteo físico contra robo hormiga',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                      const SizedBox(width: 3),
+                    ],
+                    Icon(
+                      LucideIcons.chevronDown,
+                      size: 12,
+                      color: isDark
+                          ? AppTheme.textDarkSecondary
+                          : AppTheme.textMuted,
+                    ),
+                  ],
+                ),
+              ),
+              onSelected: (val) async {
+                HapticFeedback.selectionClick();
+                if (val == 'vencimientos') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const VencimientosScreen(),
+                    ),
+                  ).then((_) => _cargarProductos());
+                } else if (val == 'mermas') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MermasScreen()),
+                  ).then((_) => _cargarProductos());
+                } else if (val == 'auditoria') {
+                  final esBasico = _bodegaInfo?.plan.toUpperCase() != 'PRO';
+                  if (esBasico) {
+                    PlanUpgradeModal.show(
+                      context,
+                      featureName: 'Auditoría Rápida por Pasillo',
+                      featureDescription: 'Realiza conteos físicos aleatorios de 5 minutos por góndola o pasillo sin mostrar el stock real al personal, detectando mermas y robo hormiga a tiempo.',
+                      icon: LucideIcons.clipboardCheck,
+                      onPlanUpdated: _cargarProductos,
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AuditoriaCiegaScreen(),
+                      ),
+                    ).then((_) => _cargarProductos());
+                  }
+                } else if (val == 'hueso') {
+                  final esBasico = _bodegaInfo?.plan.toUpperCase() != 'PRO';
+                  if (esBasico) {
+                    PlanUpgradeModal.show(
+                      context,
+                      featureName: 'Detector de Productos Hueso',
+                      featureDescription: 'Identifica qué productos llevan más de 30 días sin ventas para armar combos, liquidar ofertas y recuperar tu capital de trabajo inmovilizado en góndola.',
+                      icon: LucideIcons.archive,
+                      onPlanUpdated: _cargarProductos,
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const DashboardBiScreen(initialTabRotacion: 1),
+                      ),
+                    ).then((_) => _cargarProductos());
+                  }
+                } else if (val == 'kardex') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const KardexScreen()),
+                  );
+                } else if (val == 'sugerencias') {
+                  await SugerenciasPrecioModal.show(
+                    context,
+                    onActualizado: () {
+                      _cargarProductos(forceRefresh: true);
+                      _verificarSugerencias();
+                    },
+                  );
+                  _cargarProductos(forceRefresh: true);
+                  _verificarSugerencias();
+                }
+              },
+              itemBuilder: (ctx) => [
+                PopupMenuItem(
+                  value: 'sugerencias',
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7C3AED)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      PopupMenuItem(
-                        value: 'hueso',
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: AppTheme.brandDark.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                LucideIcons.archive,
-                                size: 15,
-                                color: AppTheme.brandDark,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Detector de Productos Hueso',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: isDark
-                                              ? Colors.white
-                                              : AppTheme.textDark,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                          vertical: 1,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              ((_bodegaInfo?.plan
-                                                              .toUpperCase() !=
-                                                          'PRO')
-                                                      ? const Color(0xFFD97706)
-                                                      : const Color(0xFF10B981))
-                                                  .withValues(alpha: 0.15),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (_bodegaInfo?.plan
-                                                    .toUpperCase() !=
-                                                'PRO') ...[
-                                              const Icon(
-                                                LucideIcons.lock,
-                                                size: 8,
-                                                color: Color(0xFFD97706),
-                                              ),
-                                              const SizedBox(width: 2),
-                                            ],
-                                            Text(
-                                              'PRO',
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 8.5,
-                                                fontWeight: FontWeight.w900,
-                                                color:
-                                                    (_bodegaInfo?.plan
-                                                            .toUpperCase() !=
-                                                        'PRO')
-                                                    ? const Color(0xFFD97706)
-                                                    : const Color(0xFF059669),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(
-                                    'Alerta de dinero atrapado y stock sin rotar',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        child: const Icon(
+                          LucideIcons.sparkles,
+                          size: 15,
+                          color: Color(0xFF7C3AED),
                         ),
                       ),
-                      const PopupMenuDivider(),
-                      PopupMenuItem(
-                        value: 'kardex',
-                        child: Row(
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: AppTheme.brandPrimary.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                LucideIcons.fileSpreadsheet,
-                                size: 15,
-                                color: AppTheme.brandPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Kardex de Movimientos',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
-                                    ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Sugerencias de Precios',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
                                   ),
-                                  Text(
-                                    'Historial detallado de entradas y salidas',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppTheme.textDarkSecondary
-                                          : const Color(0xFF334155),
+                                ),
+                                if (_sugerenciasPendientes > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF7C3AED),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      '$_sugerenciasPendientes',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ],
+                              ],
+                            ),
+                            Text(
+                              'Propuestas del SuperAdmin para tus productos',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
                               ),
                             ),
                           ],
@@ -1098,372 +713,758 @@ class _ProductosScreenState extends State<ProductosScreen>
                       ),
                     ],
                   ),
-
-                  // Botón Exportar Catálogo CSV
-                  const SizedBox(width: 6),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        _exportarCsv();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isNarrowScreen ? 7 : 9,
-                          vertical: 6.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.cardDarkElevated
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDark
-                                : const Color(0xFFCBD5E1),
-                            width: 0.8,
+                ),
+                if (!_esGastronomico) ...[
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'vencimientos',
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            LucideIcons.calendarClock,
+                            size: 15,
+                            color: Color(0xFFEF4444),
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              LucideIcons.download,
-                              size: 13,
-                              color: AppTheme.accentGreen,
-                            ),
-                            if (!isNarrowScreen) ...[
-                              const SizedBox(width: 4),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
                               Text(
-                                'CSV',
-                                style: GoogleFonts.outfit(
-                                  fontSize: 11.5,
+                                'Control de Vencimientos',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
                                   fontWeight: FontWeight.w700,
                                   color: isDark
                                       ? Colors.white
                                       : AppTheme.textDark,
                                 ),
                               ),
+                              Text(
+                                'Monitoreo preventivo por lotes',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
+                                ),
+                              ),
                             ],
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-
-                  if ((_esAdmin ||
-                          PermisosCajeroService.puedeModificarPrecios) &&
-                      !isNarrowScreen) ...[
-                    const SizedBox(width: 6),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          final esBasico =
-                              _bodegaInfo?.plan.toUpperCase() == 'BASICO';
-                          final total = _todosProductos.length;
-                          final limite = _bodegaInfo?.limiteProductos ?? 150;
-                          if (esBasico && total >= limite) {
-                            _mostrarModalLimitePlanBasico(context);
-                          } else {
-                            NuevoProductoSheet.show(context, _cargarProductos);
-                          }
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isNarrowScreen ? 8 : 11,
-                            vertical: 6.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppTheme.brandPrimary,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.brandPrimary.withValues(
-                                  alpha: 0.3,
-                                ),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                LucideIcons.plus,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              if (!isNarrowScreen) ...[
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Nuevo',
-                                  style: GoogleFonts.outfit(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
-            ),
-
-            // 2. Selector de Modo: Gestión Stock vs Catálogo Web
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              color: cardBg,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: _buildModeSelector(isDark),
-              ),
-            ),
-
-            // 3. Cockpit Financiero de Capital o Banner de Catálogo Web
-            if (!_modoCatalogoWeb) ...[
-              _buildInventoryCockpit(
-                context,
-                isDark,
-                bajoStockCount,
-                criticoCount,
-              ),
-              _buildWarehouseSubmodulesBar(isDark),
-            ] else
-              _buildWebCatalogBanner(context, isDark),
-
-            ValueListenableBuilder<int>(
-              valueListenable: BodegaService.sugerenciasPendientesNotifier,
-              builder: (context, pendientes, _) {
-                if (pendientes <= 0) return const SizedBox.shrink();
-                return _buildSugerenciasBanner(context, isDark, pendientes);
-              },
-            ),
-
-            _buildFifoAlertBanner(context, isDark),
-
-            // 2. Toolbar Unificada (Buscador + Carrusel Único de Filtros)
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
-              color: cardBg,
-              child: Column(
-                children: [
-                  Row(
+                PopupMenuItem(
+                  value: 'mermas',
+                  child: Row(
                     children: [
-                      Expanded(
-                        child: Container(
-                          height: 42,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.cardDarkSunken
-                                : const Color(0xFFF5F6F8),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isDark
-                                  ? AppTheme.borderDark
-                                  : const Color(0xFFE2E8F0),
-                            ),
-                          ),
-                          child: TextField(
-                            controller: _searchController,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: 'Buscar por nombre, código o marca...',
-                              hintStyle: GoogleFonts.plusJakartaSans(
-                                color: AppTheme.getAdaptiveHintText(isDark),
-                                fontSize: 12.5,
-                              ),
-                              prefixIcon: const Icon(
-                                LucideIcons.search,
-                                size: 16,
-                                color: AppTheme.brandPrimary,
-                              ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (_filtroTexto.isNotEmpty)
-                                    IconButton(
-                                      icon: const Icon(LucideIcons.x, size: 15),
-                                      onPressed: () {
-                                        _searchDebounce?.cancel();
-                                        _searchController.clear();
-                                        _filtroTexto = '';
-                                        _aplicarFiltros();
-                                      },
-                                    ),
-                                  IconButton(
-                                    tooltip: 'Escanear con Cámara / Láser',
-                                    icon: const Icon(
-                                      LucideIcons.scanBarcode,
-                                      size: 17,
-                                      color: AppTheme.brandPrimary,
-                                    ),
-                                    onPressed: _escanearCodigoParaBuscar,
-                                  ),
-                                  const SizedBox(width: 4),
-                                ],
-                              ),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                              ),
-                            ),
-                            onChanged: (val) {
-                              _searchDebounce?.cancel();
-                              if (val.isEmpty) {
-                                _filtroTexto = '';
-                                _aplicarFiltros();
-                                return;
-                              }
-                              _searchDebounce = Timer(
-                                const Duration(milliseconds: 180),
-                                () {
-                                  if (!mounted) return;
-                                  _filtroTexto = val;
-                                  _aplicarFiltros();
-                                },
-                              );
-                            },
-                            onSubmitted: (val) {
-                              _searchDebounce?.cancel();
-                              _filtroTexto = val;
-                              _aplicarFiltros();
-                            },
-                          ),
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDC2626)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          LucideIcons.trash2,
+                          size: 15,
+                          color: Color(0xFFDC2626),
                         ),
                       ),
-                      const SizedBox(width: 8),
-
-                      // Menú de Ordenamiento
-                      _buildSortMenu(context, isDark),
-                      const SizedBox(width: 8),
-
-                      // Contador de resultados
-                      Container(
-                        height: 42,
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.cardDarkHighlight
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFCBD5E1),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${_safeFiltrados.length} / ${_safeTodos.length}',
-                            style: GoogleFonts.outfit(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : AppTheme.textDark,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _esGastronomico
+                                  ? 'Mermas de Cocina'
+                                  : 'Registro de Mermas',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                              ),
                             ),
-                          ),
+                            Text(
+                              _esGastronomico
+                                  ? 'Desperdicios y sobrantes de cocina'
+                                  : 'Bajas por rotura o caducidad',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-
-                  // 3. Carrusel Único de Filtros Calma Visual
-                  _buildFilterCarousel(
-                    isDark,
-                    bajoStockCount,
-                    criticoCount,
-                    vencenProntoCount,
+                ),
+                if (!_esGastronomico)
+                  PopupMenuItem(
+                    value: 'auditoria',
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6366F1)
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            LucideIcons.clipboardCheck,
+                            size: 15,
+                            color: Color(0xFF6366F1),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Auditoría Rápida por Pasillo',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark
+                                          ? Colors.white
+                                          : AppTheme.textDark,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          ((_bodegaInfo?.plan.toUpperCase() !=
+                                                      'PRO')
+                                                  ? const Color(0xFFD97706)
+                                                  : const Color(0xFF10B981))
+                                              .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (_bodegaInfo?.plan.toUpperCase() !=
+                                            'PRO') ...[
+                                          const Icon(
+                                            LucideIcons.lock,
+                                            size: 8,
+                                            color: Color(0xFFD97706),
+                                          ),
+                                          const SizedBox(width: 2),
+                                        ],
+                                        Text(
+                                          'PRO',
+                                          style: GoogleFonts.outfit(
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.w900,
+                                            color:
+                                                (_bodegaInfo?.plan
+                                                        .toUpperCase() !=
+                                                    'PRO')
+                                                ? const Color(0xFFD97706)
+                                                : const Color(0xFF059669),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                '5 min de conteo físico contra robo hormiga',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF334155),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                PopupMenuItem(
+                  value: 'hueso',
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandDark.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          LucideIcons.archive,
+                          size: 15,
+                          color: AppTheme.brandDark,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Detector de Productos Hueso',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.textDark,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        ((_bodegaInfo?.plan.toUpperCase() !=
+                                                    'PRO')
+                                                ? const Color(0xFFD97706)
+                                                : const Color(0xFF10B981))
+                                            .withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_bodegaInfo?.plan.toUpperCase() !=
+                                          'PRO') ...[
+                                        const Icon(
+                                          LucideIcons.lock,
+                                          size: 8,
+                                          color: Color(0xFFD97706),
+                                        ),
+                                        const SizedBox(width: 2),
+                                      ],
+                                      Text(
+                                        'PRO',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 8.5,
+                                          fontWeight: FontWeight.w900,
+                                          color:
+                                              (_bodegaInfo?.plan
+                                                      .toUpperCase() !=
+                                                  'PRO')
+                                              ? const Color(0xFFD97706)
+                                              : const Color(0xFF059669),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Alerta de dinero atrapado y stock sin rotar',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'kardex',
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          LucideIcons.fileSpreadsheet,
+                          size: 15,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Kardex de Movimientos',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                              ),
+                            ),
+                            Text(
+                              'Historial detallado de entradas y salidas',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF334155),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Botón Exportar Catálogo CSV
+            const SizedBox(width: 6),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  _exportarCsv();
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isNarrowScreen ? 7 : 9,
+                    vertical: 6.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardDarkElevated
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : const Color(0xFFCBD5E1),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        LucideIcons.download,
+                        size: 13,
+                        color: AppTheme.accentGreen,
+                      ),
+                      if (!isNarrowScreen) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          'CSV',
+                          style: GoogleFonts.outfit(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white : AppTheme.textDark,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
 
-            // Línea divisoria suave
-            Container(
-              height: 1,
-              color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-            ),
-
-            // 4. Catálogo de Productos Adaptativo (82% del espacio recuperado)
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppTheme.brandPrimary,
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _cargarProductos(forceRefresh: true),
-                      color: AppTheme.brandPrimary,
-                      child: _safeFiltrados.isEmpty
-                          ? SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              child: _buildEmptyState(isDark),
-                            )
-                          : LayoutBuilder(
-                              builder: (context, constraints) {
-                                if (constraints.maxWidth > 700) {
-                                  return GridView.builder(
-                                    physics:
-                                        const AlwaysScrollableScrollPhysics(),
-                                    padding: const EdgeInsets.all(16),
-                                    gridDelegate:
-                                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                                          maxCrossAxisExtent: 380,
-                                          mainAxisExtent: 122,
-                                          crossAxisSpacing: 12,
-                                          mainAxisSpacing: 12,
-                                        ),
-                                    itemCount: _safeFiltrados.length,
-                                    itemBuilder: (context, index) {
-                                      return _buildProductCard(
-                                        _safeFiltrados[index],
-                                        isDark,
-                                      );
-                                    },
-                                  );
-                                } else {
-                                  return ListView.builder(
-                                    physics:
-                                        const AlwaysScrollableScrollPhysics(),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 10,
-                                    ),
-                                    itemCount: _safeFiltrados.length,
-                                    itemBuilder: (context, index) {
-                                      return _buildProductCard(
-                                        _safeFiltrados[index],
-                                        isDark,
-                                      );
-                                    },
-                                  );
-                                }
-                              },
-                            ),
+            if ((_esAdmin || PermisosCajeroService.puedeModificarPrecios) &&
+                !isNarrowScreen) ...[
+              const SizedBox(width: 6),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    final esBasico =
+                        _bodegaInfo?.plan.toUpperCase() == 'BASICO';
+                    final total = _todosProductos.length;
+                    final limite = _bodegaInfo?.limiteProductos ?? 150;
+                    if (esBasico && total >= limite) {
+                      _mostrarModalLimitePlanBasico(context);
+                    } else {
+                      NuevoProductoSheet.show(context, _cargarProductos);
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isNarrowScreen ? 8 : 11,
+                      vertical: 6.5,
                     ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.brandPrimary,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.brandPrimary.withValues(alpha: 0.3),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          LucideIcons.plus,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                        if (!isNarrowScreen) ...[
+                          const SizedBox(width: 4),
+                          Text(
+                            'Nuevo',
+                            style: GoogleFonts.outfit(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+
+      // 2. Selector de Modo: Gestión Stock vs Catálogo Web
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        color: cardBg,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: _buildModeSelector(isDark),
+        ),
+      ),
+
+      // 3. Cockpit Financiero de Capital o Banner de Catálogo Web
+      if (!_modoCatalogoWeb) ...[
+        _buildInventoryCockpit(context, isDark, bajoStockCount, criticoCount),
+        _buildWarehouseSubmodulesBar(isDark),
+      ] else
+        _buildWebCatalogBanner(context, isDark),
+
+      ValueListenableBuilder<int>(
+        valueListenable: BodegaService.sugerenciasPendientesNotifier,
+        builder: (context, pendientes, _) {
+          if (pendientes <= 0) return const SizedBox.shrink();
+          return _buildSugerenciasBanner(context, isDark, pendientes);
+        },
+      ),
+
+      _buildFifoAlertBanner(context, isDark),
+
+      // 2. Toolbar Unificada (Buscador + Carrusel Único de Filtros)
+      Container(
+        padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
+        color: cardBg,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.cardDarkSunken
+                          : const Color(0xFFF5F6F8),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.borderDark
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar por nombre, código o marca...',
+                        hintStyle: GoogleFonts.plusJakartaSans(
+                          color: AppTheme.getAdaptiveHintText(isDark),
+                          fontSize: 12.5,
+                        ),
+                        prefixIcon: const Icon(
+                          LucideIcons.search,
+                          size: 16,
+                          color: AppTheme.brandPrimary,
+                        ),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_filtroTexto.isNotEmpty)
+                              IconButton(
+                                icon: const Icon(LucideIcons.x, size: 15),
+                                onPressed: () {
+                                  _searchDebounce?.cancel();
+                                  _searchController.clear();
+                                  _filtroTexto = '';
+                                  _aplicarFiltros();
+                                },
+                              ),
+                            IconButton(
+                              tooltip: 'Escanear con Cámara / Láser',
+                              icon: const Icon(
+                                LucideIcons.scanBarcode,
+                                size: 17,
+                                color: AppTheme.brandPrimary,
+                              ),
+                              onPressed: _escanearCodigoParaBuscar,
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                        ),
+                      ),
+                      onChanged: (val) {
+                        _searchDebounce?.cancel();
+                        if (val.isEmpty) {
+                          _filtroTexto = '';
+                          _aplicarFiltros();
+                          return;
+                        }
+                        _searchDebounce = Timer(
+                          const Duration(milliseconds: 180),
+                          () {
+                            if (!mounted) return;
+                            _filtroTexto = val;
+                            _aplicarFiltros();
+                          },
+                        );
+                      },
+                      onSubmitted: (val) {
+                        _searchDebounce?.cancel();
+                        _filtroTexto = val;
+                        _aplicarFiltros();
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Menú de Ordenamiento
+                _buildSortMenu(context, isDark),
+                const SizedBox(width: 8),
+
+                // Contador de resultados
+                Container(
+                  height: 42,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.cardDarkHighlight
+                        : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.borderDarkElevated
+                          : const Color(0xFFCBD5E1),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${_safeFiltrados.length} / ${_safeTodos.length}',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : AppTheme.textDark,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // 3. Carrusel Único de Filtros Calma Visual
+            _buildFilterCarousel(
+              isDark,
+              bajoStockCount,
+              criticoCount,
+              vencenProntoCount,
             ),
           ],
         ),
+      ),
+
+      // Línea divisoria suave
+      Container(
+        height: 1,
+        color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+      ),
+    ];
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: RefreshIndicator(
+        onRefresh: () => _cargarProductos(forceRefresh: true),
+        color: AppTheme.brandPrimary,
+        child: isMobileFullScroll
+            ? CustomScrollView(
+                key: const ValueKey('productos_mobile_custom_scroll'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: topSections,
+                    ),
+                  ),
+                  if (_isLoading)
+                    const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                    )
+                  else if (_safeFiltrados.isEmpty)
+                    SliverToBoxAdapter(child: _buildEmptyState(isDark))
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 88),
+                      sliver: SliverList.builder(
+                        itemCount: _safeFiltrados.length,
+                        itemBuilder: (context, index) {
+                          return _buildProductCard(
+                            _safeFiltrados[index],
+                            isDark,
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              )
+            : Column(
+                key: const ValueKey('productos_fixed_header_layout'),
+                children: [
+                  ...topSections,
+                  // 4. Catálogo de Productos Adaptativo (82% del espacio recuperado)
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppTheme.brandPrimary,
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () =>
+                                _cargarProductos(forceRefresh: true),
+                            color: AppTheme.brandPrimary,
+                            child: _safeFiltrados.isEmpty
+                                ? SingleChildScrollView(
+                                    physics:
+                                        const AlwaysScrollableScrollPhysics(),
+                                    child: _buildEmptyState(isDark),
+                                  )
+                                : LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      if (constraints.maxWidth > 700) {
+                                        return GridView.builder(
+                                          physics:
+                                              const AlwaysScrollableScrollPhysics(),
+                                          padding: const EdgeInsets.all(16),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                                                maxCrossAxisExtent: 380,
+                                                mainAxisExtent: 122,
+                                                crossAxisSpacing: 12,
+                                                mainAxisSpacing: 12,
+                                              ),
+                                          itemCount: _safeFiltrados.length,
+                                          itemBuilder: (context, index) {
+                                            return _buildProductCard(
+                                              _safeFiltrados[index],
+                                              isDark,
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return ListView.builder(
+                                          physics:
+                                              const AlwaysScrollableScrollPhysics(),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 10,
+                                          ),
+                                          itemCount: _safeFiltrados.length,
+                                          itemBuilder: (context, index) {
+                                            return _buildProductCard(
+                                              _safeFiltrados[index],
+                                              isDark,
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                          ),
+                  ),
+                ],
+              ),
       ),
       floatingActionButton:
           (_esAdmin || PermisosCajeroService.puedeModificarPrecios)

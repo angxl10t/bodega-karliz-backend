@@ -250,5 +250,114 @@ void main() {
       expect(find.text('Inca Kola 500ml'), findsOneWidget);
       expect(find.text('Arroz Costeño 1kg'), findsOneWidget);
     });
+
+    testWidgets(
+      'Mobile (390x844) desplaza cabecera y muestra productos en pantalla completa; Tablet/Desktop mantienen cabecera fija',
+      (tester) async {
+        final manyProductos = List.generate(
+          15,
+          (i) => Producto(
+            idProducto: i + 1,
+            codigo: 'SKU-${(i + 1).toString().padLeft(2, '0')}',
+            codigoBarras: '775000000${(i + 1).toString().padLeft(2, '0')}',
+            nombre: 'Producto Inventario ${(i + 1).toString().padLeft(2, '0')}',
+            marca: 'Marca',
+            nombreCategoria: 'Abarrotes',
+            precioVenta: 5.0 + i,
+            precioCosto: 3.0 + i,
+            stockActual: 20.0,
+            stockMinimo: 5.0,
+          ),
+        );
+        ProductoService.setMockProductos(manyProductos);
+
+        // 1. Vista Móvil (390x844): CustomScrollView mueve cabecera al hacer scroll
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            key: ValueKey('mobile_stock_scroll'),
+            home: Scaffold(body: ProductosScreen()),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(
+          find.byKey(const ValueKey('productos_mobile_custom_scroll')),
+          findsOneWidget,
+        );
+        final headerTopBefore = tester
+            .getRect(find.text('Stock & Inventario'))
+            .top;
+
+        await tester.drag(
+          find.byKey(const ValueKey('productos_mobile_custom_scroll')),
+          const Offset(0, -520),
+        );
+        await tester.pumpAndSettle();
+
+        // Al bajar en móvil, la cabecera se desplaza hacia arriba y los productos llenan la pantalla
+        final headerFinderAfter = find.text('Stock & Inventario');
+        if (headerFinderAfter.evaluate().isNotEmpty) {
+          expect(
+            tester.getRect(headerFinderAfter).top,
+            lessThan(headerTopBefore),
+          );
+        }
+        final visibleProductCardsCount = find
+            .textContaining('Producto Inventario ')
+            .evaluate()
+            .length;
+        expect(visibleProductCardsCount, greaterThanOrEqualTo(6));
+        expect(find.text('Producto Inventario 09'), findsOneWidget);
+
+        // 2. Tablet / Desktop / Web (600x960, 768x1024, 1280x800): cabecera fija y solo scrollea la lista/grilla
+        for (final size in [
+          const Size(600, 960),
+          const Size(768, 1024),
+          const Size(1280, 800),
+        ]) {
+          tester.view.physicalSize = size;
+          await tester.pumpWidget(
+            MaterialApp(
+              key: ValueKey('fixed_stock_$size'),
+              home: const Scaffold(body: ProductosScreen()),
+            ),
+          );
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
+
+          expect(
+            find.byKey(const ValueKey('productos_fixed_header_layout')),
+            findsOneWidget,
+          );
+          final fixedTopBefore = tester
+              .getRect(find.text('Stock & Inventario'))
+              .top;
+
+          final scrollableFinder = size.width > 700
+              ? find.byType(GridView)
+              : find
+                    .descendant(
+                      of: find.byKey(
+                        const ValueKey('productos_fixed_header_layout'),
+                      ),
+                      matching: find.byType(ListView),
+                    )
+                    .last;
+          await tester.drag(scrollableFinder, const Offset(0, -400));
+          await tester.pumpAndSettle();
+
+          expect(
+            tester.getRect(find.text('Stock & Inventario')).top,
+            equals(fixedTopBefore),
+          );
+        }
+      },
+    );
   });
 }
