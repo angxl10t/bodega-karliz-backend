@@ -7210,6 +7210,63 @@ class _VentasScreenState extends State<VentasScreen>
                 labelColor,
                 isTablet: false,
               ),
+              const SizedBox(height: 12),
+
+              // Buscador Rápido de Productos con Botón de Lectora para Móvil
+              Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor, width: 1.2),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: const BorderRadius.horizontal(
+                          left: Radius.circular(16),
+                        ),
+                        onTap: _abrirSelectorProductos,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                LucideIcons.search,
+                                size: 18,
+                                color: AppTheme.brandPrimary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  'Buscar producto o código...',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: AppTheme.getAdaptiveHintText(isDark),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Lectora / Escáner Cámara',
+                      icon: const Icon(
+                        LucideIcons.scanLine,
+                        size: 20,
+                        color: AppTheme.brandPrimary,
+                      ),
+                      onPressed: _escanearCodigoParaVenta,
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
 
               // Tarjeta Canasta de Compras (POS)
@@ -7394,6 +7451,16 @@ class _VentasScreenState extends State<VentasScreen>
                           final item = _carrito[idx];
                           return Row(
                             children: [
+                              ProductImageWidget(
+                                imagenUrl: item.producto.imagenUrl,
+                                nombre: item.producto.nombre,
+                                codigoBarras: item.producto.codigoBarras,
+                                categoria: item.producto.nombreCategoria,
+                                size: 38,
+                                borderRadius: 8,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -7520,14 +7587,14 @@ class _VentasScreenState extends State<VentasScreen>
                                     IconButton(
                                       style: IconButton.styleFrom(
                                         padding: EdgeInsets.zero,
-                                        minimumSize: const Size(26, 26),
+                                        minimumSize: const Size(32, 32),
                                         foregroundColor: const Color(
                                           0xFFD97706,
                                         ),
                                       ),
                                       icon: const Icon(
                                         LucideIcons.scale,
-                                        size: 14,
+                                        size: 15,
                                       ),
                                       tooltip: 'Pesar en balanza',
                                       onPressed: () =>
@@ -7542,24 +7609,27 @@ class _VentasScreenState extends State<VentasScreen>
                                           : const Color(0xFFF1F5F9),
                                       foregroundColor: labelColor,
                                       padding: EdgeInsets.zero,
-                                      minimumSize: const Size(26, 26),
+                                      minimumSize: const Size(32, 32),
                                     ),
                                     icon: const Icon(
                                       LucideIcons.minus,
-                                      size: 13,
+                                      size: 14,
                                     ),
-                                    onPressed: () => _decrementarCantidad(idx),
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      _decrementarCantidad(idx);
+                                    },
                                   ),
                                   InkWell(
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(8),
                                     onTap: () => _editarCantidadDirecta(idx),
                                     child: Container(
                                       constraints: const BoxConstraints(
-                                        minWidth: 26,
-                                        minHeight: 26,
+                                        minWidth: 30,
+                                        minHeight: 32,
                                       ),
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 2,
+                                        horizontal: 4,
                                         vertical: 2,
                                       ),
                                       alignment: Alignment.center,
@@ -7569,7 +7639,7 @@ class _VentasScreenState extends State<VentasScreen>
                                                   .withValues(alpha: 0.5)
                                             : const Color(0xFFF1F5F9)
                                                   .withValues(alpha: 0.5),
-                                        borderRadius: BorderRadius.circular(6),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
                                         _formatCantidad(item.cantidad),
@@ -7588,13 +7658,16 @@ class _VentasScreenState extends State<VentasScreen>
                                           : const Color(0xFFF1F5F9),
                                       foregroundColor: labelColor,
                                       padding: EdgeInsets.zero,
-                                      minimumSize: const Size(26, 26),
+                                      minimumSize: const Size(32, 32),
                                     ),
                                     icon: const Icon(
                                       LucideIcons.plus,
-                                      size: 13,
+                                      size: 14,
                                     ),
-                                    onPressed: () => _incrementarCantidad(idx),
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      _incrementarCantidad(idx);
+                                    },
                                   ),
                                 ],
                               ),
@@ -8017,7 +8090,15 @@ class _VentasScreenState extends State<VentasScreen>
                                 });
                               },
                             )
-                          : null,
+                          : IconButton(
+                              tooltip: 'Lectora de Código de Barras (Cámara / Láser USB)',
+                              icon: const Icon(
+                                LucideIcons.scanLine,
+                                size: 18,
+                                color: AppTheme.brandPrimary,
+                              ),
+                              onPressed: _escanearCodigoParaVenta,
+                            ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
                     ),
@@ -8077,7 +8158,7 @@ class _VentasScreenState extends State<VentasScreen>
                   ),
                   minimumSize: const Size(44, 44),
                 ),
-                tooltip: 'Escanear Código de Barras (Cámara / Láser USB)',
+                tooltip: 'Lectora de Código de Barras (Cámara / Láser USB)',
                 icon: const Icon(LucideIcons.scanLine, size: 20),
                 onPressed: _escanearCodigoParaVenta,
               ),
@@ -9142,12 +9223,12 @@ class _VentasScreenState extends State<VentasScreen>
                             },
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 4,
+                                horizontal: 8,
+                                vertical: 6,
                               ),
                               child: Icon(
                                 LucideIcons.minus,
-                                size: 12,
+                                size: 13,
                                 color: isDark
                                     ? Colors.white
                                     : AppTheme.textDark,
@@ -9158,10 +9239,10 @@ class _VentasScreenState extends State<VentasScreen>
                             borderRadius: BorderRadius.circular(6),
                             onTap: () => _editarCantidadDirecta(idx),
                             child: Container(
-                              constraints: const BoxConstraints(minWidth: 26),
+                              constraints: const BoxConstraints(minWidth: 30),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 2,
+                                horizontal: 5,
+                                vertical: 3,
                               ),
                               alignment: Alignment.center,
                               child: Text(
@@ -9184,10 +9265,10 @@ class _VentasScreenState extends State<VentasScreen>
                             },
                             child: const Padding(
                               padding: EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 4,
+                                horizontal: 8,
+                                vertical: 6,
                               ),
-                              child: Icon(LucideIcons.plus, size: 12),
+                              child: Icon(LucideIcons.plus, size: 13),
                             ),
                           ),
                         ],

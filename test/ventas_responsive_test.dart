@@ -219,5 +219,39 @@ void main() {
         expect(totalKbRect.bottom <= 1024 - 340, isTrue);
       },
     );
+
+    testWidgets(
+      'VentasScreen en tablet vertical (768x1024) y móvil incluye botón de lectora de código de barras',
+      (tester) async {
+        // 1. Tablet vertical
+        tester.view.physicalSize = const Size(768, 1024);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: VentasScreen())),
+        );
+        await tester.pumpAndSettle();
+
+        // En tablet vertical debe existir el botón/tooltip de lectora tanto en catálogo como en ticket
+        expect(
+          find.byTooltip('Lectora de Código de Barras (Cámara / Láser USB)'),
+          findsAtLeastNWidgets(1),
+        );
+
+        // 2. Móvil (400x800)
+        tester.view.physicalSize = const Size(400, 800);
+        await tester.pumpWidget(
+          const MaterialApp(
+            key: ValueKey('movil_lectora_test'),
+            home: Scaffold(body: VentasScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byTooltip('Lectora / Escáner Cámara'), findsOneWidget);
+      },
+    );
   });
 }
