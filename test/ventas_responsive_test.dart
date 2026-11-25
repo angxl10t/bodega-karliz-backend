@@ -160,5 +160,64 @@ void main() {
         expect(find.text('Sincronizar'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'VentasScreen en tablet vertical (680x1024, 768x1024, 768x600) muestra total de cobro sin overflow ni superposición',
+      (tester) async {
+        for (final size in [
+          const Size(680, 1024),
+          const Size(768, 1024),
+          const Size(768, 600),
+        ]) {
+          tester.view.physicalSize = size;
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              key: ValueKey('ventas_portrait_$size'),
+              home: const Scaffold(body: VentasScreen()),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          // Agrega producto al carrito desde la grilla tablet
+          await tester.tap(find.text('Inca Kola 1.5L Vidrio Retornable').first);
+          await tester.pumpAndSettle();
+
+          // Verifica que el total/monto de cobro aparece y no se sobrepone sobre cabecera ni sale de la pantalla
+          expect(find.textContaining('5.50'), findsAtLeastNWidgets(1));
+          final totalLabelRect = tester.getRect(find.text('TOTAL A COBRAR'));
+          final ticketHeaderRect = tester.getRect(
+            find.text('TICKET POS • CAJA 1'),
+          );
+          expect(totalLabelRect.overlaps(ticketHeaderRect), isFalse);
+          expect(totalLabelRect.top >= ticketHeaderRect.bottom, isTrue);
+          expect(totalLabelRect.bottom <= size.height, isTrue);
+        }
+
+        // Simula tablet vertical (768x1024) con teclado en pantalla abierto
+        tester.view.physicalSize = const Size(768, 1024);
+        tester.view.viewInsets = const FakeViewPadding(bottom: 340);
+        addTearDown(tester.view.resetViewInsets);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            key: ValueKey('ventas_portrait_keyboard'),
+            home: Scaffold(body: VentasScreen()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Inca Kola 1.5L Vidrio Retornable').first);
+        await tester.pumpAndSettle();
+
+        final totalKbRect = tester.getRect(find.text('TOTAL A COBRAR'));
+        final headerKbRect = tester.getRect(find.text('TICKET POS • CAJA 1'));
+        expect(totalKbRect.overlaps(headerKbRect), isFalse);
+        expect(totalKbRect.bottom <= 1024 - 340, isTrue);
+      },
+    );
   });
 }

@@ -1191,11 +1191,12 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 720;
         if (isWide) {
+          final ticketWidth = (constraints.maxWidth * 0.36).clamp(270.0, 350.0);
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(
-                width: 340,
+                width: ticketWidth,
                 child: _buildTicketPaperCol(isDark, surface, border),
               ),
               Expanded(
@@ -1204,11 +1205,45 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             ],
           );
         }
+
+        if (constraints.maxHeight < 520) {
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildTicketPaperCol(
+                  isDark,
+                  surface,
+                  border,
+                  isCompactVertical: true,
+                  expandList: false,
+                ),
+                _buildNumpadAndCheckoutCol(
+                  isDark,
+                  surface,
+                  border,
+                  shrinkWrapScroll: true,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final topTicketHeight = (constraints.maxHeight * 0.36).clamp(
+          215.0,
+          360.0,
+        );
+
         return Column(
           children: [
             SizedBox(
-              height: 220,
-              child: _buildTicketPaperCol(isDark, surface, border),
+              height: topTicketHeight,
+              child: _buildTicketPaperCol(
+                isDark,
+                surface,
+                border,
+                isCompactVertical: true,
+              ),
             ),
             Expanded(
               child: _buildNumpadAndCheckoutCol(isDark, surface, border),
@@ -1220,97 +1255,39 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
   }
 
   // ── Columna Tira de Papel (TICKET UNIFICADO) ──
-  Widget _buildTicketPaperCol(bool isDark, Color surface, Color border) {
+  Widget _buildTicketPaperCol(
+    bool isDark,
+    Color surface,
+    Color border, {
+    bool isCompactVertical = false,
+    bool expandList = true,
+  }) {
     final total = _totalTicket;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: surface,
-        border: Border(right: BorderSide(color: border)),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'TIRA DE CUENTA',
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                    color: isDark ? Colors.white70 : const Color(0xFF475569),
+    final Widget listaItemsWidget = _ticket.isEmpty
+        ? LayoutBuilder(
+            builder: (context, box) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: box.maxHeight.isFinite ? box.maxHeight : 0,
                   ),
-                ),
-              ),
-              if (_tieneItems)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2563EB).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${_ticket.length} items',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF2563EB),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: _cancelarTicket,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        child: Text(
-                          'Borrar todo',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.alertRed,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          const Divider(height: 16),
-
-          // Lista de items en el ticket unificado
-          Expanded(
-            child: _ticket.isEmpty
-                ? Center(
+                  child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           LucideIcons.receipt,
-                          size: 38,
+                          size: isCompactVertical ? 28 : 38,
                           color: isDark ? Colors.white24 : Colors.black12,
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: isCompactVertical ? 4 : 8),
                         Text(
                           'Digita montos con la calculadora\no agrega productos del catálogo',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
+                            fontSize: isCompactVertical ? 11.5 : 12.5,
                             fontWeight: FontWeight.w600,
                             color: isDark
                                 ? Colors.white54
@@ -1319,94 +1296,266 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                         ),
                       ],
                     ),
-                  )
-                : ListView.separated(
-                    itemCount: _ticket.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 6),
-                    itemBuilder: (ctx, idx) {
-                      final item = _ticket[idx];
-                      final isManual = item.producto.codigo == 'MANUAL';
-                      return _buildTicketLine(
-                        idx: idx,
-                        item: item,
-                        isManual: isManual,
-                        isDark: isDark,
-                        border: border,
-                      );
-                    },
-                  ),
-          ),
-
-          // Total en letras gigantes
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'TOTAL A COBRAR',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: Colors.white60,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'S/',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFF60A5FA),
+              );
+            },
+          )
+        : ListView.separated(
+            shrinkWrap: !expandList,
+            physics: expandList ? null : const NeverScrollableScrollPhysics(),
+            itemCount: _ticket.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 6),
+            itemBuilder: (ctx, idx) {
+              final item = _ticket[idx];
+              final isManual = item.producto.codigo == 'MANUAL';
+              return _buildTicketLine(
+                idx: idx,
+                item: item,
+                isManual: isManual,
+                isDark: isDark,
+                border: border,
+              );
+            },
+          );
+
+    final Widget undoButton = OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppTheme.alertRed,
+        side: const BorderSide(color: Color(0xFFFECDD3)),
+        backgroundColor: const Color(0xFFFFF1F2),
+        padding: EdgeInsets.symmetric(
+          horizontal: isCompactVertical ? 10 : 12,
+          vertical: isCompactVertical ? 12 : 10,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      onPressed: (_puedeDeshacer && !_isProcesandoVenta)
+          ? _deshacerUltimo
+          : null,
+      icon: const Icon(LucideIcons.undo2, size: 15),
+      label: Text(
+        'Deshacer último',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+
+    return ClipRect(
+      child: Container(
+        decoration: BoxDecoration(
+          color: surface,
+          border: isCompactVertical
+              ? Border(bottom: BorderSide(color: border))
+              : Border(right: BorderSide(color: border)),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: isCompactVertical ? 10 : 14,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: expandList ? MainAxisSize.max : MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'TIRA DE CUENTA',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                      color: isDark ? Colors.white70 : const Color(0xFF475569),
+                    ),
+                  ),
+                ),
+                if (_tieneItems)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB)
+                              .withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${_ticket.length} items',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF2563EB),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      InkWell(
+                        onTap: _cancelarTicket,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          child: Text(
+                            'Borrar todo',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.alertRed,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            Divider(height: isCompactVertical ? 10 : 16),
+
+            // Lista de items en el ticket unificado
+            if (expandList)
+              Expanded(child: listaItemsWidget)
+            else
+              listaItemsWidget,
+
+            SizedBox(height: isCompactVertical ? 8 : 10),
+
+            if (isCompactVertical)
+              // Pie compacto en vertical: TOTAL A COBRAR + Deshacer último lado a lado sin colisionar
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFF0F172A),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'TOTAL A COBRAR',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
+                                color: Colors.white60,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'S/',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF60A5FA),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                total.toStringAsFixed(2),
+                                style: GoogleFonts.jetBrainsMono(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  undoButton,
+                ],
+              )
+            else ...[
+              // Total en letras gigantes (vista ancha / horizontal)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      total.toStringAsFixed(2),
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                      'TOTAL A COBRAR',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: Colors.white60,
                       ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'S/',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF60A5FA),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              total.toStringAsFixed(2),
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 34,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
+              ),
+              const SizedBox(height: 8),
 
-          // Botón Deshacer Último
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppTheme.alertRed,
-              side: const BorderSide(color: Color(0xFFFECDD3)),
-              backgroundColor: const Color(0xFFFFF1F2),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: (_puedeDeshacer && !_isProcesandoVenta)
-                ? _deshacerUltimo
-                : null,
-            icon: const Icon(LucideIcons.undo2, size: 15),
-            label: Text(
-              'Deshacer último',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-        ],
+              // Botón Deshacer Último
+              undoButton,
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -1559,187 +1708,203 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
   }
 
   // ── Columna Teclado Numérico y Cobro Directo (UNIFICADO) ──
-  Widget _buildNumpadAndCheckoutCol(bool isDark, Color surface, Color border) {
+  Widget _buildNumpadAndCheckoutCol(
+    bool isDark,
+    Color surface,
+    Color border, {
+    bool shrinkWrapScroll = false,
+  }) {
     final total = _totalTicket;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Display de la Calculadora + Retroceso
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF3B82F6)
-                    : const Color(0xFFBFDBFE),
-                width: 1.5,
-              ),
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: shrinkWrapScroll ? MainAxisSize.min : MainAxisSize.max,
+      children: [
+        // Display de la Calculadora + Retroceso
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? const Color(0xFF3B82F6) : const Color(0xFFBFDBFE),
+              width: 1.5,
             ),
-            child: Row(
-              children: [
-                Text(
+          ),
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
                   'MONTO A SUMAR:',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w800,
                     color: isDark ? Colors.white60 : const Color(0xFF64748B),
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  _bufferCalculadora.isEmpty
-                      ? 'S/ 0.00'
-                      : 'S/ $_bufferCalculadora',
-                  style: GoogleFonts.jetBrainsMono(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: isDark
-                        ? const Color(0xFF60A5FA)
-                        : const Color(0xFF1E40AF),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                IconButton(
-                  key: const ValueKey('numpad_backspace'),
-                  tooltip: 'Borrar último dígito',
-                  visualDensity: VisualDensity.compact,
-                  onPressed:
-                      (_bufferCalculadora.isNotEmpty && !_isProcesandoVenta)
-                      ? _retrocederDigito
-                      : null,
-                  icon: Icon(
-                    Icons.backspace_outlined,
-                    size: 19,
-                    color: _bufferCalculadora.isNotEmpty
-                        ? AppTheme.alertRed
-                        : (isDark ? Colors.white24 : Colors.black26),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Etiquetas rápidas opcionales para montos sueltos (Pan, Suelto, etc.)
-          SizedBox(
-            height: 32,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _conceptosRapidos.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 6),
-              itemBuilder: (ctx, i) {
-                final c = _conceptosRapidos[i];
-                final active = _conceptoManualSeleccionado == c;
-                return ChoiceChip(
-                  label: Text(c),
-                  selected: active,
-                  visualDensity: VisualDensity.compact,
-                  onSelected: _isProcesandoVenta
-                      ? null
-                      : (_) => setState(() {
-                          _conceptoManualSeleccionado = active ? '' : c;
-                        }),
-                  labelStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                    color: active
-                        ? Colors.white
-                        : (isDark ? Colors.white70 : const Color(0xFF475569)),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Teclado + Botón Gigante [+ SUMAR]
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: GridView.count(
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 1.35,
-                  children: [
-                    for (final digit in [
-                      '7',
-                      '8',
-                      '9',
-                      '4',
-                      '5',
-                      '6',
-                      '1',
-                      '2',
-                      '3',
-                    ])
-                      _buildNumpadKey(digit, isDark, surface, border),
-                    _buildNumpadKey(
-                      'C',
-                      isDark,
-                      surface,
-                      border,
-                      isClear: true,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _bufferCalculadora.isEmpty
+                          ? 'S/ 0.00'
+                          : 'S/ $_bufferCalculadora',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF1E40AF),
+                      ),
                     ),
-                    _buildNumpadKey('0', isDark, surface, border),
-                    _buildNumpadKey('.', isDark, surface, border),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 2,
-                child: SizedBox(
-                  height: 220,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isDark
-                          ? const Color(0xFF2563EB)
-                          : const Color(0xFF1E40AF),
-                      foregroundColor: Colors.white,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                    onPressed: _isProcesandoVenta ? null : _sumarAlTicket,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(LucideIcons.plus, size: 38),
-                        const SizedBox(height: 8),
-                        Text(
-                          'SUMAR AL\nTICKET',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+              const SizedBox(width: 6),
+              IconButton(
+                key: const ValueKey('numpad_backspace'),
+                tooltip: 'Borrar último dígito',
+                visualDensity: VisualDensity.compact,
+                onPressed:
+                    (_bufferCalculadora.isNotEmpty && !_isProcesandoVenta)
+                    ? _retrocederDigito
+                    : null,
+                icon: Icon(
+                  Icons.backspace_outlined,
+                  size: 19,
+                  color: _bufferCalculadora.isNotEmpty
+                      ? AppTheme.alertRed
+                      : (isDark ? Colors.white24 : Colors.black26),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+        ),
+        const SizedBox(height: 8),
 
-          // ── 3 Botones de Cobro (SIEMPRE VISIBLES) ──
-          _buildBotonesCobroUnificados(total, isDark, surface, border),
-        ],
-      ),
+        // Etiquetas rápidas opcionales para montos sueltos (Pan, Suelto, etc.)
+        SizedBox(
+          height: 32,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _conceptosRapidos.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
+            itemBuilder: (ctx, i) {
+              final c = _conceptosRapidos[i];
+              final active = _conceptoManualSeleccionado == c;
+              return ChoiceChip(
+                label: Text(c),
+                selected: active,
+                visualDensity: VisualDensity.compact,
+                onSelected: _isProcesandoVenta
+                    ? null
+                    : (_) => setState(() {
+                        _conceptoManualSeleccionado = active ? '' : c;
+                      }),
+                labelStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                  color: active
+                      ? Colors.white
+                      : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Teclado + Botón Gigante [+ SUMAR]
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: GridView.count(
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 1.35,
+                children: [
+                  for (final digit in [
+                    '7',
+                    '8',
+                    '9',
+                    '4',
+                    '5',
+                    '6',
+                    '1',
+                    '2',
+                    '3',
+                  ])
+                    _buildNumpadKey(digit, isDark, surface, border),
+                  _buildNumpadKey('C', isDark, surface, border, isClear: true),
+                  _buildNumpadKey('0', isDark, surface, border),
+                  _buildNumpadKey('.', isDark, surface, border),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              flex: 2,
+              child: SizedBox(
+                height: 220,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isDark
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF1E40AF),
+                    foregroundColor: Colors.white,
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  ),
+                  onPressed: _isProcesandoVenta ? null : _sumarAlTicket,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(LucideIcons.plus, size: 38),
+                      const SizedBox(height: 8),
+                      Text(
+                        'SUMAR AL\nTICKET',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // ── 3 Botones de Cobro (SIEMPRE VISIBLES) ──
+        _buildBotonesCobroUnificados(total, isDark, surface, border),
+      ],
+    );
+
+    if (shrinkWrapScroll) {
+      return Padding(padding: const EdgeInsets.all(14), child: content);
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(14),
+      child: content,
     );
   }
 
@@ -1763,11 +1928,12 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
           children: [
             Expanded(
               child: SizedBox(
-                height: 56,
+                height: 54,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF15803D),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -1782,12 +1948,16 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                           });
                         }
                       : null,
-                  icon: const Icon(LucideIcons.banknote, size: 20),
-                  label: Text(
-                    'EFECTIVO',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
+                  icon: const Icon(LucideIcons.banknote, size: 18),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'EFECTIVO',
+                      maxLines: 1,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
@@ -1796,11 +1966,12 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             const SizedBox(width: 8),
             Expanded(
               child: SizedBox(
-                height: 56,
+                height: 54,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF742284),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -1817,12 +1988,16 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(LucideIcons.smartphone, size: 20),
-                  label: Text(
-                    'YAPE / PLIN',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
+                      : const Icon(LucideIcons.smartphone, size: 18),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'YAPE / PLIN',
+                      maxLines: 1,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
@@ -1831,11 +2006,12 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             const SizedBox(width: 8),
             Expanded(
               child: SizedBox(
-                height: 56,
+                height: 54,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFBE123C),
                     foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -1848,12 +2024,16 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                           });
                         }
                       : null,
-                  icon: const Icon(LucideIcons.bookUser, size: 20),
-                  label: Text(
-                    'FIAR',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
+                  icon: const Icon(LucideIcons.bookUser, size: 18),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'FIAR',
+                      maxLines: 1,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ),
                 ),
@@ -2695,255 +2875,295 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
 
     final total = _totalTicket;
 
-    return Column(
-      children: [
-        // Buscador Inteligente + Escáner + Monto Rápido en la misma cuenta
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          color: surface,
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _busquedaController,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: 'Buscar producto o código...',
-                    prefixIcon: const Icon(LucideIcons.search, size: 18),
-                    suffixIcon: _busquedaController.text.isNotEmpty
-                        ? IconButton(
-                            tooltip: 'Limpiar búsqueda',
-                            icon: const Icon(LucideIcons.x, size: 16),
-                            onPressed: () {
-                              _busquedaController.clear();
-                              setState(() {});
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: isDark
-                        ? const Color(0xFF1E293B)
-                        : const Color(0xFFF1F5F9),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.tonalIcon(
-                key: const ValueKey('btn_monto_rapido_catalogo'),
-                onPressed: _isProcesandoVenta
-                    ? null
-                    : () => _abrirModalMontoRapido(),
-                icon: const Icon(LucideIcons.plus, size: 16),
-                label: Text(
-                  'Monto',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              IconButton.filledTonal(
-                tooltip: 'Escanear Código de Barras',
-                icon: const Icon(LucideIcons.scanLine, size: 20),
-                onPressed: _isProcesandoVenta ? null : _escanearCodigoCatalogo,
-              ),
-            ],
-          ),
-        ),
-
-        // Píldoras de Categorías dinámicas + fallback
-        Container(
-          height: 44,
-          color: surface,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            children: [
-              _buildCatChip('TODOS', '⭐ Todos', isDark),
-              if (categoriasDinamicas.isEmpty) ...[
-                _buildCatChip('BEBIDAS', '🥤 Bebidas', isDark),
-                _buildCatChip('LACTEOS', '🥛 Lácteos', isDark),
-                _buildCatChip('ABARROTES', '🌾 Abarrotes', isDark),
-                _buildCatChip('LIMPIEZA', '🧼 Limpieza', isDark),
-              ] else
-                for (final entry in categoriasDinamicas.entries)
-                  _buildCatChip(entry.key, entry.value, isDark),
-            ],
-          ),
-        ),
-
-        // Grilla de Productos
-        Expanded(
-          child: filtrados.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'No se encontraron productos',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: Colors.grey,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          children: [
+            // Buscador Inteligente + Escáner + Monto Rápido en la misma cuenta
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              color: surface,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _busquedaController,
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar producto o código...',
+                        prefixIcon: const Icon(LucideIcons.search, size: 18),
+                        suffixIcon: _busquedaController.text.isNotEmpty
+                            ? IconButton(
+                                tooltip: 'Limpiar búsqueda',
+                                icon: const Icon(LucideIcons.x, size: 16),
+                                onPressed: () {
+                                  _busquedaController.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: isDark
+                            ? const Color(0xFF1E293B)
+                            : const Color(0xFFF1F5F9),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
                         ),
                       ),
-                      if (_busquedaController.text.isNotEmpty ||
-                          _categoriaSeleccionada != 'TODOS') ...[
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () => setState(() {
-                            _busquedaController.clear();
-                            _categoriaSeleccionada = 'TODOS';
-                          }),
-                          child: const Text('Mostrar todos los productos'),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 180,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 0.78,
+                  const SizedBox(width: 8),
+                  FilledButton.tonalIcon(
+                    key: const ValueKey('btn_monto_rapido_catalogo'),
+                    onPressed: _isProcesandoVenta
+                        ? null
+                        : () => _abrirModalMontoRapido(),
+                    icon: const Icon(LucideIcons.plus, size: 16),
+                    label: Text(
+                      'Monto',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
-                  itemCount: filtrados.length,
-                  itemBuilder: (ctx, idx) {
-                    final p = filtrados[idx];
-                    return _buildProductCard(p, isDark, surface, border);
-                  },
-                ),
-        ),
-
-        // ── Barra Inferior de Cobro Unificado (o recuperación tras borrado) ──
-        if (_tieneItems)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: surface,
-              border: Border(top: BorderSide(color: border)),
+                  const SizedBox(width: 6),
+                  IconButton.filledTonal(
+                    tooltip: 'Escanear Código de Barras',
+                    icon: const Icon(LucideIcons.scanLine, size: 20),
+                    onPressed: _isProcesandoVenta
+                        ? null
+                        : _escanearCodigoCatalogo,
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: _abrirModalTicketUnificado,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${_ticket.length} items en cuenta',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Ver / editar',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF2563EB),
-                                  ),
-                                ),
-                              ],
+
+            // Píldoras de Categorías dinámicas + fallback
+            Container(
+              height: 44,
+              color: surface,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                children: [
+                  _buildCatChip('TODOS', '⭐ Todos', isDark),
+                  if (categoriasDinamicas.isEmpty) ...[
+                    _buildCatChip('BEBIDAS', '🥤 Bebidas', isDark),
+                    _buildCatChip('LACTEOS', '🥛 Lácteos', isDark),
+                    _buildCatChip('ABARROTES', '🌾 Abarrotes', isDark),
+                    _buildCatChip('LIMPIEZA', '🧼 Limpieza', isDark),
+                  ] else
+                    for (final entry in categoriasDinamicas.entries)
+                      _buildCatChip(entry.key, entry.value, isDark),
+                ],
+              ),
+            ),
+
+            // Grilla de Productos
+            Expanded(
+              child: filtrados.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'No se encontraron productos',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: Colors.grey,
                             ),
-                            Text(
-                              'S/ ${total.toStringAsFixed(2)}',
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF15803D),
+                          ),
+                          if (_busquedaController.text.isNotEmpty ||
+                              _categoriaSeleccionada != 'TODOS') ...[
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: () => setState(() {
+                                _busquedaController.clear();
+                                _categoriaSeleccionada = 'TODOS';
+                              }),
+                              child: const Text('Mostrar todos los productos'),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(12),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 180,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: 0.78,
+                          ),
+                      itemCount: filtrados.length,
+                      itemBuilder: (ctx, idx) {
+                        final p = filtrados[idx];
+                        return _buildProductCard(p, isDark, surface, border);
+                      },
+                    ),
+            ),
+
+            // ── Barra Inferior de Cobro Unificado (o recuperación tras borrado) ──
+            if (_tieneItems)
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: (constraints.maxHeight * 0.56).clamp(150.0, 480.0),
+                ),
+                child: SingleChildScrollView(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: surface,
+                      border: Border(top: BorderSide(color: border)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: _abrirModalTicketUnificado,
+                                borderRadius: BorderRadius.circular(8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            '${_ticket.length} items en cuenta',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Ver / editar',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFF2563EB),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'S/ ${total.toStringAsFixed(2)}',
+                                        style: GoogleFonts.jetBrainsMono(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          color: const Color(0xFF15803D),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+                            ),
+                            IconButton(
+                              tooltip: 'Ver y editar detalle de cuenta',
+                              icon: Icon(
+                                Icons.receipt_long_outlined,
+                                size: 19,
+                                color: isDark
+                                    ? const Color(0xFF60A5FA)
+                                    : const Color(0xFF1E40AF),
+                              ),
+                              onPressed: _abrirModalTicketUnificado,
+                            ),
+                            IconButton(
+                              tooltip: 'Deshacer último',
+                              icon: Icon(
+                                LucideIcons.undo2,
+                                size: 18,
+                                color: AppTheme.alertRed,
+                              ),
+                              onPressed: (_puedeDeshacer && !_isProcesandoVenta)
+                                  ? _deshacerUltimo
+                                  : null,
+                            ),
+                            const SizedBox(width: 2),
+                            IconButton(
+                              tooltip: 'Borrar todo',
+                              icon: Icon(
+                                LucideIcons.trash2,
+                                size: 18,
+                                color: AppTheme.alertRed,
+                              ),
+                              onPressed: _isProcesandoVenta
+                                  ? null
+                                  : _cancelarTicket,
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Ver y editar detalle de cuenta',
-                      icon: Icon(
-                        Icons.receipt_long_outlined,
-                        size: 19,
-                        color: isDark
-                            ? const Color(0xFF60A5FA)
-                            : const Color(0xFF1E40AF),
-                      ),
-                      onPressed: _abrirModalTicketUnificado,
-                    ),
-                    IconButton(
-                      tooltip: 'Deshacer último',
-                      icon: Icon(
-                        LucideIcons.undo2,
-                        size: 18,
-                        color: AppTheme.alertRed,
-                      ),
-                      onPressed: (_puedeDeshacer && !_isProcesandoVenta)
-                          ? _deshacerUltimo
-                          : null,
-                    ),
-                    const SizedBox(width: 2),
-                    IconButton(
-                      tooltip: 'Borrar todo',
-                      icon: Icon(
-                        LucideIcons.trash2,
-                        size: 18,
-                        color: AppTheme.alertRed,
-                      ),
-                      onPressed: _isProcesandoVenta ? null : _cancelarTicket,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                _buildBotonesCobroUnificados(total, isDark, surface, border),
-              ],
-            ),
-          )
-        else if (_puedeDeshacer)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: surface,
-              border: Border(top: BorderSide(color: border)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Cuenta vacía — puedes recuperar tu selección anterior',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
+                        const SizedBox(height: 8),
+                        _buildBotonesCobroUnificados(
+                          total,
+                          isDark,
+                          surface,
+                          border,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                OutlinedButton.icon(
-                  onPressed: _isProcesandoVenta ? null : _deshacerUltimo,
-                  icon: const Icon(LucideIcons.undo2, size: 15),
-                  label: const Text('Deshacer último'),
+              )
+            else if (_puedeDeshacer)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-              ],
-            ),
-          ),
-      ],
+                decoration: BoxDecoration(
+                  color: surface,
+                  border: Border(top: BorderSide(color: border)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Cuenta vacía — puedes recuperar tu selección anterior',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? Colors.white60
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: _isProcesandoVenta ? null : _deshacerUltimo,
+                      icon: const Icon(LucideIcons.undo2, size: 15),
+                      label: const Text('Deshacer último'),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

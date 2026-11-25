@@ -8776,6 +8776,601 @@ class _VentasScreenState extends State<VentasScreen>
     Color borderColor,
     Color labelColor,
   ) {
+    final headerRow = Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppTheme.brandPrimary.withValues(alpha: 0.2)
+                : AppTheme.surfaceTint,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            LucideIcons.receiptText,
+            color: AppTheme.brandPrimary,
+            size: 18,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      'TICKET POS • CAJA 1',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                        color: labelColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: AppTheme.accentGreen,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                _carrito.isEmpty
+                    ? 'Listo para escanear'
+                    : '$_totalUnidades u. • ${_carrito.length} productos',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : AppTheme.textMuted,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!_esGastronomico)
+              IconButton(
+                tooltip: 'Garantía de Botellas / Retornables',
+                icon: Icon(
+                  LucideIcons.bottleWine,
+                  size: 17,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: _abrirModalGarantiaEnvase,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            if (_carrito.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Poner en Espera (Pausar Ticket)',
+                icon: Icon(
+                  LucideIcons.pauseCircle,
+                  size: 17,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: _ponerVentaEnEspera,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: 'Registrar como Consumo Interno de Bodega',
+                icon: Icon(
+                  LucideIcons.coffee,
+                  size: 17,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: _registrarConsumoInterno,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 6),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: AppTheme.alertRed,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  minimumSize: Size.zero,
+                ),
+                onPressed: _vaciarCarritoManual,
+                child: Text(
+                  'Vaciar',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+
+    Widget buildCartContent({required bool shrinkWrap}) {
+      return _carrito.isEmpty
+          ? Center(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.surfaceTintDark
+                              : const Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.borderDarkElevated
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        child: const Icon(
+                          LucideIcons.scanLine,
+                          size: 28,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'TERMINAL LISTO',
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                          color: labelColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Pasa el lector láser o toca productos del catálogo para agregarlos a la venta.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : AppTheme.textMuted,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : ListView.separated(
+              shrinkWrap: shrinkWrap,
+              physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+              itemCount: _carrito.length,
+              separatorBuilder: (_, _) => Divider(
+                height: 10,
+                color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              ),
+              itemBuilder: (context, idx) {
+                final item = _carrito[idx];
+
+                return Row(
+                  children: [
+                    // Foto de estudio o glyph de categoría en lista de carrito
+                    ProductImageWidget(
+                      imagenUrl: item.producto.imagenUrl,
+                      nombre: item.producto.nombre,
+                      codigoBarras: item.producto.codigoBarras,
+                      categoria: item.producto.nombreCategoria,
+                      size: 34,
+                      borderRadius: 10,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Título y Precio Unitario
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.producto.nombre,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: labelColor,
+                            ),
+                          ),
+                          if (item.variante != null ||
+                              (item.notas != null &&
+                                  item.notas!.isNotEmpty)) ...[
+                            const SizedBox(height: 2),
+                            Wrap(
+                              spacing: 4,
+                              runSpacing: 2,
+                              children: [
+                                if (item.variante != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 1.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFFD97706,
+                                      ).withValues(alpha: isDark ? 0.25 : 0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: const Color(0xFFD97706)
+                                            .withValues(alpha: 0.5),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          LucideIcons.drumstick,
+                                          size: 9.5,
+                                          color: Color(0xFFD97706),
+                                        ),
+                                        const SizedBox(width: 2.5),
+                                        Text(
+                                          item.variante!,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFFD97706),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                if (item.notas != null &&
+                                    item.notas!.isNotEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4.5,
+                                      vertical: 1.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: (isDark
+                                          ? Colors.grey[800]
+                                          : Colors.grey[200])!,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      item.notas!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDark
+                                            ? Colors.grey[300]
+                                            : Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                          ],
+                          Text(
+                            'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppTheme.textDarkSecondary
+                                  : AppTheme.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Steppers compactos táctiles
+                    if (item.producto.esPesableOGranel) ...[
+                      InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => _editarCantidadDirecta(idx),
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            LucideIcons.scale,
+                            size: 14,
+                            color: Color(0xFFD97706),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.cardDarkHighlight
+                            : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.borderDarkElevated
+                              : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          InkWell(
+                            borderRadius: const BorderRadius.horizontal(
+                              left: Radius.circular(10),
+                            ),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _decrementarCantidad(idx);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Icon(
+                                LucideIcons.minus,
+                                size: 12,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.textDark,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: () => _editarCantidadDirecta(idx),
+                            child: Container(
+                              constraints: const BoxConstraints(minWidth: 26),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 2,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                _formatCantidad(item.cantidad),
+                                style: GoogleFonts.outfit(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: labelColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            borderRadius: const BorderRadius.horizontal(
+                              right: Radius.circular(10),
+                            ),
+                            onTap: () {
+                              HapticFeedback.selectionClick();
+                              _incrementarCantidad(idx);
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
+                              child: Icon(LucideIcons.plus, size: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Subtotal
+                    SizedBox(
+                      width: 62,
+                      child: Text(
+                        'S/ ${item.subtotal.toStringAsFixed(2)}',
+                        textAlign: TextAlign.right,
+                        style: GoogleFonts.outfit(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.brandPrimary,
+                        ),
+                      ),
+                    ),
+
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 24,
+                        minHeight: 24,
+                      ),
+                      icon: Icon(
+                        LucideIcons.trash2,
+                        size: 13,
+                        color: isDark
+                            ? const Color(0xFFF87171)
+                            : const Color(0xFFEF4444),
+                      ),
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        _eliminarDelCarrito(idx);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+    }
+
+    final footerTotalCard = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [const Color(0xFF090A0F), const Color(0xFF141724)]
+              : [const Color(0xFF0F172A), const Color(0xFF1E3A8A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF38BDF8).withValues(alpha: 0.35)
+              : AppTheme.brandPrimary.withValues(alpha: 0.5),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.brandPrimary.withValues(alpha: 0.18),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'TOTAL A COBRAR',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                    color: const Color(0xFF38BDF8),
+                  ),
+                ),
+                Text(
+                  '${_carrito.length} items seleccionados',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9.5,
+                    color: AppTheme.textDarkSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              'S/ ${_totalVenta.toStringAsFixed(2)}',
+              style: GoogleFonts.outfit(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+                color: Colors.white,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final footerActionsRow = Row(
+      children: [
+        Tooltip(
+          message: 'Imprimir Ticket Térmico (58 / 80 mm)',
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.brandPrimary,
+              side: const BorderSide(color: AppTheme.brandPrimary, width: 1.2),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              minimumSize: const Size(42, 42),
+            ),
+            onPressed: () {
+              _mostrarTicketTermicoDialog(
+                items: _carrito,
+                total: _totalVenta,
+                metodo: _metodoPago,
+                pagadoCon: _montoRecibido,
+                vuelto: _vuelto,
+              );
+            },
+            child: const Icon(LucideIcons.printer, size: 18),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _buildCobrarButton(
+            isDark: isDark,
+            height: ResponsiveLayout.isDesktop(context) ? 48.0 : 42.0,
+            isTablet: true,
+          ),
+        ),
+      ],
+    );
+
+    final promoAndReturnBanners = <Widget>[
+      if (_promocionesAplicadas.isNotEmpty) ...[
+        const SizedBox(height: 6),
+        _buildPromocionesCartBanner(isDark),
+      ],
+      const SizedBox(height: 4),
+      _buildDescuentoManualBanner(isDark),
+      if (_totalBotellasRetornablesEnCarrito > 0) ...[
+        const SizedBox(height: 6),
+        _buildRetornablesCartBanner(isDark),
+      ],
+    ];
+
+    final paymentSection = _buildPaymentAndCashSection(
+      isDark,
+      cardBg,
+      borderColor,
+      labelColor,
+      isTablet: true,
+    );
+
+    final dividerLine = Divider(
+      height: 1,
+      color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: cardBg,
@@ -8790,636 +9385,91 @@ class _VentasScreenState extends State<VentasScreen>
         ],
       ),
       padding: const EdgeInsets.all(10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Cabecera del Ticket POS de Mostrador
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppTheme.brandPrimary.withValues(alpha: 0.2)
-                      : AppTheme.surfaceTint,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  LucideIcons.receiptText,
-                  color: AppTheme.brandPrimary,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'TICKET POS • CAJA 1',
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.outfit(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.3,
-                              color: labelColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            color: AppTheme.accentGreen,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      _carrito.isEmpty
-                          ? 'Listo para escanear'
-                          : '$_totalUnidades u. • ${_carrito.length} productos',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : AppTheme.textMuted,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Row(
+      child: LayoutBuilder(
+        builder: (context, panelConstraints) {
+          final maxH = panelConstraints.maxHeight;
+
+          List<Widget> buildMiddleChildren({required bool shrinkWrapCart}) => [
+            _buildTipoComprobanteSelector(isDark),
+            _buildCustomerCard(
+              isDark,
+              cardBg,
+              borderColor,
+              labelColor,
+              isTablet: true,
+            ),
+            const SizedBox(height: 8),
+            if (shrinkWrapCart)
+              buildCartContent(shrinkWrap: true)
+            else
+              Expanded(child: buildCartContent(shrinkWrap: false)),
+            const SizedBox(height: 6),
+            dividerLine,
+            const SizedBox(height: 6),
+            paymentSection,
+            ...promoAndReturnBanners,
+          ];
+
+          // En alturas muy comprimidas (teclado abierto / ventana baja), todo el panel
+          // hace scroll conjunto evitando cualquier desborde o traslape del total.
+          if (maxH < 250) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (!_esGastronomico)
-                    IconButton(
-                      tooltip: 'Garantía de Botellas / Retornables',
-                      icon: Icon(
-                        LucideIcons.bottleWine,
-                        size: 17,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
-                      ),
-                      onPressed: _abrirModalGarantiaEnvase,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  if (_carrito.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      tooltip: 'Poner en Espera (Pausar Ticket)',
-                      icon: Icon(
-                        LucideIcons.pauseCircle,
-                        size: 17,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
-                      ),
-                      onPressed: _ponerVentaEnEspera,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      tooltip: 'Registrar como Consumo Interno de Bodega',
-                      icon: Icon(
-                        LucideIcons.coffee,
-                        size: 17,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
-                      ),
-                      onPressed: _registrarConsumoInterno,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                    const SizedBox(width: 6),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.alertRed,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        minimumSize: Size.zero,
-                      ),
-                      onPressed: _vaciarCarritoManual,
-                      child: Text(
-                        'Vaciar',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
+                  headerRow,
+                  const SizedBox(height: 8),
+                  ...buildMiddleChildren(shrinkWrapCart: true),
+                  const SizedBox(height: 8),
+                  footerTotalCard,
+                  const SizedBox(height: 6),
+                  footerActionsRow,
                 ],
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
+            );
+          }
 
-          // Selector de Comprobante (Boleta de Venta, Ticket de Venta - Nuevo RUS)
-          _buildTipoComprobanteSelector(isDark),
-
-          // Cliente (Consumidor Final / Con DNI)
-          _buildCustomerCard(
-            isDark,
-            cardBg,
-            borderColor,
-            labelColor,
-            isTablet: true,
-          ),
-          const SizedBox(height: 8),
-
-          // Lista de items en ticket o Banner de terminal listo
-          Expanded(
-            child: _carrito.isEmpty
-                ? Center(
-                    child: SingleChildScrollView(
-                      physics: const ClampingScrollPhysics(),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppTheme.surfaceTintDark
-                                    : const Color(0xFFF1F5F9),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isDark
-                                      ? AppTheme.borderDarkElevated
-                                      : const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: const Icon(
-                                LucideIcons.scanLine,
-                                size: 28,
-                                color: AppTheme.brandPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'TERMINAL LISTO',
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                                color: labelColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Pasa el lector láser o toca productos del catálogo para agregarlos a la venta.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                color: isDark
-                                    ? AppTheme.textDarkSecondary
-                                    : AppTheme.textMuted,
-                                fontWeight: FontWeight.w600,
-                                height: 1.3,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    itemCount: _carrito.length,
-                    separatorBuilder: (_, _) => Divider(
-                      height: 10,
-                      color: isDark
-                          ? AppTheme.borderDark
-                          : AppTheme.borderLight,
-                    ),
-                    itemBuilder: (context, idx) {
-                      final item = _carrito[idx];
-
-                      return Row(
-                        children: [
-                          // Foto de estudio o glyph de categoría en lista de carrito
-                          ProductImageWidget(
-                            imagenUrl: item.producto.imagenUrl,
-                            nombre: item.producto.nombre,
-                            codigoBarras: item.producto.codigoBarras,
-                            categoria: item.producto.nombreCategoria,
-                            size: 34,
-                            borderRadius: 10,
-                            isDark: isDark,
-                          ),
-                          const SizedBox(width: 8),
-
-                          // Título y Precio Unitario
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.producto.nombre,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: labelColor,
-                                  ),
-                                ),
-                                if (item.variante != null ||
-                                    (item.notas != null &&
-                                        item.notas!.isNotEmpty)) ...[
-                                  const SizedBox(height: 2),
-                                  Wrap(
-                                    spacing: 4,
-                                    runSpacing: 2,
-                                    children: [
-                                      if (item.variante != null)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                            vertical: 1.5,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFD97706)
-                                                .withValues(
-                                                  alpha: isDark ? 0.25 : 0.15,
-                                                ),
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                            border: Border.all(
-                                              color: const Color(0xFFD97706)
-                                                  .withValues(alpha: 0.5),
-                                              width: 0.8,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.drumstick,
-                                                size: 9.5,
-                                                color: Color(0xFFD97706),
-                                              ),
-                                              const SizedBox(width: 2.5),
-                                              Text(
-                                                item.variante!,
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      fontSize: 9.5,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: const Color(
-                                                        0xFFD97706,
-                                                      ),
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      if (item.notas != null &&
-                                          item.notas!.isNotEmpty)
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 4.5,
-                                            vertical: 1.5,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: (isDark
-                                                ? Colors.grey[800]
-                                                : Colors.grey[200])!,
-                                            borderRadius: BorderRadius.circular(
-                                              6,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            item.notas!,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w600,
-                                              color: isDark
-                                                  ? Colors.grey[300]
-                                                  : Colors.grey[700],
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 2),
-                                ],
-                                Text(
-                                  'S/ ${item.producto.precioVenta.toStringAsFixed(2)} c/u',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? AppTheme.textDarkSecondary
-                                        : AppTheme.textMuted,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Steppers compactos táctiles
-                          if (item.producto.esPesableOGranel) ...[
-                            InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: () => _editarCantidadDirecta(idx),
-                              child: Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: Colors.amber.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  LucideIcons.scale,
-                                  size: 14,
-                                  color: Color(0xFFD97706),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                          ],
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? AppTheme.cardDarkHighlight
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isDark
-                                    ? AppTheme.borderDarkElevated
-                                    : const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                InkWell(
-                                  borderRadius: const BorderRadius.horizontal(
-                                    left: Radius.circular(10),
-                                  ),
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    _decrementarCantidad(idx);
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 4,
-                                    ),
-                                    child: Icon(
-                                      LucideIcons.minus,
-                                      size: 12,
-                                      color: isDark
-                                          ? Colors.white
-                                          : AppTheme.textDark,
-                                    ),
-                                  ),
-                                ),
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(6),
-                                  onTap: () => _editarCantidadDirecta(idx),
-                                  child: Container(
-                                    constraints: const BoxConstraints(
-                                      minWidth: 26,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                      vertical: 2,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      _formatCantidad(item.cantidad),
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 12.5,
-                                        fontWeight: FontWeight.w800,
-                                        color: labelColor,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                InkWell(
-                                  borderRadius: const BorderRadius.horizontal(
-                                    right: Radius.circular(10),
-                                  ),
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    _incrementarCantidad(idx);
-                                  },
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 4,
-                                    ),
-                                    child: Icon(LucideIcons.plus, size: 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // Subtotal
-                          SizedBox(
-                            width: 62,
-                            child: Text(
-                              'S/ ${item.subtotal.toStringAsFixed(2)}',
-                              textAlign: TextAlign.right,
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.brandPrimary,
-                              ),
-                            ),
-                          ),
-
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 24,
-                              minHeight: 24,
-                            ),
-                            icon: Icon(
-                              LucideIcons.trash2,
-                              size: 13,
-                              color: isDark
-                                  ? const Color(0xFFF87171)
-                                  : const Color(0xFFEF4444),
-                            ),
-                            onPressed: () {
-                              HapticFeedback.selectionClick();
-                              _eliminarDelCarrito(idx);
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-          ),
-
-          const SizedBox(height: 6),
-          Divider(
-            height: 1,
-            color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
-          ),
-          const SizedBox(height: 6),
-
-          // Canales de pago & Calculadora de Vuelto
-          _buildPaymentAndCashSection(
-            isDark,
-            cardBg,
-            borderColor,
-            labelColor,
-            isTablet: true,
-          ),
-
-          const SizedBox(height: 8),
-
-          // Totalizador Digital LED de Caja
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF090A0F), const Color(0xFF141724)]
-                    : [const Color(0xFF0F172A), const Color(0xFF1E3A8A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF38BDF8).withValues(alpha: 0.35)
-                    : AppTheme.brandPrimary.withValues(alpha: 0.5),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.brandPrimary.withValues(alpha: 0.18),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // En alturas medianas / tablet vertical con teclado o tarjetas expandidas,
+          // fijamos cabecera y TOTAL + Cobrar para que el cuerpo haga scroll sin tapar UI.
+          if (maxH < 920) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                headerRow,
+                const SizedBox(height: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'TOTAL A COBRAR',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.outfit(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
-                          color: const Color(0xFF38BDF8),
-                        ),
-                      ),
-                      Text(
-                        '${_carrito.length} items seleccionados',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 9.5,
-                          color: AppTheme.textDarkSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    'S/ ${_totalVenta.toStringAsFixed(2)}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                      color: Colors.white,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                  child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: buildMiddleChildren(shrinkWrapCart: true),
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                footerTotalCard,
+                const SizedBox(height: 6),
+                footerActionsRow,
               ],
-            ),
-          ),
-          if (_promocionesAplicadas.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            _buildPromocionesCartBanner(isDark),
-          ],
-          const SizedBox(height: 4),
-          _buildDescuentoManualBanner(isDark),
-          if (_totalBotellasRetornablesEnCarrito > 0) ...[
-            const SizedBox(height: 6),
-            _buildRetornablesCartBanner(isDark),
-          ],
-          const SizedBox(height: 6),
+            );
+          }
 
-          // Botones de Acción (Ticket Térmico + Cobro)
-          Row(
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Tooltip(
-                message: 'Imprimir Ticket Térmico (58 / 80 mm)',
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.brandPrimary,
-                    side: const BorderSide(
-                      color: AppTheme.brandPrimary,
-                      width: 1.2,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    minimumSize: const Size(42, 42),
-                  ),
-                  onPressed: () {
-                    _mostrarTicketTermicoDialog(
-                      items: _carrito,
-                      total: _totalVenta,
-                      metodo: _metodoPago,
-                      pagadoCon: _montoRecibido,
-                      vuelto: _vuelto,
-                    );
-                  },
-                  child: const Icon(LucideIcons.printer, size: 18),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildCobrarButton(
-                  isDark: isDark,
-                  height: ResponsiveLayout.isDesktop(context) ? 48.0 : 42.0,
-                  isTablet: true,
-                ),
-              ),
+              headerRow,
+              const SizedBox(height: 8),
+              ...buildMiddleChildren(shrinkWrapCart: false),
+              const SizedBox(height: 8),
+              footerTotalCard,
+              const SizedBox(height: 6),
+              footerActionsRow,
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

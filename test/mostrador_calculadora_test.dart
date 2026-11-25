@@ -49,6 +49,7 @@ class _FakeClienteService extends ClienteService {
 }
 
 Widget _createMostradorApp({
+  Key? appKey,
   required List<Producto> productos,
   required VoidCallback onVolverAPos,
   bool isDark = false,
@@ -56,6 +57,7 @@ Widget _createMostradorApp({
   ClienteService? clienteService,
 }) {
   return MaterialApp(
+    key: appKey,
     theme: isDark ? AppTheme.buildDarkTheme() : AppTheme.buildLightTheme(),
     home: Scaffold(
       body: MostradorCalculadoraView(
@@ -550,6 +552,111 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('No se pudieron cargar los vecinos.'), findsOneWidget);
       expect(find.text('Reintentar'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Vista vertical de tablet no genera overflow ni sobrepone TOTAL A COBRAR sobre la calculadora',
+    (tester) async {
+      for (final size in [
+        const Size(600, 960),
+        const Size(688, 1024),
+        const Size(768, 1024),
+        const Size(600, 500),
+      ]) {
+        SharedPreferences.setMockInitialValues({
+          'cajaya_mostrador_subvista_activa': 'calculadora',
+        });
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(
+          _createMostradorApp(
+            appKey: ValueKey(size),
+            productos: dummyProductos,
+            onVolverAPos: () {},
+            ventaService: _FakeVentaService(),
+            clienteService: _FakeClienteService(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Verifica que TOTAL A COBRAR no se traslapa ni con la lista vacía ni con MONTO A SUMAR
+        final totalRect = tester.getRect(find.text('TOTAL A COBRAR'));
+        final numpadHeaderRect = tester.getRect(find.text('MONTO A SUMAR:'));
+        expect(
+          totalRect.overlaps(numpadHeaderRect),
+          isFalse,
+          reason: 'TOTAL A COBRAR se sobrepone sobre MONTO A SUMAR en $size',
+        );
+        if (size.width < 720) {
+          expect(
+            totalRect.bottom <= numpadHeaderRect.top,
+            isTrue,
+            reason:
+                'TOTAL A COBRAR invade verticalmente a la calculadora en $size ($totalRect vs $numpadHeaderRect)',
+          );
+        }
+
+        // Agrega monto 15 y verifica lista + EFECTIVO abierto sin overflow
+        await tester.ensureVisible(find.byKey(const ValueKey('numpad_1')));
+        await tester.pump();
+        await tester.tap(find.byKey(const ValueKey('numpad_1')));
+        await tester.pump();
+        await tester.ensureVisible(find.byKey(const ValueKey('numpad_5')));
+        await tester.tap(find.byKey(const ValueKey('numpad_5')));
+        await tester.pump();
+        final sumarBtn = find.text('SUMAR AL\nTICKET');
+        await tester.ensureVisible(sumarBtn);
+        await tester.tap(sumarBtn);
+        await tester.pump();
+
+        expect(find.text('S/ 15.00'), findsOneWidget);
+
+        // Alternar a Catálogo con EFECTIVO abierto en vertical de tablet
+        await tester.tap(find.text('Catálogo'));
+        await tester.pumpAndSettle();
+        final efectivoBtn = find.text('EFECTIVO');
+        await tester.ensureVisible(efectivoBtn);
+        await tester.tap(efectivoBtn);
+        await tester.pumpAndSettle();
+        expect(find.text('Exacto'), findsOneWidget);
+      }
+    },
+  );
+
+  testWidgets(
+    'Vista vertical de tablet con escala de texto 1.2x mantiene TOTAL A COBRAR sin overflow',
+    (tester) async {
+      for (final size in [const Size(600, 960), const Size(688, 1024)]) {
+        SharedPreferences.setMockInitialValues({
+          'cajaya_mostrador_subvista_activa': 'calculadora',
+        });
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        tester.platformDispatcher.textScaleFactorTestValue = 1.2;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.platformDispatcher.clearTextScaleFactorTestValue();
+        });
+
+        await tester.pumpWidget(
+          _createMostradorApp(
+            appKey: ValueKey('scaled_$size'),
+            productos: dummyProductos,
+            onVolverAPos: () {},
+            ventaService: _FakeVentaService(),
+            clienteService: _FakeClienteService(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final totalRect = tester.getRect(find.text('TOTAL A COBRAR'));
+        final numpadHeaderRect = tester.getRect(find.text('MONTO A SUMAR:'));
+        expect(totalRect.overlaps(numpadHeaderRect), isFalse);
+        expect(totalRect.bottom <= numpadHeaderRect.top, isTrue);
+      }
     },
   );
 }
