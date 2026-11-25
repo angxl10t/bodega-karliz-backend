@@ -822,7 +822,10 @@ void main() {
       expect(envio.clienteNombre, 'Don Carlos Mendoza');
 
       // El ticket debe haberse limpiado y muestra confirmación de cobrado
-      expect(find.textContaining('Cobrado S/ 4.50 con Crédito'), findsOneWidget);
+      expect(
+        find.textContaining('Cobrado S/ 4.50 con Crédito'),
+        findsOneWidget,
+      );
       expect(find.textContaining('items en cuenta'), findsNothing);
       expect(find.text('×1'), findsNothing);
     },
@@ -891,7 +894,10 @@ void main() {
       expect(envio.clienteNombre, 'Doña Rosa Valdivia');
 
       // Ticket limpio y confirmación de venta
-      expect(find.textContaining('Cobrado S/ 5.20 con Crédito'), findsOneWidget);
+      expect(
+        find.textContaining('Cobrado S/ 5.20 con Crédito'),
+        findsOneWidget,
+      );
       expect(find.textContaining('items en cuenta'), findsNothing);
       expect(find.text('×1'), findsNothing);
     },
