@@ -9720,21 +9720,20 @@ class _VentasScreenState extends State<VentasScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
                           'Consumidor Final',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: isTablet ? 12 : 13,
                             fontWeight: FontWeight.w700,
                             color: labelColor,
                           ),
                         ),
-                      ),
-                      if (!isTablet) ...[
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -9759,7 +9758,7 @@ class _VentasScreenState extends State<VentasScreen>
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
                   Text(
                     'Público general • Boleta o Ticket rápido',
