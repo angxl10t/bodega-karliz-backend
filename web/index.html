@@ -89,18 +89,21 @@
     }
     #loading-container {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
       width: 100vw;
       background-color: var(--bg-color);
+      position: relative;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
     }
     .brand-mark {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      animation: rappiEntrance 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards,
-                 rappiBreathe 2.4s ease-in-out infinite 0.7s;
+      animation: rappiEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                 rappiBreathe 2.2s ease-in-out infinite 0.7s;
       transform-origin: center center;
     }
     .wordmark {
@@ -129,14 +132,50 @@
       margin-bottom: 2px;
     }
 
+    .shimmer-container {
+      position: absolute;
+      bottom: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      animation: rappiEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .shimmer-track {
+      width: 110px;
+      height: 3px;
+      background: rgba(100, 116, 139, 0.18);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .shimmer-bar {
+      position: absolute;
+      height: 100%;
+      width: 45%;
+      background: linear-gradient(90deg, transparent, #38BDF8, #60A5FA, transparent);
+      border-radius: 10px;
+      animation: shimmerGlide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .shimmer-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748B;
+      letter-spacing: 0.3px;
+    }
+
+    @keyframes shimmerGlide {
+      0% { left: -50%; }
+      100% { left: 110%; }
+    }
     @keyframes rappiEntrance {
       0% {
         opacity: 0;
-        transform: scale(0.85);
+        transform: scale(0.84) translateY(8px);
       }
       100% {
         opacity: 1;
-        transform: scale(1);
+        transform: scale(1) translateY(0);
       }
     }
     @keyframes rappiBreathe {
@@ -144,7 +183,7 @@
         transform: scale(1);
       }
       50% {
-        transform: scale(1.02);
+        transform: scale(1.022);
       }
     }
   </style>
@@ -154,6 +193,12 @@
     <div class="brand-mark">
       <span class="wordmark">CajaYa</span>
       <span class="pos-pill">POS</span>
+    </div>
+    <div class="shimmer-container">
+      <div class="shimmer-track">
+        <div class="shimmer-bar"></div>
+      </div>
+      <span class="shimmer-label">Iniciando terminal...</span>
     </div>
   </div>
 

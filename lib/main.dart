@@ -53,6 +53,28 @@ void main() async {
   );
 }
 
+CustomTransitionPage<void> _buildFadePageTransition({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 350),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOutCubic,
+        ),
+        child: child,
+      );
+    },
+  );
+}
+
 final _router = GoRouter(
   initialLocation: '/splash',
   redirect: (context, state) async {
@@ -81,12 +103,37 @@ final _router = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-    GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/splash',
+      pageBuilder: (context, state) => _buildFadePageTransition(
+        context: context,
+        state: state,
+        child: const SplashScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/login',
+      pageBuilder: (context, state) => _buildFadePageTransition(
+        context: context,
+        state: state,
+        child: const LoginScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/home',
+      pageBuilder: (context, state) => _buildFadePageTransition(
+        context: context,
+        state: state,
+        child: const HomeScreen(),
+      ),
+    ),
     GoRoute(
       path: '/superadmin',
-      builder: (context, state) => const SuperAdminDashboardScreen(),
+      pageBuilder: (context, state) => _buildFadePageTransition(
+        context: context,
+        state: state,
+        child: const SuperAdminDashboardScreen(),
+      ),
     ),
     GoRoute(
       path: '/catalogo',
