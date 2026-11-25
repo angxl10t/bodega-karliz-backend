@@ -253,5 +253,54 @@ void main() {
         expect(find.byTooltip('Lectora / Escáner Cámara'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'VentasScreen en tablet con navbar completo (ancho 542) o acortado (ancho 704) muestra siempre catálogo de productos',
+      (tester) async {
+        tester.view.physicalSize = const Size(768, 1024);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        // 1. Simula navbar expandido (ancho disponible = 768 - 226 = 542dp)
+        await tester.pumpWidget(
+          const MaterialApp(
+            key: ValueKey('tablet_navbar_expandido'),
+            home: Scaffold(
+              body: SizedBox(width: 542, height: 1024, child: VentasScreen()),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Debe mostrar los productos del catálogo interactivo en la pantalla
+        expect(
+          find.text('Inca Kola 1.5L Vidrio Retornable'),
+          findsAtLeastNWidgets(1),
+        );
+        // Debe mostrar el panel de ticket lateral
+        expect(find.textContaining('TICKET POS'), findsOneWidget);
+        // NO debe mostrar el cartel de canasta vacía
+        expect(find.text('La canasta está vacía'), findsNothing);
+
+        // 2. Simula navbar acortado / colapsado (ancho disponible = 768 - 64 = 704dp)
+        await tester.pumpWidget(
+          const MaterialApp(
+            key: ValueKey('tablet_navbar_colapsado'),
+            home: Scaffold(
+              body: SizedBox(width: 704, height: 1024, child: VentasScreen()),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Debe continuar mostrando el catálogo de productos y el ticket
+        expect(
+          find.text('Inca Kola 1.5L Vidrio Retornable'),
+          findsAtLeastNWidgets(1),
+        );
+        expect(find.textContaining('TICKET POS'), findsOneWidget);
+      },
+    );
   });
 }
