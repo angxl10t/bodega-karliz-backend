@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +10,7 @@ import '../../../core/karliz_sound_service.dart';
 import '../../../core/offline/offline_models.dart';
 import '../../../core/offline/offline_sync_manager.dart';
 import '../../../core/offline/uuid_helper.dart';
+import '../../../core/secure_storage_service.dart';
 import '../../../core/thermal_ticket_service.dart';
 import '../../../core/theme.dart';
 import '../../../core/widgets/karliz_barcode_scanner_modal.dart';
@@ -26,12 +27,16 @@ class MostradorCalculadoraView extends StatefulWidget {
   final List<Producto> productosDisponibles;
   final VoidCallback onVolverAPos;
   final bool isDark;
+  final VentaService? ventaService;
+  final ClienteService? clienteService;
 
   const MostradorCalculadoraView({
     super.key,
     required this.productosDisponibles,
     required this.onVolverAPos,
     required this.isDark,
+    this.ventaService,
+    this.clienteService,
   });
 
   @override
@@ -41,35 +46,64 @@ class MostradorCalculadoraView extends StatefulWidget {
 
 class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
   static const String _prefSubvistaKey = 'cajaya_mostrador_subvista_activa';
+  static const int _maxUndoSteps = 30;
+  static const List<String> _conceptosRapidos = [
+    'Pan',
+    'Suelto',
+    'Verdura',
+    'Otro',
+  ];
+
+  /// Producto genérico para montos manuales de la calculadora
+  static Producto _productoManual(
+    double monto, {
+    String nombre = 'Monto manual',
+  }) => Producto(
+    idProducto: null,
+    codigo: 'MANUAL',
+    nombre: nombre,
+    precioVenta: monto,
+    stockActual: 9999,
+  );
 
   MostradorSubvista _subvista = MostradorSubvista.calculadora;
 
-  // Estado Modo Calculadora (Tira Continua)
-  final List<double> _montosTicket = [];
+  // ── Ticket Unificado (calculadora + catálogo en la MISMA cuenta) ──
+  final List<CartItem> _ticket = [];
+  final List<List<CartItem>> _undoHistory = [];
   String _bufferCalculadora = '';
-  int _billeteSeleccionado = -1; // -1: ninguno, 0: exacto, 10, 20, 50, 100
+  String _conceptoManualSeleccionado = '';
+  int _billeteSeleccionado = -1;
+  double? _montoEfectivoCustom;
   bool _mostrarEfectivoInline = false;
   bool _mostrarFiadoInline = false;
 
-  // Estado Modo Catálogo & Buscador
+  // ── Estado Modo Catálogo & Buscador ──
   final TextEditingController _busquedaController = TextEditingController();
   String _categoriaSeleccionada = 'TODOS';
-  final List<CartItem> _carritoCat = [];
 
-  // Clientes para fiados
-  final ClienteService _clienteService = ClienteService();
+  // ── Clientes para fiados ──
+  late final ClienteService _clienteService;
   List<Cliente> _clientesVecinos = [];
+  bool _isCargandoClientes = false;
+  String? _errorClientes;
 
-  // Resumen de caja diaria
-  final VentaService _ventaService = VentaService();
+  // ── Resumen de caja diaria ──
+  late final VentaService _ventaService;
   double _cajaEfectivo = 0.0;
   double _cajaYape = 0.0;
   double _cajaTotal = 0.0;
+  bool _isCargandoCaja = false;
+  bool _errorCaja = false;
   bool _isProcesandoVenta = false;
+  String? _alertaMensaje;
+  bool _alertaEsError = true;
 
   @override
   void initState() {
     super.initState();
+    _ventaService = widget.ventaService ?? VentaService();
+    _clienteService = widget.clienteService ?? ClienteService();
     _cargarPreferenciaSubvista();
     _cargarVecinos();
     _cargarCierreCajaHoy();
@@ -81,6 +115,9 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     super.dispose();
   }
 
+  // ══════════════════════════════════════════════════════════════
+  // CARGA INICIAL CON MANEJO DE ERRORES Y REINTENTO
+  // ══════════════════════════════════════════════════════════════
   Future<void> _cargarPreferenciaSubvista() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -88,7 +125,12 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       if (val == 'catalogo' && mounted) {
         setState(() => _subvista = MostradorSubvista.catalogo);
       }
-    } catch (_) {}
+    } catch (e) {
+      developer.log(
+        'Error cargando preferencia subvista: $e',
+        name: 'Mostrador',
+      );
+    }
   }
 
   Future<void> _guardarPreferenciaSubvista(MostradorSubvista sub) async {
@@ -99,67 +141,393 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         _prefSubvistaKey,
         sub == MostradorSubvista.catalogo ? 'catalogo' : 'calculadora',
       );
-    } catch (_) {}
+    } catch (e) {
+      developer.log(
+        'Error guardando preferencia subvista: $e',
+        name: 'Mostrador',
+      );
+    }
   }
 
-  Future<void> _cargarVecinos() async {
+  Future<void> _cargarVecinos({bool mostrarErrorUsuario = false}) async {
+    if (_isCargandoClientes) return;
+    if (mounted) {
+      setState(() {
+        _isCargandoClientes = true;
+        _errorClientes = null;
+      });
+    }
     try {
       final list = await _clienteService.getClientes();
       if (mounted) {
-        setState(() => _clientesVecinos = list);
+        setState(() {
+          _clientesVecinos = list;
+          _isCargandoClientes = false;
+        });
       }
-    } catch (_) {}
+    } catch (e) {
+      developer.log('Error cargando clientes vecinos: $e', name: 'Mostrador');
+      if (mounted) {
+        setState(() {
+          _isCargandoClientes = false;
+          _errorClientes = 'No se pudieron cargar los vecinos.';
+        });
+        if (mostrarErrorUsuario) {
+          _mostrarErrorBanner('No se pudieron cargar los clientes: $e');
+        }
+      }
+    }
   }
 
-  Future<void> _cargarCierreCajaHoy() async {
+  Future<void> _cargarCierreCajaHoy({bool mostrarErrorUsuario = false}) async {
+    if (_isCargandoCaja) return;
+    if (mounted) {
+      setState(() {
+        _isCargandoCaja = true;
+        _errorCaja = false;
+      });
+    }
     try {
       final cierre = await _ventaService.getCierreCajaHoy();
-      if (cierre != null && mounted) {
+      if (!mounted) return;
+      if (cierre != null) {
         setState(() {
           _cajaTotal = cierre.totalVentas;
           _cajaEfectivo = cierre.totalEfectivo;
           _cajaYape = cierre.totalYape + cierre.totalPlin;
+          _isCargandoCaja = false;
+          _errorCaja = false;
         });
+      } else {
+        setState(() {
+          _isCargandoCaja = false;
+          _errorCaja = true;
+        });
+        if (mostrarErrorUsuario) {
+          _mostrarErrorBanner('No se pudo actualizar el resumen de caja.');
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      developer.log('Error cargando cierre de caja: $e', name: 'Mostrador');
+      if (mounted) {
+        setState(() {
+          _isCargandoCaja = false;
+          _errorCaja = true;
+        });
+        if (mostrarErrorUsuario) {
+          _mostrarErrorBanner('No se pudo cargar el resumen de caja.');
+        }
+      }
+    }
   }
 
-  // ==========================================================
-  // OPERACIONES DE LA CALCULADORA DE MOSTRADOR
-  // ==========================================================
-  void _presionarDigito(String c) {
-    if (c == '.' && _bufferCalculadora.contains('.')) return;
-    if (_bufferCalculadora.length >= 7) return;
+  // ══════════════════════════════════════════════════════════════
+  // FEEDBACK DE ERRORES Y UTILIDADES DE FORMATO
+  // ══════════════════════════════════════════════════════════════
+  void _mostrarErrorBanner(String mensaje) {
+    if (!mounted) return;
     setState(() {
-      _bufferCalculadora += c;
+      _alertaMensaje = mensaje;
+      _alertaEsError = true;
+    });
+  }
+
+  void _mostrarAvisoBanner(String mensaje) {
+    if (!mounted) return;
+    setState(() {
+      _alertaMensaje = mensaje;
+      _alertaEsError = false;
+    });
+  }
+
+  static String _formatCantidad(double cant) {
+    if ((cant - cant.roundToDouble()).abs() < 0.001) {
+      return cant.round().toString();
+    }
+    return cant.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '');
+  }
+
+  static String _normalizarTexto(String input) {
+    return input
+        .trim()
+        .toUpperCase()
+        .replaceAll('Á', 'A')
+        .replaceAll('É', 'E')
+        .replaceAll('Í', 'I')
+        .replaceAll('Ó', 'O')
+        .replaceAll('Ú', 'U')
+        .replaceAll('Ü', 'U')
+        .replaceAll('Ñ', 'N');
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // HISTORIAL REAL DE DESHACER (UNDO STACK MULTI-PASO)
+  // ══════════════════════════════════════════════════════════════
+  List<CartItem> _clonarTicket() {
+    return _ticket
+        .map(
+          (item) => CartItem(
+            producto: item.producto,
+            cantidad: item.cantidad,
+            descuentoManual: item.descuentoManual,
+            descuentoMotivo: item.descuentoMotivo,
+            variante: item.variante,
+            notas: item.notas,
+          ),
+        )
+        .toList();
+  }
+
+  void _registrarUndo() {
+    _undoHistory.add(_clonarTicket());
+    if (_undoHistory.length > _maxUndoSteps) {
+      _undoHistory.removeAt(0);
+    }
+  }
+
+  bool get _puedeDeshacer => _undoHistory.isNotEmpty || _ticket.isNotEmpty;
+
+  // ══════════════════════════════════════════════════════════════
+  // TOTAL UNIFICADO DEL TICKET
+  // ══════════════════════════════════════════════════════════════
+  double get _totalTicket =>
+      _ticket.fold(0.0, (acc, item) => acc + item.subtotal);
+
+  bool get _tieneItems => _ticket.isNotEmpty;
+
+  // ══════════════════════════════════════════════════════════════
+  // OPERACIONES DE LA CALCULADORA (MONTOS MANUALES AL TICKET)
+  // ══════════════════════════════════════════════════════════════
+  void _presionarDigito(String c) {
+    if (_isProcesandoVenta) return;
+    if (c == '.') {
+      if (_bufferCalculadora.contains('.')) return;
+      setState(() {
+        _bufferCalculadora = _bufferCalculadora.isEmpty
+            ? '0.'
+            : '$_bufferCalculadora.';
+      });
+      HapticFeedback.selectionClick();
+      return;
+    }
+    if (_bufferCalculadora.contains('.')) {
+      final partes = _bufferCalculadora.split('.');
+      if (partes.length > 1 && partes[1].length >= 2) return;
+    }
+    if (_bufferCalculadora.length >= 8) return;
+    setState(() {
+      if (_bufferCalculadora == '0' && c != '.') {
+        _bufferCalculadora = c;
+      } else {
+        _bufferCalculadora += c;
+      }
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  void _retrocederDigito() {
+    if (_isProcesandoVenta || _bufferCalculadora.isEmpty) return;
+    setState(() {
+      _bufferCalculadora = _bufferCalculadora.substring(
+        0,
+        _bufferCalculadora.length - 1,
+      );
     });
     HapticFeedback.selectionClick();
   }
 
   void _limpiarBuffer() {
+    if (_isProcesandoVenta) return;
     setState(() => _bufferCalculadora = '');
     HapticFeedback.selectionClick();
   }
 
-  void _sumarAlTicket() {
-    final val = double.tryParse(_bufferCalculadora);
-    if (val == null || val <= 0) return;
+  void _agregarMontoManualAlTicket(double val, {String? concepto}) {
+    if (val <= 0 || val.isNaN || val.isInfinite) {
+      HapticFeedback.vibrate();
+      _mostrarAvisoBanner('Digita un monto válido mayor a S/ 0.00');
+      return;
+    }
+    if (val > 99999.99) {
+      HapticFeedback.vibrate();
+      _mostrarErrorBanner('El monto máximo por ítem es S/ 99,999.99');
+      return;
+    }
+
+    final nombreConcepto = (concepto != null && concepto.trim().isNotEmpty)
+        ? concepto.trim()
+        : (_conceptoManualSeleccionado.isNotEmpty
+              ? _conceptoManualSeleccionado
+              : 'Monto manual');
 
     setState(() {
-      _montosTicket.add(val);
+      _registrarUndo();
+      _ticket.add(
+        CartItem(
+          producto: _productoManual(val, nombre: nombreConcepto),
+          cantidad: 1.0,
+        ),
+      );
       _bufferCalculadora = '';
+      _conceptoManualSeleccionado = '';
+      _alertaMensaje = null;
       _mostrarEfectivoInline = false;
       _mostrarFiadoInline = false;
     });
-
     KarlizSoundService.instance.playBarcodeBeep();
   }
 
+  void _sumarAlTicket() {
+    if (_isProcesandoVenta) return;
+    final val = double.tryParse(_bufferCalculadora.replaceAll(',', '.'));
+    if (val == null || val <= 0) {
+      HapticFeedback.vibrate();
+      _mostrarAvisoBanner('Digita un monto mayor a S/ 0.00 antes de sumar');
+      return;
+    }
+    _agregarMontoManualAlTicket(val);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // OPERACIONES DEL CATÁLOGO (PRODUCTOS AL TICKET UNIFICADO)
+  // ══════════════════════════════════════════════════════════════
+  void _agregarProductoCatalogo(Producto p) {
+    if (_isProcesandoVenta) return;
+    if (p.stockActual <= 0) {
+      HapticFeedback.vibrate();
+      _mostrarErrorBanner('Sin stock disponible para ${p.nombre}');
+      return;
+    }
+
+    final idx = _ticket.indexWhere(
+      (item) =>
+          item.producto.idProducto != null &&
+          p.idProducto != null &&
+          item.producto.idProducto == p.idProducto,
+    );
+    final cantidadActual = idx >= 0 ? _ticket[idx].cantidad : 0.0;
+    if (cantidadActual + 1 > p.stockActual + 0.0001) {
+      HapticFeedback.vibrate();
+      _mostrarAvisoBanner(
+        'Stock insuficiente para ${p.nombre} (Disponible: ${_formatCantidad(p.stockActual)})',
+      );
+      return;
+    }
+
+    setState(() {
+      _registrarUndo();
+      if (idx >= 0) {
+        _ticket[idx].cantidad += 1;
+      } else {
+        _ticket.add(CartItem(producto: p, cantidad: 1));
+      }
+      _alertaMensaje = null;
+      _mostrarEfectivoInline = false;
+      _mostrarFiadoInline = false;
+    });
+    KarlizSoundService.instance.playBarcodeBeep();
+  }
+
+  void _quitarUnoCatalogo(Producto p) {
+    if (_isProcesandoVenta) return;
+    final idx = _ticket.indexWhere(
+      (item) =>
+          item.producto.idProducto != null &&
+          p.idProducto != null &&
+          item.producto.idProducto == p.idProducto,
+    );
+    if (idx < 0) return;
+    _decrementarCantidad(idx);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // EDICIÓN DE LÍNEAS DEL TICKET UNIFICADO
+  // ══════════════════════════════════════════════════════════════
+  void _incrementarCantidad(int index) {
+    if (_isProcesandoVenta || index < 0 || index >= _ticket.length) return;
+    final item = _ticket[index];
+    final isManual = item.producto.codigo == 'MANUAL';
+    if (!isManual && item.cantidad + 1 > item.producto.stockActual + 0.0001) {
+      HapticFeedback.vibrate();
+      _mostrarAvisoBanner(
+        'Tope de stock alcanzado para ${item.producto.nombre} (${_formatCantidad(item.producto.stockActual)})',
+      );
+      return;
+    }
+    setState(() {
+      _registrarUndo();
+      _ticket[index].cantidad += 1;
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  void _decrementarCantidad(int index) {
+    if (_isProcesandoVenta || index < 0 || index >= _ticket.length) return;
+    if (_ticket[index].cantidad <= 1) {
+      _borrarLineaTicket(index);
+      return;
+    }
+    setState(() {
+      _registrarUndo();
+      _ticket[index].cantidad -= 1;
+    });
+    HapticFeedback.selectionClick();
+  }
+
+  Future<void> _editarCantidadManual(int index) async {
+    if (_isProcesandoVenta || index < 0 || index >= _ticket.length) return;
+    final item = _ticket[index];
+    final isManual = item.producto.codigo == 'MANUAL';
+
+    final result = await showDialog<_LineaEditResult>(
+      context: context,
+      builder: (_) => _EditarLineaTicketDialog(
+        item: item,
+        isManual: isManual,
+        formatCantidad: _formatCantidad,
+      ),
+    );
+    if (result == null || !mounted || index >= _ticket.length) return;
+
+    setState(() {
+      _registrarUndo();
+      if (isManual) {
+        _ticket[index] = CartItem(
+          producto: _productoManual(
+            result.montoUnitario ?? item.producto.precioVenta,
+            nombre: (result.concepto ?? '').trim().isNotEmpty
+                ? result.concepto!.trim()
+                : item.producto.nombre,
+          ),
+          cantidad: result.cantidad,
+        );
+      } else {
+        _ticket[index].cantidad = result.cantidad;
+      }
+    });
+    HapticFeedback.mediumImpact();
+  }
+
+  Future<void> _abrirModalMontoRapido({double? montoInicial}) async {
+    if (_isProcesandoVenta) return;
+    final result = await showDialog<_MontoRapidoResult>(
+      context: context,
+      builder: (_) => _AgregarMontoRapidoDialog(
+        montoInicial: montoInicial,
+        conceptosSugeridos: _conceptosRapidos,
+      ),
+    );
+    if (result == null || !mounted) return;
+    _agregarMontoManualAlTicket(result.monto, concepto: result.concepto);
+  }
+
   void _borrarLineaTicket(int index) {
-    if (index >= 0 && index < _montosTicket.length) {
+    if (_isProcesandoVenta) return;
+    if (index >= 0 && index < _ticket.length) {
       setState(() {
-        _montosTicket.removeAt(index);
-        if (_montosTicket.isEmpty) {
+        _registrarUndo();
+        _ticket.removeAt(index);
+        if (_ticket.isEmpty) {
           _mostrarEfectivoInline = false;
           _mostrarFiadoInline = false;
         }
@@ -168,11 +536,25 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     }
   }
 
-  void _deshacerUltimoMonto() {
-    if (_montosTicket.isNotEmpty) {
+  void _deshacerUltimo() {
+    if (_isProcesandoVenta) return;
+    if (_undoHistory.isNotEmpty) {
       setState(() {
-        _montosTicket.removeLast();
-        if (_montosTicket.isEmpty) {
+        _ticket
+          ..clear()
+          ..addAll(_undoHistory.removeLast());
+        if (_ticket.isEmpty) {
+          _mostrarEfectivoInline = false;
+          _mostrarFiadoInline = false;
+        }
+      });
+      HapticFeedback.mediumImpact();
+      return;
+    }
+    if (_ticket.isNotEmpty) {
+      setState(() {
+        _ticket.removeLast();
+        if (_ticket.isEmpty) {
           _mostrarEfectivoInline = false;
           _mostrarFiadoInline = false;
         }
@@ -182,13 +564,13 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
   }
 
   void _cancelarTicket() {
-    if (_montosTicket.isEmpty) return;
+    if (_isProcesandoVenta || _ticket.isEmpty) return;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('¿Cancelar cuenta?'),
         content: const Text(
-          'Se borrarán todos los montos de la cuenta actual.',
+          'Se borrarán todos los productos y montos de la cuenta actual (puedes recuperarlo con Deshacer último).',
         ),
         actions: [
           TextButton(
@@ -200,7 +582,8 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             onPressed: () {
               Navigator.pop(ctx);
               setState(() {
-                _montosTicket.clear();
+                _registrarUndo();
+                _ticket.clear();
                 _bufferCalculadora = '';
                 _mostrarEfectivoInline = false;
                 _mostrarFiadoInline = false;
@@ -214,152 +597,223 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  double get _totalCalculadora => _montosTicket.fold(0.0, (a, b) => a + b);
-
-  // ==========================================================
-  // OPERACIONES DEL MODO CATÁLOGO & BUSCADOR
-  // ==========================================================
-  void _agregarProductoCatalogo(Producto p) {
-    final idx = _carritoCat.indexWhere(
-      (item) => item.producto.idProducto == p.idProducto,
-    );
-    setState(() {
-      if (idx >= 0) {
-        _carritoCat[idx].cantidad += 1;
-      } else {
-        _carritoCat.add(CartItem(producto: p, cantidad: 1));
-      }
-    });
-    KarlizSoundService.instance.playBarcodeBeep();
+  // ══════════════════════════════════════════════════════════════
+  // EJECUCIÓN REAL DE VENTA (UNIFICADA CON MANEJO DE ERRORES)
+  // ══════════════════════════════════════════════════════════════
+  static bool _esErrorDeRed(String? error) {
+    if (error == null) return false;
+    final e = error.toLowerCase();
+    return e.contains('conexión') ||
+        e.contains('conexion') ||
+        e.contains('internet') ||
+        e.contains('servidor no disponible') ||
+        e.contains('timeout') ||
+        e.contains('socket') ||
+        e.contains('failed host lookup') ||
+        e.contains('connection refused') ||
+        e.contains('network') ||
+        e.contains('clientexception') ||
+        e.contains('502') ||
+        e.contains('503') ||
+        e.contains('504');
   }
 
-  double get _totalCatalogo =>
-      _carritoCat.fold(0.0, (acc, item) => acc + item.subtotal);
+  static String _normalizarMetodoPago(String raw) {
+    switch (raw.toUpperCase()) {
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'YAPE':
+        return 'Yape';
+      case 'CREDITO':
+        return 'Crédito';
+      default:
+        return raw;
+    }
+  }
 
-  // ==========================================================
-  // EJECUCIÓN REAL DE VENTA
-  // ==========================================================
   Future<void> _ejecutarVenta({
     required String metodoPago,
     required double total,
     Cliente? cliente,
     double? montoRecibido,
   }) async {
-    if (total <= 0 || _isProcesandoVenta) return;
+    if (_isProcesandoVenta) return;
+    if (_ticket.isEmpty || total <= 0) {
+      _mostrarAvisoBanner(
+        'Agrega al menos un monto o producto antes de cobrar.',
+      );
+      return;
+    }
+    if (metodoPago == 'EFECTIVO' &&
+        montoRecibido != null &&
+        montoRecibido + 0.001 < total) {
+      _mostrarErrorBanner(
+        'El monto recibido (S/ ${montoRecibido.toStringAsFixed(2)}) es menor al total.',
+      );
+      return;
+    }
+    if (metodoPago == 'CREDITO') {
+      if (cliente == null) {
+        _mostrarErrorBanner('Selecciona un vecino para registrar el fiado.');
+        return;
+      }
+      if (cliente.excedeCon(total)) {
+        final disponible = (cliente.limiteCredito - cliente.saldoDeudor).clamp(
+          0.0,
+          double.infinity,
+        );
+        _mostrarErrorBanner(
+          'Límite de crédito excedido para ${cliente.nombreCompleto}. Disponible: S/ ${disponible.toStringAsFixed(2)}',
+        );
+        return;
+      }
+    }
+
+    // Validar stock agregado de productos del catálogo antes de enviar
+    final catalogItems = _ticket
+        .where((i) => i.producto.idProducto != null)
+        .toList();
+    final manualItems = _ticket
+        .where((i) => i.producto.idProducto == null)
+        .toList();
+
+    final Map<int, double> cantPorProd = {};
+    final Map<int, Producto> prodPorId = {};
+    for (final item in catalogItems) {
+      final id = item.producto.idProducto!;
+      cantPorProd[id] = (cantPorProd[id] ?? 0.0) + item.cantidad;
+      prodPorId[id] = item.producto;
+    }
+    for (final entry in cantPorProd.entries) {
+      final prod = prodPorId[entry.key]!;
+      if (entry.value > prod.stockActual + 0.0001) {
+        _mostrarErrorBanner(
+          'Stock insuficiente para ${prod.nombre}. Tienes ${_formatCantidad(prod.stockActual)} y la cuenta pide ${_formatCantidad(entry.value)}.',
+        );
+        return;
+      }
+    }
 
     setState(() => _isProcesandoVenta = true);
     HapticFeedback.heavyImpact();
 
     try {
-      // 1. Resolver detalles de venta
-      List<VentaDetalleEnvio> detallesEnvio = [];
-      List<OfflineVentaDetalle> detallesOffline = [];
-
-      if (_subvista == MostradorSubvista.catalogo && _carritoCat.isNotEmpty) {
-        detallesEnvio = _carritoCat
-            .map(
-              (i) => VentaDetalleEnvio(
-                idProducto: i.producto.idProducto ?? 1,
-                cantidad: i.cantidad,
-              ),
-            )
-            .toList();
-
-        detallesOffline = _carritoCat
-            .map(
-              (i) => OfflineVentaDetalle(
-                idProducto: i.producto.idProducto ?? 1,
-                nombreProducto: i.producto.nombre,
-                cantidad: i.cantidad,
-                precioUnitario: i.producto.precioVenta,
-                subtotal: i.subtotal,
-              ),
-            )
-            .toList();
-      } else {
-        // En modo calculadora, usar el producto disponible o genérico
-        final productoBase = widget.productosDisponibles.isNotEmpty
-            ? widget.productosDisponibles.first
-            : Producto(
-                idProducto: 1,
-                codigo: 'GEN-01',
-                nombre: 'Venta Mostrador Rápido',
-                precioVenta: total,
-                stockActual: 999,
-              );
-
-        detallesEnvio = [
-          VentaDetalleEnvio(
-            idProducto: productoBase.idProducto ?? 1,
-            cantidad: 1.0,
-          ),
-        ];
-
-        detallesOffline = [
-          OfflineVentaDetalle(
-            idProducto: productoBase.idProducto ?? 1,
-            nombreProducto: 'Venta Mostrador Rápido',
-            cantidad: 1.0,
-            precioUnitario: total,
-            subtotal: total,
-          ),
-        ];
-      }
-
-      final idempotencyKey = UuidHelper.generateV4();
-      final ventaEnvio = VentaEnvio(
-        idCliente: cliente?.idCliente,
-        clienteNombre: cliente?.nombreCompleto ?? 'Cliente Mostrador',
-        clienteDocumento: cliente?.documento,
-        metodoPago: metodoPago,
-        tipoComprobante: 'TICKET',
-        detalles: detallesEnvio,
-        idempotencyKey: idempotencyKey,
-        montoRecibido: montoRecibido,
-      );
-
-      bool ventaRegistrada = false;
-
-      // Intentar registro en línea si no está forzado offline
-      if (!OfflineSyncManager.instance.isForceOffline) {
-        final res = await _ventaService.registrarVentaCompleta(ventaEnvio);
-        if (res.success) {
-          ventaRegistrada = true;
+      int idBodega = 1;
+      String usuarioReg = 'mostrador';
+      try {
+        final rawBodega = await SecureStorageService.read('id_bodega');
+        idBodega = int.tryParse(rawBodega ?? '') ?? 1;
+        final rawUser =
+            await SecureStorageService.read('nombre_usuario') ??
+            await SecureStorageService.read('usuario');
+        if (rawUser != null && rawUser.trim().isNotEmpty) {
+          usuarioReg = rawUser.trim();
         }
+      } catch (e) {
+        developer.log(
+          'No se pudo leer metadata local de bodega: $e',
+          name: 'Mostrador',
+        );
       }
 
-      // Si falló o estamos offline, encolar en OfflineSyncManager
-      if (!ventaRegistrada) {
-        final offlineVenta = OfflineVenta(
-          uuid: idempotencyKey,
-          localTicket:
-              'TK-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-          idBodega: 1,
+      final metodoNorm = _normalizarMetodoPago(metodoPago);
+      final double totalCatalogo = catalogItems.fold(
+        0.0,
+        (acc, i) => acc + i.subtotal,
+      );
+      final double totalManual = manualItems.fold(
+        0.0,
+        (acc, i) => acc + i.subtotal,
+      );
+      bool enqueuedOffline = false;
+
+      if (catalogItems.isNotEmpty) {
+        final detallesEnvio = catalogItems
+            .map(
+              (item) => VentaDetalleEnvio(
+                idProducto: item.producto.idProducto!,
+                cantidad: item.cantidad,
+              ),
+            )
+            .toList();
+        final detallesOffline = catalogItems
+            .map(
+              (item) => OfflineVentaDetalle(
+                idProducto: item.producto.idProducto!,
+                nombreProducto: item.producto.nombre,
+                cantidad: item.cantidad,
+                precioUnitario: item.producto.precioVenta,
+                subtotal: item.subtotal,
+                codigo: item.producto.codigo,
+              ),
+            )
+            .toList();
+
+        final idempotencyKey = UuidHelper.generateV4();
+        final ventaEnvio = VentaEnvio(
           idCliente: cliente?.idCliente,
-          clienteDocumento: cliente?.documento,
           clienteNombre: cliente?.nombreCompleto ?? 'Cliente Mostrador',
-          metodoPago: metodoPago,
+          clienteDocumento: cliente?.documento,
+          metodoPago: metodoNorm,
           tipoComprobante: 'TICKET',
+          detalles: detallesEnvio,
+          idempotencyKey: idempotencyKey,
           montoRecibido: montoRecibido,
-          vuelto: montoRecibido != null && montoRecibido > total
-              ? montoRecibido - total
-              : 0.0,
-          total: total,
-          usuarioRegistro: 'mostrador',
-          fechaCreacion: DateTime.now(),
-          detalles: detallesOffline,
         );
-        await OfflineSyncManager.instance.enqueueSale(offlineVenta);
+
+        bool catalogSyncOk = false;
+        final forceOffline =
+            OfflineSyncManager.instance.isForceOffline ||
+            OfflineSyncManager.instance.isOfflineNotifier.value;
+
+        if (!forceOffline) {
+          final res = await _ventaService.registrarVentaCompleta(ventaEnvio);
+          if (res.success) {
+            catalogSyncOk = true;
+          } else if (!_esErrorDeRed(res.errorMessage)) {
+            if (!mounted) return;
+            _mostrarErrorBanner(
+              res.errorMessage ?? 'El servidor rechazó la venta.',
+            );
+            return;
+          }
+        }
+
+        if (!catalogSyncOk) {
+          final offlineVenta = OfflineVenta(
+            uuid: idempotencyKey,
+            localTicket:
+                'TK-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+            idBodega: idBodega,
+            idCliente: cliente?.idCliente,
+            clienteDocumento: cliente?.documento,
+            clienteNombre: cliente?.nombreCompleto ?? 'Cliente Mostrador',
+            metodoPago: metodoNorm,
+            tipoComprobante: 'TICKET',
+            montoRecibido: montoRecibido,
+            vuelto: montoRecibido != null && montoRecibido > total
+                ? montoRecibido - total
+                : 0.0,
+            total: totalCatalogo,
+            usuarioRegistro: usuarioReg,
+            fechaCreacion: DateTime.now(),
+            detalles: detallesOffline,
+          );
+          await OfflineSyncManager.instance.enqueueSale(offlineVenta);
+          enqueuedOffline = true;
+        }
       }
 
       // Abrir gaveta de dinero si fue en efectivo
       if (metodoPago == 'EFECTIVO') {
         try {
           await ThermalTicketService.abrirGavetaDinero();
-        } catch (_) {}
+        } catch (e) {
+          developer.log('No se pudo abrir gaveta: $e', name: 'Mostrador');
+        }
       }
 
-      // Actualizar métricas locales de caja
+      if (!mounted) return;
       setState(() {
         _cajaTotal += total;
         if (metodoPago == 'EFECTIVO') {
@@ -368,10 +822,13 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
           _cajaYape += total;
         }
 
-        // Limpiar cuenta procesada
-        _montosTicket.clear();
+        _ticket.clear();
+        _undoHistory.clear();
         _bufferCalculadora = '';
-        _carritoCat.clear();
+        _conceptoManualSeleccionado = '';
+        _alertaMensaje = null;
+        _billeteSeleccionado = -1;
+        _montoEfectivoCustom = null;
         _mostrarEfectivoInline = false;
         _mostrarFiadoInline = false;
       });
@@ -379,39 +836,59 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       VentaService.notifyVentasChanged();
       KarlizSoundService.instance.playBarcodeBeep();
 
+      String mensajeConfirmacion;
+      Color bgColor = const Color(0xFF15803D);
+      if (enqueuedOffline && manualItems.isEmpty) {
+        mensajeConfirmacion =
+            '¡Cobrado S/ ${total.toStringAsFixed(2)} (Modo Offline - se sincronizará al volver internet)!';
+        bgColor = const Color(0xFF0369A1);
+      } else if (manualItems.isNotEmpty && catalogItems.isNotEmpty) {
+        mensajeConfirmacion =
+            '¡Cobrado S/ ${total.toStringAsFixed(2)}! (Catálogo sincronizado + S/ ${totalManual.toStringAsFixed(2)} manual en mostrador)';
+      } else if (manualItems.isNotEmpty) {
+        mensajeConfirmacion =
+            '¡Cobrado S/ ${total.toStringAsFixed(2)} con $metodoNorm (Mostrador rápido)!';
+        if (metodoPago == 'CREDITO') {
+          mensajeConfirmacion +=
+              ' Nota: montos manuales sin catálogo quedan solo en caja local.';
+          bgColor = Colors.orange.shade800;
+        }
+      } else {
+        mensajeConfirmacion =
+            '¡Cobrado S/ ${total.toStringAsFixed(2)} con $metodoNorm!';
+      }
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(
-                  LucideIcons.checkCircle2,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '¡Cobrado S/ ${total.toStringAsFixed(2)} con $metodoPago!',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w800,
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(
+                    LucideIcons.checkCircle2,
+                    color: Colors.white,
+                    size: 20,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      mensajeConfirmacion,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: bgColor,
+              duration: const Duration(seconds: 4),
             ),
-            backgroundColor: const Color(0xFF15803D),
-            duration: const Duration(seconds: 3),
-          ),
-        );
+          );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al registrar cobro: $e'),
-            backgroundColor: AppTheme.alertRed,
-          ),
-        );
-      }
+      developer.log('Error crítico al registrar venta: $e', name: 'Mostrador');
+      _mostrarErrorBanner('Error al registrar cobro: $e');
     } finally {
       if (mounted) {
         setState(() => _isProcesandoVenta = false);
@@ -419,9 +896,9 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     }
   }
 
-  // ==========================================================
+  // ══════════════════════════════════════════════════════════════
   // CONSTRUCCIÓN VISUAL PRINCIPAL
-  // ==========================================================
+  // ══════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
@@ -435,10 +912,8 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       body: SafeArea(
         child: Column(
           children: [
-            // Barra Superior de Control: Conmutador de Vistas + Caja Diaria
             _buildTopControlBar(isDark, surface, border),
-
-            // Contenido según Subvista Activa
+            if (_alertaMensaje != null) _buildTopAlertBanner(),
             Expanded(
               child: _subvista == MostradorSubvista.calculadora
                   ? _buildCalculadoraSplitView(isDark, surface, border)
@@ -450,7 +925,42 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  // Barra Superior con Conmutador Segmentado
+  Widget _buildTopAlertBanner() {
+    final bg = _alertaEsError ? AppTheme.alertRed : Colors.orange.shade800;
+    final icon = _alertaEsError
+        ? LucideIcons.alertCircle
+        : LucideIcons.alertTriangle;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      color: bg,
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 17),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _alertaMensaje ?? '',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () => setState(() => _alertaMensaje = null),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(LucideIcons.x, color: Colors.white, size: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Barra Superior con Conmutador Segmentado ──
   Widget _buildTopControlBar(bool isDark, Color surface, Color border) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -460,7 +970,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       ),
       child: Row(
         children: [
-          // Conmutador Segmentado: Calculadora ↔ Catálogo
           Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
@@ -492,8 +1001,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             ),
           ),
           const SizedBox(width: 12),
-
-          // Resumen de Caja Diaria en Vivo
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -527,9 +1034,45 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-
-          // Botón para volver al POS Completo
+          IconButton(
+            tooltip: 'Actualizar resumen de caja',
+            visualDensity: VisualDensity.compact,
+            onPressed: _isCargandoCaja
+                ? null
+                : () => _cargarCierreCajaHoy(mostrarErrorUsuario: true),
+            icon: _isCargandoCaja
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    LucideIcons.refreshCw,
+                    size: 16,
+                    color: _errorCaja
+                        ? Colors.orange.shade600
+                        : (isDark ? Colors.white60 : const Color(0xFF64748B)),
+                  ),
+          ),
+          if (_tieneItems) ...[
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2563EB),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_ticket.length}',
+                style: GoogleFonts.jetBrainsMono(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(width: 4),
           IconButton(
             tooltip: 'Volver al POS tradicional',
             icon: Icon(
@@ -537,7 +1080,7 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
               size: 20,
               color: isDark ? Colors.white70 : const Color(0xFF475569),
             ),
-            onPressed: widget.onVolverAPos,
+            onPressed: _isProcesandoVenta ? null : widget.onVolverAPos,
           ),
         ],
       ),
@@ -640,32 +1183,27 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  // ==========================================================
-  // VISTA 1: CALCULADORA DE MOSTRADOR (TIRA CONTINUA FIJA)
-  // ==========================================================
+  // ══════════════════════════════════════════════════════════════
+  // VISTA 1: CALCULADORA DE MOSTRADOR
+  // ══════════════════════════════════════════════════════════════
   Widget _buildCalculadoraSplitView(bool isDark, Color surface, Color border) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 720;
-
         if (isWide) {
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Columna Izquierda: Tira de Papel / Ticket en Vivo
               SizedBox(
                 width: 340,
                 child: _buildTicketPaperCol(isDark, surface, border),
               ),
-              // Columna Derecha: Teclado Gigante y Cobro Inmediato
               Expanded(
                 child: _buildNumpadAndCheckoutCol(isDark, surface, border),
               ),
             ],
           );
         }
-
-        // Layout Móvil: Tira compacta arriba + Teclado abajo
         return Column(
           children: [
             SizedBox(
@@ -681,9 +1219,9 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  // Columna Tira de Papel
+  // ── Columna Tira de Papel (TICKET UNIFICADO) ──
   Widget _buildTicketPaperCol(bool isDark, Color surface, Color border) {
-    final total = _totalCalculadora;
+    final total = _totalTicket;
 
     return Container(
       decoration: BoxDecoration(
@@ -709,31 +1247,55 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                   ),
                 ),
               ),
-              if (_montosTicket.isNotEmpty)
-                InkWell(
-                  onTap: _cancelarTicket,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    child: Text(
-                      'Borrar todo',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.alertRed,
+              if (_tieneItems)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${_ticket.length} items',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF2563EB),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: _cancelarTicket,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 2,
+                        ),
+                        child: Text(
+                          'Borrar todo',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.alertRed,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
             ],
           ),
           const Divider(height: 16),
 
-          // Lista de montos en la tira de papel
+          // Lista de items en el ticket unificado
           Expanded(
-            child: _montosTicket.isEmpty
+            child: _ticket.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -745,7 +1307,7 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Digita montos a la derecha\ny presiona [+ SUMAR]',
+                          'Digita montos con la calculadora\no agrega productos del catálogo',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12.5,
@@ -759,67 +1321,17 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                     ),
                   )
                 : ListView.separated(
-                    itemCount: _montosTicket.length,
-                    separatorBuilder: (_, index) => const SizedBox(height: 6),
+                    itemCount: _ticket.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 6),
                     itemBuilder: (ctx, idx) {
-                      final m = _montosTicket[idx];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E293B)
-                              : const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: border),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${idx + 1}.',
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? Colors.white54 : Colors.black45,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Monto sumado',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              'S/ ${m.toStringAsFixed(2)}',
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: isDark
-                                    ? const Color(0xFF60A5FA)
-                                    : const Color(0xFF1E40AF),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            InkWell(
-                              onTap: () => _borrarLineaTicket(idx),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                child: Icon(
-                                  LucideIcons.x,
-                                  size: 14,
-                                  color: AppTheme.alertRed,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                      final item = _ticket[idx];
+                      final isManual = item.producto.codigo == 'MANUAL';
+                      return _buildTicketLine(
+                        idx: idx,
+                        item: item,
+                        isManual: isManual,
+                        isDark: isDark,
+                        border: border,
                       );
                     },
                   ),
@@ -882,7 +1394,9 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: _montosTicket.isNotEmpty ? _deshacerUltimoMonto : null,
+            onPressed: (_puedeDeshacer && !_isProcesandoVenta)
+                ? _deshacerUltimo
+                : null,
             icon: const Icon(LucideIcons.undo2, size: 15),
             label: Text(
               'Deshacer último',
@@ -897,19 +1411,165 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  // Columna Teclado Numérico y Cobro Directo
+  /// Línea individual del ticket con controles [−] qty [+] nombre S/xx [🗑]
+  Widget _buildTicketLine({
+    required int idx,
+    required CartItem item,
+    required bool isManual,
+    required bool isDark,
+    required Color border,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '${idx + 1}.',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+          ),
+          const SizedBox(width: 6),
+
+          // Controles de cantidad [−] qty [+] (solo para productos, o tap para editar monto/qty)
+          if (!isManual) ...[
+            _buildQtyButton(
+              icon: LucideIcons.minus,
+              onTap: _isProcesandoVenta
+                  ? null
+                  : () => _decrementarCantidad(idx),
+              isDark: isDark,
+            ),
+            GestureDetector(
+              onTap: _isProcesandoVenta
+                  ? null
+                  : () => _editarCantidadManual(idx),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _formatCantidad(item.cantidad),
+                  style: GoogleFonts.jetBrainsMono(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+            ),
+            _buildQtyButton(
+              icon: LucideIcons.plus,
+              onTap: _isProcesandoVenta
+                  ? null
+                  : () => _incrementarCantidad(idx),
+              isDark: isDark,
+            ),
+            const SizedBox(width: 6),
+          ],
+
+          // Nombre del producto / concepto manual (tap para editar cantidad decimal o monto)
+          Expanded(
+            child: InkWell(
+              onTap: _isProcesandoVenta
+                  ? null
+                  : () => _editarCantidadManual(idx),
+              borderRadius: BorderRadius.circular(4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.producto.nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  if (isManual)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Icon(
+                        LucideIcons.pencil,
+                        size: 11,
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+
+          // Subtotal
+          Text(
+            'S/ ${item.subtotal.toStringAsFixed(2)}',
+            style: GoogleFonts.jetBrainsMono(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF1E40AF),
+            ),
+          ),
+          const SizedBox(width: 4),
+
+          // Botón Eliminar
+          InkWell(
+            onTap: _isProcesandoVenta ? null : () => _borrarLineaTicket(idx),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(LucideIcons.x, size: 14, color: AppTheme.alertRed),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQtyButton({
+    required IconData icon,
+    required VoidCallback? onTap,
+    required bool isDark,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Icon(icon, size: 12, color: Colors.white),
+      ),
+    );
+  }
+
+  // ── Columna Teclado Numérico y Cobro Directo (UNIFICADO) ──
   Widget _buildNumpadAndCheckoutCol(bool isDark, Color surface, Color border) {
-    final total = _totalCalculadora;
-    final tieneItems = _montosTicket.isNotEmpty;
+    final total = _totalTicket;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Display de la Calculadora
+          // Display de la Calculadora + Retroceso
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: surface,
               borderRadius: BorderRadius.circular(14),
@@ -921,7 +1581,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
               ),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'MONTO A SUMAR:',
@@ -931,6 +1590,7 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                     color: isDark ? Colors.white60 : const Color(0xFF64748B),
                   ),
                 ),
+                const Spacer(),
                 Text(
                   _bufferCalculadora.isEmpty
                       ? 'S/ 0.00'
@@ -943,16 +1603,64 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                         : const Color(0xFF1E40AF),
                   ),
                 ),
+                const SizedBox(width: 6),
+                IconButton(
+                  key: const ValueKey('numpad_backspace'),
+                  tooltip: 'Borrar último dígito',
+                  visualDensity: VisualDensity.compact,
+                  onPressed:
+                      (_bufferCalculadora.isNotEmpty && !_isProcesandoVenta)
+                      ? _retrocederDigito
+                      : null,
+                  icon: Icon(
+                    Icons.backspace_outlined,
+                    size: 19,
+                    color: _bufferCalculadora.isNotEmpty
+                        ? AppTheme.alertRed
+                        : (isDark ? Colors.white24 : Colors.black26),
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+
+          // Etiquetas rápidas opcionales para montos sueltos (Pan, Suelto, etc.)
+          SizedBox(
+            height: 32,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _conceptosRapidos.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 6),
+              itemBuilder: (ctx, i) {
+                final c = _conceptosRapidos[i];
+                final active = _conceptoManualSeleccionado == c;
+                return ChoiceChip(
+                  label: Text(c),
+                  selected: active,
+                  visualDensity: VisualDensity.compact,
+                  onSelected: _isProcesandoVenta
+                      ? null
+                      : (_) => setState(() {
+                          _conceptoManualSeleccionado = active ? '' : c;
+                        }),
+                  labelStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                    color: active
+                        ? Colors.white
+                        : (isDark ? Colors.white70 : const Color(0xFF475569)),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
 
           // Teclado + Botón Gigante [+ SUMAR]
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 12 Botones Numéricos
               Expanded(
                 flex: 3,
                 child: GridView.count(
@@ -988,8 +1696,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                 ),
               ),
               const SizedBox(width: 10),
-
-              // Botón Gigante [+ SUMAR AL TICKET]
               Expanded(
                 flex: 2,
                 child: SizedBox(
@@ -1006,7 +1712,7 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
-                    onPressed: _sumarAlTicket,
+                    onPressed: _isProcesandoVenta ? null : _sumarAlTicket,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1030,118 +1736,140 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
           ),
           const SizedBox(height: 14),
 
-          // 3 Botones de Cobro Inmediato (Efectivo / Yape / Fiar)
-          Row(
-            children: [
-              // Efectivo
-              Expanded(
-                child: SizedBox(
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF15803D),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: tieneItems
-                        ? () {
-                            setState(() {
-                              _mostrarEfectivoInline = !_mostrarEfectivoInline;
-                              _mostrarFiadoInline = false;
-                              _billeteSeleccionado = -1;
-                            });
-                          }
-                        : null,
-                    icon: const Icon(LucideIcons.banknote, size: 20),
-                    label: Text(
-                      'EFECTIVO',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Yape / Plin
-              Expanded(
-                child: SizedBox(
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF742284),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: tieneItems
-                        ? () => _ejecutarVenta(metodoPago: 'YAPE', total: total)
-                        : null,
-                    icon: const Icon(LucideIcons.smartphone, size: 20),
-                    label: Text(
-                      'YAPE / PLIN',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Fiar a Vecino
-              Expanded(
-                child: SizedBox(
-                  height: 56,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFBE123C),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: tieneItems
-                        ? () {
-                            setState(() {
-                              _mostrarFiadoInline = !_mostrarFiadoInline;
-                              _mostrarEfectivoInline = false;
-                            });
-                          }
-                        : null,
-                    icon: const Icon(LucideIcons.bookUser, size: 20),
-                    label: Text(
-                      'FIAR',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // Sub-panel Inline Efectivo (Billetes y Vuelto)
-          if (_mostrarEfectivoInline && tieneItems) ...[
-            const SizedBox(height: 12),
-            _buildEfectivoBilletesBox(total, isDark, surface, border),
-          ],
-
-          // Sub-panel Inline Fiados (Vecinos)
-          if (_mostrarFiadoInline && tieneItems) ...[
-            const SizedBox(height: 12),
-            _buildFiadosVecinosBox(total, isDark, surface, border),
-          ],
+          // ── 3 Botones de Cobro (SIEMPRE VISIBLES) ──
+          _buildBotonesCobroUnificados(total, isDark, surface, border),
         ],
       ),
+    );
+  }
+
+  /// Botones de cobro unificados (Efectivo / Yape / Fiar) reutilizables
+  Widget _buildBotonesCobroUnificados(
+    double total,
+    bool isDark,
+    Color surface,
+    Color border,
+  ) {
+    final bool canCheckout = _tieneItems && !_isProcesandoVenta;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_isProcesandoVenta) ...[
+          const LinearProgressIndicator(minHeight: 3),
+          const SizedBox(height: 6),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 56,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF15803D),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: canCheckout
+                      ? () {
+                          setState(() {
+                            _mostrarEfectivoInline = !_mostrarEfectivoInline;
+                            _mostrarFiadoInline = false;
+                            _billeteSeleccionado = -1;
+                            _montoEfectivoCustom = null;
+                          });
+                        }
+                      : null,
+                  icon: const Icon(LucideIcons.banknote, size: 20),
+                  label: Text(
+                    'EFECTIVO',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 56,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF742284),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: canCheckout
+                      ? () => _ejecutarVenta(metodoPago: 'YAPE', total: total)
+                      : null,
+                  icon: _isProcesandoVenta
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(LucideIcons.smartphone, size: 20),
+                  label: Text(
+                    'YAPE / PLIN',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SizedBox(
+                height: 56,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFBE123C),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: canCheckout
+                      ? () {
+                          setState(() {
+                            _mostrarFiadoInline = !_mostrarFiadoInline;
+                            _mostrarEfectivoInline = false;
+                          });
+                        }
+                      : null,
+                  icon: const Icon(LucideIcons.bookUser, size: 20),
+                  label: Text(
+                    'FIAR',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_mostrarEfectivoInline && _tieneItems) ...[
+          const SizedBox(height: 12),
+          _buildEfectivoBilletesBox(total, isDark, surface, border),
+        ],
+        if (_mostrarFiadoInline && _tieneItems) ...[
+          const SizedBox(height: 12),
+          _buildFiadosVecinosBox(total, isDark, surface, border),
+        ],
+      ],
     );
   }
 
@@ -1160,7 +1888,9 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         side: BorderSide(color: isClear ? const Color(0xFFFECDD3) : border),
       ),
       child: InkWell(
-        onTap: isClear ? _limpiarBuffer : () => _presionarDigito(label),
+        onTap: _isProcesandoVenta
+            ? null
+            : (isClear ? _limpiarBuffer : () => _presionarDigito(label)),
         borderRadius: BorderRadius.circular(10),
         child: Center(
           child: Text(
@@ -1178,18 +1908,39 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
+  Future<void> _abrirDialogoEfectivoCustom(double total) async {
+    if (_isProcesandoVenta) return;
+    final val = await showDialog<double>(
+      context: context,
+      builder: (_) => _EfectivoCustomDialog(total: total),
+    );
+    if (val != null && mounted) {
+      setState(() {
+        _billeteSeleccionado = -1;
+        _montoEfectivoCustom = val;
+      });
+    }
+  }
+
   Widget _buildEfectivoBilletesBox(
     double total,
     bool isDark,
     Color surface,
     Color border,
   ) {
+    final double? montoIngresado =
+        _montoEfectivoCustom ??
+        (_billeteSeleccionado > 0
+            ? _billeteSeleccionado.toDouble()
+            : (_billeteSeleccionado == 0 ? total : null));
+
     double? vuelto;
-    if (_billeteSeleccionado > 0 && _billeteSeleccionado >= total) {
-      vuelto = _billeteSeleccionado - total;
-    } else if (_billeteSeleccionado == 0) {
-      vuelto = 0.0;
+    if (montoIngresado != null && montoIngresado + 0.001 >= total) {
+      vuelto = (montoIngresado - total).clamp(0.0, double.infinity);
     }
+
+    final bool billeteInsuficiente =
+        montoIngresado != null && montoIngresado + 0.001 < total;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1201,16 +1952,51 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            '¿CON CUÁNTO PAGA EL CLIENTE?',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF166534),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '¿CON CUÁNTO PAGA EL CLIENTE?',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF166534),
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: _isProcesandoVenta
+                    ? null
+                    : () => _abrirDialogoEfectivoCustom(total),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _montoEfectivoCustom != null
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _montoEfectivoCustom != null
+                        ? 'Otro: S/ ${_montoEfectivoCustom!.toStringAsFixed(2)}'
+                        : 'Otro monto',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: _montoEfectivoCustom != null
+                          ? Colors.white
+                          : const Color(0xFF166534),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-
           Row(
             children: [
               _buildBillChip(0, 'Exacto', isDark),
@@ -1224,7 +2010,37 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
               _buildBillChip(100, 'S/ 100', isDark),
             ],
           ),
-
+          if (billeteInsuficiente) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.alertRed),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.alertTriangle,
+                    size: 14,
+                    color: AppTheme.alertRed,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'El monto S/ ${montoIngresado.toStringAsFixed(2)} es menor al total S/ ${total.toStringAsFixed(2)}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF991B1B),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (vuelto != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -1258,7 +2074,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             ),
           ],
           const SizedBox(height: 8),
-
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF15803D),
@@ -1267,18 +2082,20 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            onPressed: () {
-              final montoRec = _billeteSeleccionado > 0
-                  ? _billeteSeleccionado.toDouble()
-                  : total;
-              _ejecutarVenta(
-                metodoPago: 'EFECTIVO',
-                total: total,
-                montoRecibido: montoRec,
-              );
-            },
+            onPressed: (billeteInsuficiente || _isProcesandoVenta)
+                ? null
+                : () {
+                    final montoRec = montoIngresado ?? total;
+                    _ejecutarVenta(
+                      metodoPago: 'EFECTIVO',
+                      total: total,
+                      montoRecibido: montoRec,
+                    );
+                  },
             child: Text(
-              'Confirmar Cobro en Efectivo',
+              _isProcesandoVenta
+                  ? 'Registrando cobro...'
+                  : 'Confirmar Cobro en Efectivo',
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w800,
                 fontSize: 14,
@@ -1291,14 +2108,19 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
   }
 
   Widget _buildBillChip(int billVal, String label, bool isDark) {
-    final isSelected = _billeteSeleccionado == billVal;
-
+    final isSelected =
+        _montoEfectivoCustom == null && _billeteSeleccionado == billVal;
     return Expanded(
       child: InkWell(
-        onTap: () {
-          setState(() => _billeteSeleccionado = billVal);
-          HapticFeedback.selectionClick();
-        },
+        onTap: _isProcesandoVenta
+            ? null
+            : () {
+                setState(() {
+                  _montoEfectivoCustom = null;
+                  _billeteSeleccionado = billVal;
+                });
+                HapticFeedback.selectionClick();
+              },
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1329,6 +2151,24 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
+  Future<void> _abrirSelectorTodosClientes(double total) async {
+    if (_isProcesandoVenta) return;
+    final seleccionado = await showDialog<Cliente>(
+      context: context,
+      builder: (_) => _SelectorClienteFiadoDialog(
+        clientes: _clientesVecinos,
+        totalVenta: total,
+      ),
+    );
+    if (seleccionado != null && mounted) {
+      await _ejecutarVenta(
+        metodoPago: 'CREDITO',
+        total: total,
+        cliente: seleccionado,
+      );
+    }
+  }
+
   Widget _buildFiadosVecinosBox(
     double total,
     bool isDark,
@@ -1345,46 +2185,127 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'TOCA AL VECINO PARA CARGARLE LA DEUDA:',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFFBE123C),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          if (_clientesVecinos.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'No hay clientes registrados aún.',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  color: Colors.grey,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'TOCA AL VECINO PARA CARGARLE LA DEUDA:',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFBE123C),
+                  ),
                 ),
               ),
+              if (_clientesVecinos.length > 6)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                  onPressed: _isProcesandoVenta
+                      ? null
+                      : () => _abrirSelectorTodosClientes(total),
+                  child: Text(
+                    'Ver todos (${_clientesVecinos.length})',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              IconButton(
+                tooltip: 'Recargar vecinos',
+                visualDensity: VisualDensity.compact,
+                onPressed: (_isCargandoClientes || _isProcesandoVenta)
+                    ? null
+                    : () => _cargarVecinos(mostrarErrorUsuario: true),
+                icon: const Icon(LucideIcons.refreshCw, size: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (_isCargandoClientes)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: LinearProgressIndicator(minHeight: 2),
+            )
+          else if (_errorClientes != null)
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _errorClientes!,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF991B1B),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _cargarVecinos(mostrarErrorUsuario: true),
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            )
+          else if (_clientesVecinos.isEmpty)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'No hay clientes registrados aún.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => _cargarVecinos(mostrarErrorUsuario: true),
+                  child: const Text('Actualizar'),
+                ),
+              ],
             )
           else
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: _clientesVecinos.take(6).map((c) {
+                final excede = c.excedeCon(total);
                 return ActionChip(
-                  avatar: const Icon(LucideIcons.user, size: 14),
+                  avatar: Icon(
+                    excede ? LucideIcons.alertTriangle : LucideIcons.user,
+                    size: 14,
+                    color: excede ? AppTheme.alertRed : null,
+                  ),
+                  side: excede
+                      ? BorderSide(
+                          color: AppTheme.alertRed.withValues(alpha: 0.7),
+                        )
+                      : null,
                   label: Text(
-                    c.nombreCompleto,
+                    excede ? '${c.nombreCompleto} (Límite)' : c.nombreCompleto,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
+                      color: excede ? AppTheme.alertRed : null,
                     ),
                   ),
-                  onPressed: () => _ejecutarVenta(
-                    metodoPago: 'CREDITO',
-                    total: total,
-                    cliente: c,
-                  ),
+                  onPressed: _isProcesandoVenta
+                      ? null
+                      : () => _ejecutarVenta(
+                          metodoPago: 'CREDITO',
+                          total: total,
+                          cliente: c,
+                        ),
                 );
               }).toList(),
             ),
@@ -1393,18 +2314,372 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  // ==========================================================
-  // VISTA 2: CATÁLOGO & BUSCADOR INTELIGENTE
-  // ==========================================================
+  // ══════════════════════════════════════════════════════════════
+  // VISTA 2: CATÁLOGO & BUSCADOR (agrega al ticket unificado)
+  // ══════════════════════════════════════════════════════════════
+  static String _labelCategoriaConEmoji(String rawCategoria) {
+    final norm = _normalizarTexto(rawCategoria);
+    switch (norm) {
+      case 'BEBIDAS':
+      case 'GASEOSAS':
+        return '🥤 $rawCategoria';
+      case 'LACTEOS':
+        return '🥛 $rawCategoria';
+      case 'ABARROTES':
+        return '🌾 $rawCategoria';
+      case 'LIMPIEZA':
+        return '🧼 $rawCategoria';
+      case 'PANADERIA':
+      case 'PAN':
+        return '🥖 $rawCategoria';
+      case 'SNACKS':
+      case 'GOLOSINAS':
+        return '🍪 $rawCategoria';
+      case 'CARNES':
+      case 'EMBUTIDOS':
+        return '🥩 $rawCategoria';
+      case 'FRUTAS':
+      case 'VERDURAS':
+        return '🥬 $rawCategoria';
+      default:
+        return '📦 $rawCategoria';
+    }
+  }
+
+  Future<void> _escanearCodigoCatalogo() async {
+    if (_isProcesandoVenta) return;
+    try {
+      final code = await KarlizBarcodeScannerModal.scan(context);
+      if (!mounted || code == null || code.trim().isEmpty) return;
+      final clean = code.trim();
+      final exacto = widget.productosDisponibles.cast<Producto?>().firstWhere(
+        (p) =>
+            p != null &&
+            ((p.codigoBarras ?? '').trim().toLowerCase() ==
+                    clean.toLowerCase() ||
+                p.codigo.trim().toLowerCase() == clean.toLowerCase()),
+        orElse: () => null,
+      );
+      if (exacto != null) {
+        _agregarProductoCatalogo(exacto);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('Agregado: ${exacto.nombre}'),
+              backgroundColor: const Color(0xFF15803D),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+      } else {
+        _busquedaController.text = clean;
+        setState(() {});
+        final hayCoincidencia = widget.productosDisponibles.any((p) {
+          final nom = p.nombre.toLowerCase();
+          final cod = (p.codigoBarras ?? p.codigo).toLowerCase();
+          return nom.contains(clean.toLowerCase()) ||
+              cod.contains(clean.toLowerCase());
+        });
+        if (!hayCoincidencia) {
+          _mostrarAvisoBanner('No se encontró producto con código "$clean"');
+        }
+      }
+    } catch (e) {
+      developer.log(
+        'Error al escanear código de barras: $e',
+        name: 'Mostrador',
+      );
+      _mostrarErrorBanner('No se pudo abrir el escáner: $e');
+    }
+  }
+
+  Future<void> _abrirModalTicketUnificado() async {
+    final isDark = widget.isDark;
+    final surface = isDark ? AppTheme.cardDark : Colors.white;
+    final border = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            final total = _totalTicket;
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: SizedBox(
+                  height: MediaQuery.of(ctx).size.height * 0.68,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white24 : Colors.black12,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'CUENTA UNIFICADA (${_ticket.length} ítems)',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
+                              ),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: _isProcesandoVenta
+                                ? null
+                                : () async {
+                                    await _abrirModalMontoRapido();
+                                    if (ctx.mounted) setSheetState(() {});
+                                  },
+                            icon: const Icon(LucideIcons.plus, size: 15),
+                            label: const Text('+ Monto / Pan'),
+                          ),
+                          IconButton(
+                            tooltip: 'Cerrar',
+                            onPressed: () => Navigator.pop(sheetCtx),
+                            icon: const Icon(LucideIcons.x, size: 18),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 12),
+                      Expanded(
+                        child: _ticket.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'La cuenta está vacía',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              )
+                            : ListView.separated(
+                                itemCount: _ticket.length,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: 6),
+                                itemBuilder: (_, idx) {
+                                  final item = _ticket[idx];
+                                  final isManual =
+                                      item.producto.codigo == 'MANUAL';
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF1E293B)
+                                          : const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: border),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          '${idx + 1}.',
+                                          style: GoogleFonts.jetBrainsMono(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.black45,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        if (!isManual) ...[
+                                          _buildQtyButton(
+                                            icon: LucideIcons.minus,
+                                            onTap: _isProcesandoVenta
+                                                ? null
+                                                : () {
+                                                    _decrementarCantidad(idx);
+                                                    setSheetState(() {});
+                                                  },
+                                            isDark: isDark,
+                                          ),
+                                          GestureDetector(
+                                            onTap: _isProcesandoVenta
+                                                ? null
+                                                : () async {
+                                                    await _editarCantidadManual(
+                                                      idx,
+                                                    );
+                                                    if (ctx.mounted) {
+                                                      setSheetState(() {});
+                                                    }
+                                                  },
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? const Color(0xFF334155)
+                                                    : const Color(0xFFE2E8F0),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                _formatCantidad(item.cantidad),
+                                                style:
+                                                    GoogleFonts.jetBrainsMono(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: isDark
+                                                          ? Colors.white
+                                                          : Colors.black87,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                          _buildQtyButton(
+                                            icon: LucideIcons.plus,
+                                            onTap: _isProcesandoVenta
+                                                ? null
+                                                : () {
+                                                    _incrementarCantidad(idx);
+                                                    setSheetState(() {});
+                                                  },
+                                            isDark: isDark,
+                                          ),
+                                          const SizedBox(width: 6),
+                                        ],
+                                        Expanded(
+                                          child: InkWell(
+                                            onTap: _isProcesandoVenta
+                                                ? null
+                                                : () async {
+                                                    await _editarCantidadManual(
+                                                      idx,
+                                                    );
+                                                    if (ctx.mounted) {
+                                                      setSheetState(() {});
+                                                    }
+                                                  },
+                                            child: Text(
+                                              item.producto.nombre,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : Colors.black87,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          'S/ ${item.subtotal.toStringAsFixed(2)}',
+                                          style: GoogleFonts.jetBrainsMono(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w800,
+                                            color: isDark
+                                                ? const Color(0xFF60A5FA)
+                                                : const Color(0xFF1E40AF),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Quitar línea',
+                                          visualDensity: VisualDensity.compact,
+                                          onPressed: _isProcesandoVenta
+                                              ? null
+                                              : () {
+                                                  _borrarLineaTicket(idx);
+                                                  setSheetState(() {});
+                                                },
+                                          icon: Icon(
+                                            LucideIcons.x,
+                                            size: 16,
+                                            color: AppTheme.alertRed,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      const Divider(height: 12),
+                      Row(
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: (_puedeDeshacer && !_isProcesandoVenta)
+                                ? () {
+                                    _deshacerUltimo();
+                                    setSheetState(() {});
+                                  }
+                                : null,
+                            icon: const Icon(LucideIcons.undo2, size: 15),
+                            label: const Text('Deshacer'),
+                          ),
+                          const Spacer(),
+                          Text(
+                            'Total: S/ ${total.toStringAsFixed(2)}',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildCatalogoBuscadorView(bool isDark, Color surface, Color border) {
     final query = _busquedaController.text.trim().toLowerCase();
     List<Producto> filtrados = widget.productosDisponibles;
+
+    // Construir mapa dinámico de categorías normalizadas (sin romper acentos como Lácteos)
+    final Map<String, String> categoriasDinamicas = {};
+    for (final p in widget.productosDisponibles) {
+      final rawCat = (p.nombreCategoria ?? '').trim();
+      if (rawCat.isNotEmpty) {
+        final key = _normalizarTexto(rawCat);
+        categoriasDinamicas.putIfAbsent(
+          key,
+          () => _labelCategoriaConEmoji(rawCat),
+        );
+      }
+    }
 
     if (_categoriaSeleccionada != 'TODOS') {
       filtrados = filtrados
           .where(
             (p) =>
-                (p.nombreCategoria ?? '').toUpperCase() ==
+                _normalizarTexto(p.nombreCategoria ?? '') ==
                 _categoriaSeleccionada,
           )
           .toList();
@@ -1418,11 +2693,11 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       }).toList();
     }
 
-    final totalCat = _totalCatalogo;
+    final total = _totalTicket;
 
     return Column(
       children: [
-        // Buscador Inteligente + Escáner
+        // Buscador Inteligente + Escáner + Monto Rápido en la misma cuenta
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           color: surface,
@@ -1435,6 +2710,16 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                   decoration: InputDecoration(
                     hintText: 'Buscar producto o código...',
                     prefixIcon: const Icon(LucideIcons.search, size: 18),
+                    suffixIcon: _busquedaController.text.isNotEmpty
+                        ? IconButton(
+                            tooltip: 'Limpiar búsqueda',
+                            icon: const Icon(LucideIcons.x, size: 16),
+                            onPressed: () {
+                              _busquedaController.clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
                     filled: true,
                     fillColor: isDark
                         ? const Color(0xFF1E293B)
@@ -1448,22 +2733,31 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                 ),
               ),
               const SizedBox(width: 8),
+              FilledButton.tonalIcon(
+                key: const ValueKey('btn_monto_rapido_catalogo'),
+                onPressed: _isProcesandoVenta
+                    ? null
+                    : () => _abrirModalMontoRapido(),
+                icon: const Icon(LucideIcons.plus, size: 16),
+                label: Text(
+                  'Monto',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               IconButton.filledTonal(
                 tooltip: 'Escanear Código de Barras',
                 icon: const Icon(LucideIcons.scanLine, size: 20),
-                onPressed: () async {
-                  final code = await KarlizBarcodeScannerModal.scan(context);
-                  if (code != null && code.isNotEmpty) {
-                    _busquedaController.text = code;
-                    setState(() {});
-                  }
-                },
+                onPressed: _isProcesandoVenta ? null : _escanearCodigoCatalogo,
               ),
             ],
           ),
         ),
 
-        // Píldoras de Categorías
+        // Píldoras de Categorías dinámicas + fallback
         Container(
           height: 44,
           color: surface,
@@ -1472,10 +2766,14 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             padding: const EdgeInsets.symmetric(horizontal: 14),
             children: [
               _buildCatChip('TODOS', '⭐ Todos', isDark),
-              _buildCatChip('BEBIDAS', '🥤 Bebidas', isDark),
-              _buildCatChip('LACTEOS', '🥛 Lácteos', isDark),
-              _buildCatChip('ABARROTES', '🌾 Abarrotes', isDark),
-              _buildCatChip('LIMPIEZA', '🧼 Limpieza', isDark),
+              if (categoriasDinamicas.isEmpty) ...[
+                _buildCatChip('BEBIDAS', '🥤 Bebidas', isDark),
+                _buildCatChip('LACTEOS', '🥛 Lácteos', isDark),
+                _buildCatChip('ABARROTES', '🌾 Abarrotes', isDark),
+                _buildCatChip('LIMPIEZA', '🧼 Limpieza', isDark),
+              ] else
+                for (final entry in categoriasDinamicas.entries)
+                  _buildCatChip(entry.key, entry.value, isDark),
             ],
           ),
         ),
@@ -1484,12 +2782,28 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         Expanded(
           child: filtrados.isEmpty
               ? Center(
-                  child: Text(
-                    'No se encontraron productos',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'No se encontraron productos',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      if (_busquedaController.text.isNotEmpty ||
+                          _categoriaSeleccionada != 'TODOS') ...[
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed: () => setState(() {
+                            _busquedaController.clear();
+                            _categoriaSeleccionada = 'TODOS';
+                          }),
+                          child: const Text('Mostrar todos los productos'),
+                        ),
+                      ],
+                    ],
                   ),
                 )
               : GridView.builder(
@@ -1498,7 +2812,7 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                     maxCrossAxisExtent: 180,
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
-                    childAspectRatio: 0.82,
+                    childAspectRatio: 0.78,
                   ),
                   itemCount: filtrados.length,
                   itemBuilder: (ctx, idx) {
@@ -1508,10 +2822,103 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                 ),
         ),
 
-        // Barra Inferior de Cobro Catálogo
-        if (_carritoCat.isNotEmpty)
+        // ── Barra Inferior de Cobro Unificado (o recuperación tras borrado) ──
+        if (_tieneItems)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: surface,
+              border: Border(top: BorderSide(color: border)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: _abrirModalTicketUnificado,
+                        borderRadius: BorderRadius.circular(8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${_ticket.length} items en cuenta',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Ver / editar',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF2563EB),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'S/ ${total.toStringAsFixed(2)}',
+                              style: GoogleFonts.jetBrainsMono(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF15803D),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Ver y editar detalle de cuenta',
+                      icon: Icon(
+                        Icons.receipt_long_outlined,
+                        size: 19,
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF1E40AF),
+                      ),
+                      onPressed: _abrirModalTicketUnificado,
+                    ),
+                    IconButton(
+                      tooltip: 'Deshacer último',
+                      icon: Icon(
+                        LucideIcons.undo2,
+                        size: 18,
+                        color: AppTheme.alertRed,
+                      ),
+                      onPressed: (_puedeDeshacer && !_isProcesandoVenta)
+                          ? _deshacerUltimo
+                          : null,
+                    ),
+                    const SizedBox(width: 2),
+                    IconButton(
+                      tooltip: 'Borrar todo',
+                      icon: Icon(
+                        LucideIcons.trash2,
+                        size: 18,
+                        color: AppTheme.alertRed,
+                      ),
+                      onPressed: _isProcesandoVenta ? null : _cancelarTicket,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _buildBotonesCobroUnificados(total, isDark, surface, border),
+              ],
+            ),
+          )
+        else if (_puedeDeshacer)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: surface,
               border: Border(top: BorderSide(color: border)),
@@ -1519,41 +2926,19 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
             child: Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${_carritoCat.length} productos en canasta',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        'S/ ${totalCat.toStringAsFixed(2)}',
-                        style: GoogleFonts.jetBrainsMono(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF15803D),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF15803D),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                  child: Text(
+                    'Cuenta vacía — puedes recuperar tu selección anterior',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white60 : const Color(0xFF64748B),
                     ),
                   ),
-                  onPressed: () =>
-                      _ejecutarVenta(metodoPago: 'EFECTIVO', total: totalCat),
-                  icon: const Icon(LucideIcons.checkCheck, size: 18),
-                  label: const Text('COBRAR AHORA'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _isProcesandoVenta ? null : _deshacerUltimo,
+                  icon: const Icon(LucideIcons.undo2, size: 15),
+                  label: const Text('Deshacer último'),
                 ),
               ],
             ),
@@ -1564,7 +2949,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
 
   Widget _buildCatChip(String catKey, String label, bool isDark) {
     final isSelected = _categoriaSeleccionada == catKey;
-
     return Padding(
       padding: const EdgeInsets.only(right: 6, bottom: 6),
       child: ChoiceChip(
@@ -1588,56 +2972,696 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     Color surface,
     Color border,
   ) {
+    final ticketIdx = _ticket.indexWhere(
+      (item) =>
+          item.producto.idProducto != null &&
+          p.idProducto != null &&
+          item.producto.idProducto == p.idProducto,
+    );
+    final cantidadEnTicket = ticketIdx >= 0 ? _ticket[ticketIdx].cantidad : 0.0;
+    final sinStock = p.stockActual <= 0;
+
     return InkWell(
-      onTap: () => _agregarProductoCatalogo(p),
+      onTap: _isProcesandoVenta ? null : () => _agregarProductoCatalogo(p),
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: border),
-        ),
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Center(
-                  child: ProductImageWidget(
-                    imagenUrl: p.imagenUrl,
-                    nombre: p.nombre,
-                    categoria: p.nombreCategoria,
-                    size: 80,
-                    isDark: widget.isDark,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: sinStock ? 0.55 : 1.0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: cantidadEnTicket > 0
+                      ? const Color(0xFF2563EB)
+                      : border,
+                  width: cantidadEnTicket > 0 ? 2 : 1,
+                ),
+              ),
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Center(
+                        child: ProductImageWidget(
+                          imagenUrl: p.imagenUrl,
+                          nombre: p.nombre,
+                          categoria: p.nombreCategoria,
+                          size: 80,
+                          isDark: widget.isDark,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    p.nombre,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                          style: GoogleFonts.jetBrainsMono(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF2563EB),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        sinStock
+                            ? 'Agotado'
+                            : 'Stk ${_formatCantidad(p.stockActual)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: sinStock
+                              ? AppTheme.alertRed
+                              : (isDark
+                                    ? Colors.white54
+                                    : const Color(0xFF64748B)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (cantidadEnTicket > 0)
+            Positioned(
+              top: 4,
+              left: 4,
+              child: Material(
+                color: AppTheme.alertRed,
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  onTap: _isProcesandoVenta
+                      ? null
+                      : () => _quitarUnoCatalogo(p),
+                  borderRadius: BorderRadius.circular(10),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    child: Icon(
+                      LucideIcons.minus,
+                      size: 13,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              p.nombre,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : Colors.black87,
+          if (cantidadEnTicket > 0)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: InkWell(
+                onTap: _isProcesandoVenta
+                    ? null
+                    : () => _editarCantidadManual(ticketIdx),
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '×${_formatCantidad(cantidadEnTicket)}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 2),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// DIÁLOGOS AUXILIARES CON GESTIÓN SEGURA DE CONTROLLERS
+// ══════════════════════════════════════════════════════════════
+
+class _LineaEditResult {
+  final double cantidad;
+  final double? montoUnitario;
+  final String? concepto;
+
+  const _LineaEditResult({
+    required this.cantidad,
+    this.montoUnitario,
+    this.concepto,
+  });
+}
+
+class _EditarLineaTicketDialog extends StatefulWidget {
+  final CartItem item;
+  final bool isManual;
+  final String Function(double) formatCantidad;
+
+  const _EditarLineaTicketDialog({
+    required this.item,
+    required this.isManual,
+    required this.formatCantidad,
+  });
+
+  @override
+  State<_EditarLineaTicketDialog> createState() =>
+      _EditarLineaTicketDialogState();
+}
+
+class _EditarLineaTicketDialogState extends State<_EditarLineaTicketDialog> {
+  late final TextEditingController _cantidadCtrl;
+  late final TextEditingController _conceptoCtrl;
+  late final TextEditingController _montoCtrl;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _cantidadCtrl = TextEditingController(
+      text: widget.formatCantidad(widget.item.cantidad),
+    );
+    _conceptoCtrl = TextEditingController(text: widget.item.producto.nombre);
+    _montoCtrl = TextEditingController(
+      text: widget.item.producto.precioVenta.toStringAsFixed(2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _cantidadCtrl.dispose();
+    _conceptoCtrl.dispose();
+    _montoCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final cant = double.tryParse(
+      _cantidadCtrl.text.trim().replaceAll(',', '.'),
+    );
+    if (cant == null || cant <= 0 || cant.isNaN || cant.isInfinite) {
+      setState(() => _errorText = 'Ingresa una cantidad mayor a 0 (ej: 1.5).');
+      return;
+    }
+
+    if (widget.isManual) {
+      final monto = double.tryParse(
+        _montoCtrl.text.trim().replaceAll(',', '.'),
+      );
+      if (monto == null || monto <= 0 || monto.isNaN || monto.isInfinite) {
+        setState(() => _errorText = 'Ingresa un monto válido mayor a S/ 0.00.');
+        return;
+      }
+      if (monto > 99999.99) {
+        setState(() => _errorText = 'El monto máximo es S/ 99,999.99.');
+        return;
+      }
+      Navigator.pop(
+        context,
+        _LineaEditResult(
+          cantidad: cant,
+          montoUnitario: monto,
+          concepto: _conceptoCtrl.text.trim(),
+        ),
+      );
+      return;
+    }
+
+    if (cant > widget.item.producto.stockActual + 0.0001) {
+      setState(
+        () => _errorText =
+            'Stock insuficiente (disponible: ${widget.formatCantidad(widget.item.producto.stockActual)}).',
+      );
+      return;
+    }
+
+    Navigator.pop(context, _LineaEditResult(cantidad: cant));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        widget.isManual
+            ? 'Editar monto manual'
+            : 'Editar cantidad: ${widget.item.producto.nombre}',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (widget.isManual) ...[
+              TextField(
+                controller: _conceptoCtrl,
+                decoration: InputDecoration(
+                  labelText: 'Concepto (ej: Pan, Culantro)',
+                  prefixIcon: const Icon(LucideIcons.pencil),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _montoCtrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Monto S/ (ej: 1.50)',
+                  prefixIcon: const Icon(LucideIcons.banknote),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onSubmitted: (_) => _submit(),
+              ),
+              const SizedBox(height: 10),
+            ],
+            TextField(
+              controller: _cantidadCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              autofocus: !widget.isManual,
+              decoration: InputDecoration(
+                labelText: 'Cantidad (ej: 1.5)',
+                hintText: '1.5',
+                helperText: widget.isManual
+                    ? null
+                    : 'Disponible: ${widget.formatCantidad(widget.item.producto.stockActual)}',
+                prefixIcon: const Icon(LucideIcons.hash),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: ['0.5', '1', '1.5', '2', '2.5'].map((preset) {
+                return ActionChip(
+                  label: Text(preset),
+                  onPressed: () {
+                    _cantidadCtrl.text = preset;
+                    setState(() => _errorText = null);
+                  },
+                );
+              }).toList(),
+            ),
+            if (_errorText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _errorText!,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.alertRed,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Aceptar')),
+      ],
+    );
+  }
+}
+
+class _MontoRapidoResult {
+  final double monto;
+  final String concepto;
+
+  const _MontoRapidoResult({required this.monto, required this.concepto});
+}
+
+class _AgregarMontoRapidoDialog extends StatefulWidget {
+  final double? montoInicial;
+  final List<String> conceptosSugeridos;
+
+  const _AgregarMontoRapidoDialog({
+    this.montoInicial,
+    required this.conceptosSugeridos,
+  });
+
+  @override
+  State<_AgregarMontoRapidoDialog> createState() =>
+      _AgregarMontoRapidoDialogState();
+}
+
+class _AgregarMontoRapidoDialogState extends State<_AgregarMontoRapidoDialog> {
+  late final TextEditingController _montoCtrl;
+  late final TextEditingController _conceptoCtrl;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _montoCtrl = TextEditingController(
+      text: widget.montoInicial != null
+          ? widget.montoInicial!.toStringAsFixed(2)
+          : '',
+    );
+    _conceptoCtrl = TextEditingController(text: 'Pan');
+  }
+
+  @override
+  void dispose() {
+    _montoCtrl.dispose();
+    _conceptoCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final monto = double.tryParse(_montoCtrl.text.trim().replaceAll(',', '.'));
+    if (monto == null || monto <= 0 || monto.isNaN || monto.isInfinite) {
+      setState(() => _errorText = 'Ingresa un monto válido (ej: 1.50).');
+      return;
+    }
+    if (monto > 99999.99) {
+      setState(() => _errorText = 'El monto máximo por ítem es S/ 99,999.99.');
+      return;
+    }
+    final concepto = _conceptoCtrl.text.trim().isEmpty
+        ? 'Monto manual'
+        : _conceptoCtrl.text.trim();
+    Navigator.pop(
+      context,
+      _MontoRapidoResult(monto: monto, concepto: concepto),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        'Sumar monto manual a la cuenta',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: _montoCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Monto en S/ (ej: 1.50)',
+                hintText: '1.50',
+                prefixIcon: const Icon(LucideIcons.banknote),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _conceptoCtrl,
+              decoration: InputDecoration(
+                labelText: 'Descripción (ej: Pan)',
+                prefixIcon: const Icon(LucideIcons.pencil),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: widget.conceptosSugeridos.map((c) {
+                return ActionChip(
+                  label: Text(c),
+                  onPressed: () {
+                    _conceptoCtrl.text = c;
+                    setState(() {});
+                  },
+                );
+              }).toList(),
+            ),
+            if (_errorText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _errorText!,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.alertRed,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Sumar al ticket')),
+      ],
+    );
+  }
+}
+
+class _EfectivoCustomDialog extends StatefulWidget {
+  final double total;
+
+  const _EfectivoCustomDialog({required this.total});
+
+  @override
+  State<_EfectivoCustomDialog> createState() => _EfectivoCustomDialogState();
+}
+
+class _EfectivoCustomDialogState extends State<_EfectivoCustomDialog> {
+  late final TextEditingController _ctrl;
+  String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: widget.total.toStringAsFixed(2));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final val = double.tryParse(_ctrl.text.trim().replaceAll(',', '.'));
+    if (val == null || val <= 0 || val.isNaN || val.isInfinite) {
+      setState(() => _errorText = 'Ingresa un monto válido.');
+      return;
+    }
+    if (val + 0.001 < widget.total) {
+      setState(
+        () => _errorText =
+            'El monto debe ser al menos S/ ${widget.total.toStringAsFixed(2)}.',
+      );
+      return;
+    }
+    Navigator.pop(context, val);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        'Monto recibido en efectivo',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _ctrl,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Efectivo entregado (S/)',
+              helperText: 'Total cuenta: S/ ${widget.total.toStringAsFixed(2)}',
+              prefixIcon: const Icon(LucideIcons.banknote),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          if (_errorText != null) ...[
+            const SizedBox(height: 8),
             Text(
-              'S/ ${p.precioVenta.toStringAsFixed(2)}',
-              style: GoogleFonts.jetBrainsMono(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF2563EB),
+              _errorText!,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.alertRed,
+              ),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Aplicar')),
+      ],
+    );
+  }
+}
+
+class _SelectorClienteFiadoDialog extends StatefulWidget {
+  final List<Cliente> clientes;
+  final double totalVenta;
+
+  const _SelectorClienteFiadoDialog({
+    required this.clientes,
+    required this.totalVenta,
+  });
+
+  @override
+  State<_SelectorClienteFiadoDialog> createState() =>
+      _SelectorClienteFiadoDialogState();
+}
+
+class _SelectorClienteFiadoDialogState
+    extends State<_SelectorClienteFiadoDialog> {
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _searchCtrl.text.trim().toLowerCase();
+    final filtrados = q.isEmpty
+        ? widget.clientes
+        : widget.clientes
+              .where((c) => c.nombreCompleto.toLowerCase().contains(q))
+              .toList();
+
+    return AlertDialog(
+      title: Text(
+        'Seleccionar vecino para fiado',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      content: SizedBox(
+        width: 340,
+        height: 320,
+        child: Column(
+          children: [
+            TextField(
+              controller: _searchCtrl,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: 'Buscar vecino...',
+                prefixIcon: const Icon(LucideIcons.search, size: 18),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filtrados.length,
+                itemBuilder: (_, idx) {
+                  final c = filtrados[idx];
+                  final excede = c.excedeCon(widget.totalVenta);
+                  return ListTile(
+                    dense: true,
+                    leading: Icon(
+                      excede ? LucideIcons.alertTriangle : LucideIcons.user,
+                      color: excede ? AppTheme.alertRed : null,
+                      size: 18,
+                    ),
+                    title: Text(
+                      c.nombreCompleto,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      excede
+                          ? 'Excede límite de crédito (S/ ${c.limiteCredito.toStringAsFixed(2)})'
+                          : 'Disponible: S/ ${(c.limiteCredito - c.saldoDeudor).clamp(0, double.infinity).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: excede ? AppTheme.alertRed : Colors.grey,
+                      ),
+                    ),
+                    onTap: () => Navigator.pop(context, c),
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+      ],
     );
   }
 }

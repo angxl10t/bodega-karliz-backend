@@ -3,14 +3,57 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:bodega_mobile/core/offline/offline_sync_manager.dart';
 import 'package:bodega_mobile/core/theme.dart';
+import 'package:bodega_mobile/features/clientes/cliente_model.dart';
+import 'package:bodega_mobile/features/clientes/cliente_service.dart';
 import 'package:bodega_mobile/features/productos/producto_model.dart';
+import 'package:bodega_mobile/features/ventas/venta_model.dart';
+import 'package:bodega_mobile/features/ventas/venta_service.dart';
 import 'package:bodega_mobile/features/ventas/widgets/mostrador_calculadora_view.dart';
+
+class _FakeVentaService extends VentaService {
+  RegistroVentaResult nextResult;
+  final List<VentaEnvio> sentVentas = [];
+
+  _FakeVentaService({RegistroVentaResult? initialResult})
+    : nextResult = initialResult ?? RegistroVentaResult(success: true);
+
+  @override
+  Future<CierreCaja?> getCierreCajaHoy() async => null;
+
+  @override
+  Future<RegistroVentaResult> registrarVentaCompleta(VentaEnvio venta) async {
+    sentVentas.add(venta);
+    return nextResult;
+  }
+}
+
+class _FakeClienteService extends ClienteService {
+  final List<Cliente> clientes;
+  final bool shouldThrow;
+
+  _FakeClienteService({this.clientes = const [], this.shouldThrow = false});
+
+  @override
+  Future<List<Cliente>> getClientes({
+    String? query,
+    bool soloDeudores = false,
+    bool forceRefresh = false,
+  }) async {
+    if (shouldThrow) {
+      throw Exception('Sin conexión al servidor de vecinos');
+    }
+    return clientes;
+  }
+}
 
 Widget _createMostradorApp({
   required List<Producto> productos,
   required VoidCallback onVolverAPos,
   bool isDark = false,
+  VentaService? ventaService,
+  ClienteService? clienteService,
 }) {
   return MaterialApp(
     theme: isDark ? AppTheme.buildDarkTheme() : AppTheme.buildLightTheme(),
@@ -19,6 +62,8 @@ Widget _createMostradorApp({
         productosDisponibles: productos,
         onVolverAPos: onVolverAPos,
         isDark: isDark,
+        ventaService: ventaService,
+        clienteService: clienteService,
       ),
     ),
   );
@@ -51,6 +96,7 @@ void main() {
   ];
 
   setUp(() {
+    OfflineSyncManager.instance.isOfflineNotifier.value = false;
     FlutterSecureStorage.setMockInitialValues({
       'jwt_token': 'fake_token',
       'id_bodega': '1',
@@ -202,4 +248,308 @@ void main() {
     expect(find.textContaining('VUELTO A ENTREGAR'), findsOneWidget);
     expect(find.textContaining('5.00'), findsWidgets);
   });
+
+  testWidgets(
+    'Combina productos del catálogo + 1.50 de Pan en una sola venta unificada',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final fakeVenta = _FakeVentaService();
+      final fakeClientes = _FakeClienteService();
+      OfflineSyncManager.instance.isOfflineNotifier.value = false;
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: dummyProductos,
+          onVolverAPos: () {},
+          ventaService: fakeVenta,
+          clienteService: fakeClientes,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Cambiar a Catálogo y seleccionar Leche Gloria (S/ 4.50)
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Leche Gloria Azul 400g'));
+      await tester.pumpAndSettle();
+      expect(find.text('×1'), findsOneWidget);
+
+      // 2. Volver a Calculadora y sumar S/ 1.50 etiquetado como "Pan" en la MISMA cuenta
+      await tester.tap(find.text('Calculadora'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Pan'));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('numpad_1')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('numpad_.')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('numpad_5')));
+      await tester.pump();
+      await tester.tap(find.text('SUMAR AL\nTICKET'));
+      await tester.pump();
+
+      // La tira de cuenta contiene ambos ítems juntos y el total unificado es S/ 6.00
+      expect(find.text('Leche Gloria Azul 400g'), findsOneWidget);
+      expect(find.text('Pan'), findsWidgets);
+      expect(find.text('6.00'), findsOneWidget);
+
+      // 3. Cobrar toda la cuenta junta con YAPE / PLIN
+      await tester.tap(find.text('YAPE / PLIN'));
+      await tester.pumpAndSettle();
+
+      // Solo se envía el ítem real de catálogo (no corrompe otro producto con el monto manual)
+      expect(fakeVenta.sentVentas.length, 1);
+      expect(fakeVenta.sentVentas.first.detalles.length, 1);
+      expect(fakeVenta.sentVentas.first.detalles.first.idProducto, 1);
+      expect(fakeVenta.sentVentas.first.metodoPago, 'Yape');
+      expect(find.textContaining('Cobrado S/ 6.00'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Deshacer multi-paso revierte +1 accidental sin borrar toda la línea y backspace borra dígito',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: dummyProductos,
+          onVolverAPos: () {},
+          ventaService: _FakeVentaService(),
+          clienteService: _FakeClienteService(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Probar backspace: escribir 45, borrar 5 -> queda 4.00
+      await tester.tap(find.byKey(const ValueKey('numpad_4')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('numpad_5')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('numpad_backspace')));
+      await tester.pump();
+      expect(find.text('S/ 4'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('numpad_C')));
+      await tester.pump();
+
+      // Agregar Leche Gloria dos veces seguidas en Catálogo (×2 = 9.00)
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Leche Gloria Azul 400g'));
+      await tester.pump();
+      await tester.tap(find.text('Leche Gloria Azul 400g'));
+      await tester.pumpAndSettle();
+      expect(find.text('×2'), findsOneWidget);
+      expect(find.text('S/ 9.00'), findsOneWidget);
+
+      // Deshacer último revierte de ×2 a ×1 (S/ 4.50) sin eliminar el producto
+      await tester.tap(find.byTooltip('Deshacer último'));
+      await tester.pumpAndSettle();
+      expect(find.text('×1'), findsOneWidget);
+      expect(find.text('1 items en cuenta'), findsOneWidget);
+      expect(find.text('S/ 4.50'), findsWidgets);
+    },
+  );
+
+  testWidgets(
+    'Permite editar cantidad decimal 1.5 y filtrar categorías con tildes',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: dummyProductos,
+          onVolverAPos: () {},
+          ventaService: _FakeVentaService(),
+          clienteService: _FakeClienteService(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+
+      // Filtrar por categoría con tilde (Lácteos) debe mantener Leche Gloria y ocultar Arroz
+      await tester.tap(find.text('🥛 Lácteos'));
+      await tester.pumpAndSettle();
+      expect(find.text('Leche Gloria Azul 400g'), findsOneWidget);
+      expect(find.text('Arroz Costeño 1kg'), findsNothing);
+
+      // Volver a Todos y agregar Arroz Costeño 1kg (S/ 5.20)
+      await tester.tap(find.text('⭐ Todos'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Arroz Costeño 1kg'));
+      await tester.pumpAndSettle();
+
+      // Tocar badge ×1 para cambiar cantidad a 1.5 -> subtotal S/ 7.80
+      await tester.tap(find.text('×1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ActionChip, '1.5'));
+      await tester.pump();
+      await tester.tap(find.text('Aceptar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('×1.5'), findsOneWidget);
+      expect(find.text('S/ 7.80'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Manejo de errores: monto vacío, sin stock, billete menor, exceso crédito y rechazo servidor',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final productosConAgotado = [
+        ...dummyProductos,
+        Producto(
+          idProducto: 3,
+          codigo: 'PROD-003',
+          nombre: 'Aceite Agotado',
+          precioVenta: 8.50,
+          stockActual: 0,
+          nombreCategoria: 'Abarrotes',
+        ),
+      ];
+
+      final fakeVenta = _FakeVentaService(
+        initialResult: RegistroVentaResult(
+          success: false,
+          errorMessage: 'Stock insuficiente en servidor',
+        ),
+      );
+      final fakeClientes = _FakeClienteService(
+        clientes: [
+          Cliente(
+            idCliente: 10,
+            nombreCompleto: 'Juan Perez',
+            limiteCredito: 10.0,
+            saldoDeudor: 8.0,
+          ),
+        ],
+      );
+      OfflineSyncManager.instance.isOfflineNotifier.value = false;
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: productosConAgotado,
+          onVolverAPos: () {},
+          ventaService: fakeVenta,
+          clienteService: fakeClientes,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Error al presionar SUMAR AL TICKET sin ingresar monto
+      await tester.tap(find.text('SUMAR AL\nTICKET'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Digita un monto mayor a S/ 0.00'),
+        findsOneWidget,
+      );
+
+      // 2. Producto sin stock en Catálogo no se agrega y muestra alerta
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Aceite Agotado'));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Sin stock disponible para Aceite Agotado'),
+        findsOneWidget,
+      );
+
+      // Agregar Arroz Costeño (S/ 5.20) y Leche Gloria (S/ 4.50) x2 = S/ 14.20
+      await tester.tap(find.text('Arroz Costeño 1kg'));
+      await tester.pump();
+      await tester.tap(find.text('Leche Gloria Azul 400g'));
+      await tester.pump();
+      await tester.tap(find.text('Leche Gloria Azul 400g'));
+      await tester.pumpAndSettle();
+
+      // 3. En Efectivo, elegir billete S/ 10 cuando total es S/ 14.20 muestra advertencia
+      await tester.tap(find.text('EFECTIVO'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('S/ 10'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('es menor al total'), findsOneWidget);
+
+      // 4. En Fiado, vecino con límite excedido muestra error y NO limpia ticket
+      await tester.tap(find.text('FIAR'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Juan Perez'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Límite de crédito excedido'), findsOneWidget);
+      expect(find.text('S/ 14.20'), findsOneWidget);
+
+      // 5. En Yape, si servidor rechaza la venta con error de negocio, NO limpia el ticket
+      await tester.tap(find.text('YAPE / PLIN'));
+      await tester.pumpAndSettle();
+      expect(find.text('Stock insuficiente en servidor'), findsOneWidget);
+      expect(find.text('S/ 14.20'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Permite agregar monto rápido directo desde Catálogo, ver cuenta unificada y reintentar clientes',
+    (tester) async {
+      tester.view.physicalSize = const Size(1200, 1200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final fakeClientesError = _FakeClienteService(shouldThrow: true);
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: dummyProductos,
+          onVolverAPos: () {},
+          ventaService: _FakeVentaService(),
+          clienteService: fakeClientesError,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Alternar a Catálogo y agregar Arroz (S/ 5.20)
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Arroz Costeño 1kg'));
+      await tester.pumpAndSettle();
+
+      // Abrir diálogo rápido "+ Monto" desde Catálogo para añadir S/ 1.50 de Pan
+      await tester.tap(find.byKey(const ValueKey('btn_monto_rapido_catalogo')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Monto en S/ (ej: 1.50)'),
+        '1.50',
+      );
+      await tester.tap(find.text('Sumar al ticket'));
+      await tester.pumpAndSettle();
+
+      // Cuenta unificada debe sumar 5.20 + 1.50 = S/ 6.70 y mostrar 2 items
+      expect(find.text('2 items en cuenta'), findsOneWidget);
+      expect(find.text('S/ 6.70'), findsOneWidget);
+
+      // Abrir detalle de cuenta unificada ('Ver / editar')
+      await tester.tap(find.text('Ver / editar'));
+      await tester.pumpAndSettle();
+      expect(find.text('CUENTA UNIFICADA (2 ítems)'), findsOneWidget);
+      expect(find.text('Pan'), findsOneWidget);
+      await tester.tap(find.byTooltip('Cerrar'));
+      await tester.pumpAndSettle();
+
+      // Abrir FIAR cuando falló la carga de vecinos debe mostrar error con botón Reintentar
+      await tester.tap(find.text('FIAR'));
+      await tester.pumpAndSettle();
+      expect(find.text('No se pudieron cargar los vecinos.'), findsOneWidget);
+      expect(find.text('Reintentar'), findsOneWidget);
+    },
+  );
 }
