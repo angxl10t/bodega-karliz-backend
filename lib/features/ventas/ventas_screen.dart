@@ -4689,33 +4689,47 @@ class _VentasScreenState extends State<VentasScreen>
     final searchCtrl = TextEditingController();
     Timer? modalDebounce;
 
+    _recalcularTabletCatalogCache();
+
     AdaptiveModal.show(
       context: context,
       maxWidth: 680,
       builder: (ctx) {
         final isWide = ResponsiveLayout.isTabletOrLarger(ctx);
         String query = '';
-        bool soloPromociones = false;
+        String selectedCategoria = 'Todos';
+        bool isGridView = true;
+
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final promosCount = _safeDisponibles
-                .where((p) => _obtenerPromocionActivaParaProducto(p) != null)
-                .length;
-
             final q = query.toLowerCase().trim();
             final bool hasDigits = q.codeUnits.any((c) => c >= 48 && c <= 57);
+
             final filtrados = _safeDisponibles.where((p) {
-              if (soloPromociones &&
-                  _obtenerPromocionActivaParaProducto(p) == null) {
-                return false;
+              if (selectedCategoria == 'Promociones') {
+                if (_obtenerPromocionActivaParaProducto(p) == null)
+                  return false;
+              } else if (selectedCategoria == 'Frecuentes') {
+                final isFrec = _frecuentesProductos.any(
+                  (fp) => fp.idProducto == p.idProducto,
+                );
+                if (!isFrec) return false;
+              } else if (selectedCategoria != 'Todos') {
+                final catKey = CategoryHelper.normalize(p.nombreCategoria);
+                if (catKey != selectedCategoria) return false;
               }
-              if (q.isEmpty) return true;
-              return p.nombre.toLowerCase().contains(q) ||
-                  (hasDigits && _coincideCodigo(p, q)) ||
-                  (p.codigoBarras != null &&
-                      p.codigoBarras!.toLowerCase().contains(q)) ||
-                  (p.marca != null && p.marca!.toLowerCase().contains(q));
+
+              if (q.isNotEmpty) {
+                return p.nombre.toLowerCase().contains(q) ||
+                    (hasDigits && _coincideCodigo(p, q)) ||
+                    (p.codigoBarras != null &&
+                        p.codigoBarras!.toLowerCase().contains(q)) ||
+                    (p.marca != null && p.marca!.toLowerCase().contains(q));
+              }
+              return true;
             }).toList();
+
+            final cats = _tabletCategorias;
 
             return Align(
               alignment: isWide ? Alignment.center : Alignment.bottomCenter,
@@ -4725,12 +4739,12 @@ class _VentasScreenState extends State<VentasScreen>
                 child: Container(
                   height:
                       MediaQuery.of(context).size.height *
-                      (isWide ? 0.85 : 0.78),
+                      (isWide ? 0.88 : 0.90),
                   decoration: BoxDecoration(
                     color: isDark ? AppTheme.cardDarkElevated : Colors.white,
                     borderRadius: isWide
                         ? BorderRadius.circular(24)
-                        : const BorderRadius.vertical(top: Radius.circular(32)),
+                        : const BorderRadius.vertical(top: Radius.circular(28)),
                     border: isDark
                         ? Border.all(
                             color: AppTheme.borderDarkElevated,
@@ -4754,22 +4768,26 @@ class _VentasScreenState extends State<VentasScreen>
                       ),
                     ],
                   ),
-                  padding: EdgeInsets.fromLTRB(20, isWide ? 20 : 16, 20, 16),
+                  padding: EdgeInsets.fromLTRB(16, isWide ? 18 : 12, 16, 12),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (!isWide) ...[
-                        Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? AppTheme.borderDarkElevated
-                                : const Color(0xFFE2E8F0),
-                            borderRadius: BorderRadius.circular(10),
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFCBD5E1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                       ],
+                      // Header
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -4779,24 +4797,25 @@ class _VentasScreenState extends State<VentasScreen>
                               children: [
                                 Text(
                                   'Catálogo de Productos',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w800,
+                                    letterSpacing: -0.2,
                                     color: isDark
                                         ? Colors.white
                                         : AppTheme.textDark,
                                   ),
                                 ),
                                 Text(
-                                  'Toca cualquier producto para añadirlo a la canasta',
+                                  'Toca para añadir o regular cantidades en tu venta',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
+                                    fontSize: 11.5,
                                     fontWeight: FontWeight.w600,
                                     color: isDark
                                         ? AppTheme.textDarkSecondary
-                                        : const Color(0xFF334155),
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -4805,77 +4824,158 @@ class _VentasScreenState extends State<VentasScreen>
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
+                              horizontal: 9,
+                              vertical: 4.5,
                             ),
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? AppTheme.surfaceTintDark
+                                  ? AppTheme.brandPrimary.withValues(
+                                      alpha: 0.18,
+                                    )
                                   : AppTheme.surfaceTint,
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppTheme.brandPrimary.withValues(
+                                  alpha: isDark ? 0.35 : 0.25,
+                                ),
+                              ),
                             ),
-                            child: Text(
-                              '${_carrito.length} en carrito',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.brandPrimary,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  LucideIcons.shoppingBag,
+                                  size: 13,
+                                  color: AppTheme.brandPrimary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${_totalUnidades.toStringAsFixed(_totalUnidades.truncateToDouble() == _totalUnidades ? 0 : 2)} u.',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.brandPrimary,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () => Navigator.pop(ctx),
+                              child: Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? AppTheme.cardDarkHighlight
+                                      : const Color(0xFFF1F5F9),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  LucideIcons.x,
+                                  size: 16,
+                                  color: isDark
+                                      ? AppTheme.textDarkSecondary
+                                      : const Color(0xFF475569),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Search bar + Scanner button
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.cardDarkSunken
+                                    : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppTheme.borderDark
+                                      : const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: TextField(
+                                controller: searchCtrl,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.textDark,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Buscar producto, marca o código...',
+                                  hintStyle: GoogleFonts.plusJakartaSans(
+                                    color: AppTheme.getAdaptiveHintText(isDark),
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    LucideIcons.search,
+                                    size: 18,
+                                    color: AppTheme.brandPrimary,
+                                  ),
+                                  suffixIcon: query.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(
+                                            LucideIcons.x,
+                                            size: 16,
+                                          ),
+                                          onPressed: () {
+                                            modalDebounce?.cancel();
+                                            searchCtrl.clear();
+                                            setModalState(() => query = '');
+                                          },
+                                        )
+                                      : null,
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                onChanged: (val) {
+                                  modalDebounce?.cancel();
+                                  if (val.isEmpty) {
+                                    setModalState(() => query = '');
+                                    return;
+                                  }
+                                  modalDebounce = Timer(
+                                    const Duration(milliseconds: 180),
+                                    () {
+                                      setModalState(() => query = val);
+                                    },
+                                  );
+                                },
+                                onSubmitted: (val) {
+                                  modalDebounce?.cancel();
+                                  setModalState(() => query = val);
+                                },
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          IconButton(
-                            style: IconButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? AppTheme.cardDarkHighlight
-                                  : const Color(0xFFF1F5F9),
-                              padding: const EdgeInsets.all(6),
-                              minimumSize: const Size(34, 34),
-                            ),
-                            icon: const Icon(LucideIcons.x, size: 18),
-                            tooltip: 'Cerrar Catálogo',
-                            onPressed: () => Navigator.pop(ctx),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.cardDarkSunken
-                              : const Color(0xFFF5F6F8),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: isDark
-                                ? AppTheme.borderDark
-                                : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        child: TextField(
-                          controller: searchCtrl,
-                          autofocus: false,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            color: isDark ? Colors.white : AppTheme.textDark,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Buscar por nombre, código o barra...',
-                            hintStyle: GoogleFonts.plusJakartaSans(
-                              color: AppTheme.getAdaptiveHintText(isDark),
-                              fontSize: 13,
-                            ),
-                            prefixIcon: const Icon(
-                              LucideIcons.search,
-                              size: 18,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: const Icon(
-                                LucideIcons.scanLine,
-                                size: 18,
-                                color: Color(0xFF0D9488),
-                              ),
-                              tooltip: 'Escanear código de barras',
-                              onPressed: () async {
+                          Material(
+                            color: const Color(0xFF0D9488),
+                            borderRadius: BorderRadius.circular(16),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () async {
                                 final code =
                                     await KarlizBarcodeScannerModal.scan(
                                       context,
@@ -4885,100 +4985,246 @@ class _VentasScreenState extends State<VentasScreen>
                                   setModalState(() => query = code);
                                 }
                               },
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                              child: Container(
+                                width: 44,
+                                height: 44,
+                                alignment: Alignment.center,
+                                child: const Icon(
+                                  LucideIcons.scanLine,
+                                  size: 19,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
                           ),
-                          onChanged: (val) {
-                            modalDebounce?.cancel();
-                            if (val.isEmpty) {
-                              setModalState(() => query = '');
-                              return;
-                            }
-                            modalDebounce = Timer(
-                              const Duration(milliseconds: 180),
-                              () {
-                                setModalState(() => query = val);
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Category horizontal carousel
+                      SizedBox(
+                        height: 34,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: cats.length,
+                          separatorBuilder: (_, _) => const SizedBox(width: 6),
+                          itemBuilder: (context, catIdx) {
+                            final cat = cats[catIdx];
+                            final isSelected = selectedCategoria == cat;
+                            final count = _tabletCategoryCounts[cat] ?? 0;
+                            final catIcon = _getCategoryIcon(cat);
+                            final isPromo = cat == 'Promociones';
+                            final isFrecuente = cat == 'Frecuentes';
+                            final activeColor = isPromo
+                                ? const Color(0xFFEF4444)
+                                : (isFrecuente
+                                      ? const Color(0xFFD97706)
+                                      : AppTheme.brandPrimary);
+
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setModalState(() => selectedCategoria = cat);
                               },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? activeColor
+                                      : (isDark
+                                            ? AppTheme.cardDarkHighlight
+                                            : const Color(0xFFF1F5F9)),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? activeColor
+                                        : (isDark
+                                              ? AppTheme.borderDark
+                                              : const Color(0xFFE2E8F0)),
+                                    width: isSelected ? 1.4 : 1.0,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: activeColor.withValues(
+                                              alpha: 0.35,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      catIcon,
+                                      size: 13,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : (isPromo
+                                                ? const Color(0xFFEF4444)
+                                                : (isDark
+                                                      ? AppTheme
+                                                            .textDarkSecondary
+                                                      : const Color(
+                                                          0xFF64748B,
+                                                        ))),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      cat,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11.5,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : (isDark
+                                                  ? Colors.white
+                                                  : AppTheme.textDark),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 5,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? Colors.white.withValues(
+                                                alpha: 0.25,
+                                              )
+                                            : (isDark
+                                                  ? AppTheme.cardDarkElevated
+                                                  : const Color(0xFFE2E8F0)),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '$count',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : (isDark
+                                                    ? AppTheme.textDarkSecondary
+                                                    : AppTheme.textMuted),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             );
-                          },
-                          onSubmitted: (val) {
-                            modalDebounce?.cancel();
-                            setModalState(() => query = val);
                           },
                         ),
                       ),
-                      if (promosCount > 0) ...[
-                        const SizedBox(height: 8),
-                        Row(
+                      const SizedBox(height: 8),
+                      // Sub-filter row
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ChoiceChip(
-                              label: const Text('Todos'),
-                              selected: !soloPromociones,
-                              onSelected: (val) {
-                                setModalState(() => soloPromociones = false);
-                              },
-                              labelStyle: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: !soloPromociones
-                                    ? Colors.white
-                                    : (isDark
-                                          ? Colors.white70
-                                          : AppTheme.textDark),
-                              ),
-                              selectedColor: AppTheme.brandPrimary,
-                              backgroundColor: isDark
-                                  ? AppTheme.cardDarkSunken
-                                  : const Color(0xFFF1F5F9),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 0,
+                            Text(
+                              'Mostrando ${filtrados.length} productos',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? AppTheme.textDarkSecondary
+                                    : const Color(0xFF64748B),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            ChoiceChip(
-                              avatar: const Icon(
-                                LucideIcons.tag,
-                                size: 13,
-                                color: Colors.white,
-                              ),
-                              label: Text('🔥 En Promoción ($promosCount)'),
-                              selected: soloPromociones,
-                              onSelected: (val) {
-                                setModalState(() => soloPromociones = val);
-                              },
-                              labelStyle: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: soloPromociones
-                                    ? Colors.white
-                                    : (isDark
-                                          ? const Color(0xFFFCA5A5)
-                                          : const Color(0xFFDC2626)),
-                              ),
-                              selectedColor: const Color(0xFFEF4444),
-                              backgroundColor: isDark
-                                  ? const Color(0xFF450A0A)
-                                  : const Color(0xFFFEF2F2),
-                              shape: RoundedRectangleBorder(
+                            Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.cardDarkSunken
+                                    : const Color(0xFFF1F5F9),
                                 borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppTheme.borderDark
+                                      : const Color(0xFFE2E8F0),
+                                ),
                               ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 0,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      HapticFeedback.selectionClick();
+                                      setModalState(() => isGridView = true);
+                                    },
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 3.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isGridView
+                                            ? AppTheme.brandPrimary
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.grid_view_rounded,
+                                        size: 13,
+                                        color: isGridView
+                                            ? Colors.white
+                                            : (isDark
+                                                  ? Colors.white70
+                                                  : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      HapticFeedback.selectionClick();
+                                      setModalState(() => isGridView = false);
+                                    },
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 7,
+                                        vertical: 3.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: !isGridView
+                                            ? AppTheme.brandPrimary
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.view_list_rounded,
+                                        size: 14,
+                                        color: !isGridView
+                                            ? Colors.white
+                                            : (isDark
+                                                  ? Colors.white70
+                                                  : const Color(0xFF64748B)),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ],
-                      const SizedBox(height: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      // Products Grid or List
                       Expanded(
                         child: filtrados.isEmpty
                             ? Center(
@@ -4988,8 +5234,8 @@ class _VentasScreenState extends State<VentasScreen>
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
-                                        width: 56,
-                                        height: 56,
+                                        width: 54,
+                                        height: 54,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: AppTheme.brandPrimary
@@ -5015,7 +5261,7 @@ class _VentasScreenState extends State<VentasScreen>
                                       const SizedBox(height: 12),
                                       Text(
                                         query.isEmpty
-                                            ? 'No hay productos en catálogo'
+                                            ? 'No hay productos en esta categoría'
                                             : 'Sin coincidencias para "$query"',
                                         style: GoogleFonts.outfit(
                                           fontWeight: FontWeight.w700,
@@ -5027,266 +5273,1158 @@ class _VentasScreenState extends State<VentasScreen>
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Intenta escanear el código de barras o buscar por otra palabra clave.',
+                                        'Intenta escanear el código de barras o seleccionar otra categoría.',
                                         textAlign: TextAlign.center,
                                         style: GoogleFonts.plusJakartaSans(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
                                           color: isDark
                                               ? AppTheme.textDarkSecondary
-                                              : const Color(0xFF334155),
+                                              : const Color(0xFF64748B),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               )
-                            : ListView.separated(
-                                itemCount: filtrados.length,
-                                separatorBuilder: (_, index) => Divider(
-                                  height: 1,
-                                  color: isDark
-                                      ? AppTheme.borderDark
-                                      : AppTheme.borderLight,
-                                ),
-                                itemBuilder: (context, idx) {
-                                  final p = filtrados[idx];
-                                  final inCart = _carrito.firstWhere(
-                                    (c) =>
-                                        c.producto.idProducto == p.idProducto,
-                                    orElse: () =>
-                                        CartItem(producto: p, cantidad: 0),
-                                  );
-                                  final bool yaEnCarrito = inCart.cantidad > 0;
+                            : (isGridView
+                                  ? GridView.builder(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      gridDelegate:
+                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            childAspectRatio: 0.68,
+                                            crossAxisSpacing: 10,
+                                            mainAxisSpacing: 10,
+                                          ),
+                                      itemCount: filtrados.length,
+                                      itemBuilder: (context, idx) {
+                                        final p = filtrados[idx];
+                                        final promo =
+                                            _obtenerPromocionActivaParaProducto(
+                                              p,
+                                            );
+                                        final cartIdx = _carrito.indexWhere(
+                                          (c) =>
+                                              c.producto.idProducto ==
+                                              p.idProducto,
+                                        );
+                                        final inCart = cartIdx != -1;
+                                        final inCartQty = inCart
+                                            ? _carrito[cartIdx].cantidad
+                                            : 0.0;
+                                        final isLowStock =
+                                            p.stockActual <=
+                                            (p.stockMinimo > 0
+                                                ? p.stockMinimo
+                                                : 5.0);
 
-                                  return ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    leading: Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        ProductImageWidget(
-                                          imagenUrl: p.imagenUrl,
-                                          nombre: p.nombre,
-                                          codigoBarras: p.codigoBarras,
-                                          categoria: p.nombreCategoria,
-                                          size: 58,
-                                          borderRadius: 16,
-                                          isDark: isDark,
-                                        ),
-                                        Positioned(
-                                          top: -3,
-                                          right: -3,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              HapticFeedback.selectionClick();
-                                              _mostrarModalInfoProducto(p);
-                                            },
-                                            child: Container(
-                                              width: 18,
-                                              height: 18,
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? const Color(0xFF1E293B)
-                                                    : Colors.white,
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: isDark
-                                                      ? const Color(0xFF475569)
-                                                      : const Color(0xFFCBD5E1),
-                                                  width: 1.0,
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppTheme.cardDarkElevated
+                                                : Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            border: Border.all(
+                                              color: inCart
+                                                  ? AppTheme.brandPrimary
+                                                        .withValues(alpha: 0.5)
+                                                  : (isDark
+                                                        ? AppTheme.borderDark
+                                                        : const Color(
+                                                            0xFFE2E8F0,
+                                                          )),
+                                              width: inCart ? 1.6 : 1.0,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(
+                                                  alpha: isDark ? 0.25 : 0.04,
                                                 ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withValues(
-                                                          alpha: isDark
-                                                              ? 0.35
-                                                              : 0.1,
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.stretch,
+                                              children: [
+                                                // Packshot & badges
+                                                Expanded(
+                                                  flex: 5,
+                                                  child: Stack(
+                                                    fit: StackFit.expand,
+                                                    children: [
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          HapticFeedback.selectionClick();
+                                                          _mostrarModalInfoProducto(
+                                                            p,
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          color: isDark
+                                                              ? AppTheme
+                                                                    .cardDarkSunken
+                                                              : const Color(
+                                                                  0xFFF8FAFC,
+                                                                ),
+                                                          child: ProductImageWidget(
+                                                            imagenUrl:
+                                                                p.imagenUrl,
+                                                            nombre: p.nombre,
+                                                            codigoBarras:
+                                                                p.codigoBarras,
+                                                            categoria: p
+                                                                .nombreCategoria,
+                                                            size: 90,
+                                                            borderRadius: 0,
+                                                            isDark: isDark,
+                                                          ),
                                                         ),
-                                                    blurRadius: 3,
-                                                    offset: const Offset(0, 1),
+                                                      ),
+                                                      if (promo != null)
+                                                        Positioned(
+                                                          top: 5,
+                                                          left: 5,
+                                                          child: Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 5,
+                                                                  vertical: 2,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFEF4444,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6,
+                                                                  ),
+                                                            ),
+                                                            child: Text(
+                                                              promo
+                                                                      .badgeTexto
+                                                                      .isNotEmpty
+                                                                  ? promo
+                                                                        .badgeTexto
+                                                                  : 'PROMO',
+                                                              style: GoogleFonts.outfit(
+                                                                fontSize: 8.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w900,
+                                                                color: Colors
+                                                                    .white,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        )
+                                                      else if (p
+                                                          .esPesableOGranel)
+                                                        Positioned(
+                                                          top: 5,
+                                                          left: 5,
+                                                          child: Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 5,
+                                                                  vertical: 2,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  const Color(
+                                                                    0xFF7C3AED,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6,
+                                                                  ),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                const Icon(
+                                                                  LucideIcons
+                                                                      .scale,
+                                                                  size: 9,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 2,
+                                                                ),
+                                                                Text(
+                                                                  'PESABLE',
+                                                                  style: GoogleFonts.outfit(
+                                                                    fontSize:
+                                                                        8.5,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w900,
+                                                                    color: Colors
+                                                                        .white,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      Positioned(
+                                                        top: 5,
+                                                        right: 5,
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            HapticFeedback.selectionClick();
+                                                            _mostrarModalInfoProducto(
+                                                              p,
+                                                            );
+                                                          },
+                                                          child: Container(
+                                                            width: 20,
+                                                            height: 20,
+                                                            decoration: BoxDecoration(
+                                                              color: isDark
+                                                                  ? const Color(
+                                                                      0xFF1E293B,
+                                                                    ).withValues(
+                                                                      alpha:
+                                                                          0.85,
+                                                                    )
+                                                                  : Colors.white
+                                                                        .withValues(
+                                                                          alpha:
+                                                                              0.9,
+                                                                        ),
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              border: Border.all(
+                                                                color: isDark
+                                                                    ? const Color(
+                                                                        0xFF475569,
+                                                                      )
+                                                                    : const Color(
+                                                                        0xFFCBD5E1,
+                                                                      ),
+                                                                width: 0.8,
+                                                              ),
+                                                            ),
+                                                            child: Center(
+                                                              child: Icon(
+                                                                LucideIcons
+                                                                    .info,
+                                                                size: 10,
+                                                                color: isDark
+                                                                    ? AppTheme
+                                                                          .textDarkSecondary
+                                                                    : const Color(
+                                                                        0xFF475569,
+                                                                      ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Positioned(
+                                                        bottom: 4,
+                                                        right: 5,
+                                                        child: Container(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 5,
+                                                                vertical: 1.5,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color: isLowStock
+                                                                ? const Color(
+                                                                    0xFFEF4444,
+                                                                  ).withValues(
+                                                                    alpha: 0.9,
+                                                                  )
+                                                                : (isDark
+                                                                      ? Colors.black.withValues(
+                                                                          alpha:
+                                                                              0.7,
+                                                                        )
+                                                                      : Colors.black.withValues(
+                                                                          alpha:
+                                                                              0.55,
+                                                                        )),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  6,
+                                                                ),
+                                                          ),
+                                                          child: Text(
+                                                            '${_formatStock(p.stockActual)} u.',
+                                                            style:
+                                                                GoogleFonts.outfit(
+                                                                  fontSize: 8.5,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w800,
+                                                                  color: Colors
+                                                                      .white,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
+                                                ),
+                                                // Info & Stepper
+                                                Expanded(
+                                                  flex: 6,
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.fromLTRB(
+                                                          8,
+                                                          6,
+                                                          8,
+                                                          8,
+                                                        ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Text(
+                                                              p.nombre,
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: GoogleFonts.plusJakartaSans(
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                height: 1.15,
+                                                                color: isDark
+                                                                    ? Colors
+                                                                          .white
+                                                                    : AppTheme
+                                                                          .textDark,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              height: 3,
+                                                            ),
+                                                            Row(
+                                                              children: [
+                                                                Text(
+                                                                  'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                                                  style: GoogleFonts.outfit(
+                                                                    fontSize:
+                                                                        14,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w900,
+                                                                    color: AppTheme
+                                                                        .brandPrimary,
+                                                                    fontFeatures:
+                                                                        const [
+                                                                          FontFeature.tabularFigures(),
+                                                                        ],
+                                                                  ),
+                                                                ),
+                                                                if (p
+                                                                    .esPesableOGranel)
+                                                                  Text(
+                                                                    '/kg',
+                                                                    style: GoogleFonts.plusJakartaSans(
+                                                                      fontSize:
+                                                                          10,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                      color:
+                                                                          isDark
+                                                                          ? AppTheme.textDarkSecondary
+                                                                          : AppTheme.textMuted,
+                                                                    ),
+                                                                  ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        if (!inCart)
+                                                          SizedBox(
+                                                            width:
+                                                                double.infinity,
+                                                            height: 32,
+                                                            child: ElevatedButton(
+                                                              style: ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    AppTheme
+                                                                        .brandPrimary,
+                                                                foregroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                                elevation: 0,
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .zero,
+                                                                shape: RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        10,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                              onPressed: () async {
+                                                                if (p
+                                                                    .esPesableOGranel) {
+                                                                  Navigator.pop(
+                                                                    ctx,
+                                                                  );
+                                                                  _abrirModalBalanzaOEditar(
+                                                                    p,
+                                                                  );
+                                                                } else {
+                                                                  await _verificarYAgregarAlCarrito(
+                                                                    p,
+                                                                  );
+                                                                  if (mounted) {
+                                                                    setModalState(
+                                                                      () {},
+                                                                    );
+                                                                  }
+                                                                }
+                                                              },
+                                                              child: Row(
+                                                                mainAxisAlignment:
+                                                                    MainAxisAlignment
+                                                                        .center,
+                                                                children: [
+                                                                  Icon(
+                                                                    p.esPesableOGranel
+                                                                        ? LucideIcons
+                                                                              .scale
+                                                                        : LucideIcons
+                                                                              .plus,
+                                                                    size: 13,
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 4,
+                                                                  ),
+                                                                  Text(
+                                                                    p.esPesableOGranel
+                                                                        ? 'Pesar'
+                                                                        : 'Agregar',
+                                                                    style: GoogleFonts.plusJakartaSans(
+                                                                      fontSize:
+                                                                          11.5,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w800,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          )
+                                                        else
+                                                          Container(
+                                                            height: 32,
+                                                            decoration: BoxDecoration(
+                                                              color: isDark
+                                                                  ? AppTheme
+                                                                        .cardDarkSunken
+                                                                  : const Color(
+                                                                      0xFFF1F5F9,
+                                                                    ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    10,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color: AppTheme
+                                                                    .brandPrimary
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.45,
+                                                                    ),
+                                                              ),
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                InkWell(
+                                                                  borderRadius:
+                                                                      const BorderRadius.horizontal(
+                                                                        left:
+                                                                            Radius.circular(
+                                                                              9,
+                                                                            ),
+                                                                      ),
+                                                                  onTap: () {
+                                                                    _decrementarCantidad(
+                                                                      cartIdx,
+                                                                    );
+                                                                    if (mounted) {
+                                                                      setModalState(
+                                                                        () {},
+                                                                      );
+                                                                    }
+                                                                  },
+                                                                  child: Container(
+                                                                    width: 28,
+                                                                    height: 32,
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .center,
+                                                                    child: const Icon(
+                                                                      LucideIcons
+                                                                          .minus,
+                                                                      size: 13,
+                                                                      color: AppTheme
+                                                                          .brandPrimary,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Expanded(
+                                                                  child: Center(
+                                                                    child: Text(
+                                                                      _formatStock(
+                                                                        inCartQty,
+                                                                      ),
+                                                                      style: GoogleFonts.outfit(
+                                                                        fontSize:
+                                                                            13,
+                                                                        fontWeight:
+                                                                            FontWeight.w900,
+                                                                        color:
+                                                                            isDark
+                                                                            ? Colors.white
+                                                                            : AppTheme.textDark,
+                                                                        fontFeatures:
+                                                                            const [
+                                                                              FontFeature.tabularFigures(),
+                                                                            ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                InkWell(
+                                                                  borderRadius:
+                                                                      const BorderRadius.horizontal(
+                                                                        right:
+                                                                            Radius.circular(
+                                                                              9,
+                                                                            ),
+                                                                      ),
+                                                                  onTap: () {
+                                                                    if (p
+                                                                        .esPesableOGranel) {
+                                                                      Navigator.pop(
+                                                                        ctx,
+                                                                      );
+                                                                      _abrirModalBalanzaOEditar(
+                                                                        p,
+                                                                      );
+                                                                    } else {
+                                                                      _incrementarCantidad(
+                                                                        cartIdx,
+                                                                      );
+                                                                      if (mounted) {
+                                                                        setModalState(
+                                                                          () {},
+                                                                        );
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  child: Container(
+                                                                    width: 28,
+                                                                    height: 32,
+                                                                    decoration: BoxDecoration(
+                                                                      color: AppTheme
+                                                                          .brandPrimary
+                                                                          .withValues(
+                                                                            alpha:
+                                                                                0.15,
+                                                                          ),
+                                                                      borderRadius: const BorderRadius.horizontal(
+                                                                        right:
+                                                                            Radius.circular(
+                                                                              9,
+                                                                            ),
+                                                                      ),
+                                                                    ),
+                                                                    alignment:
+                                                                        Alignment
+                                                                            .center,
+                                                                    child: const Icon(
+                                                                      LucideIcons
+                                                                          .plus,
+                                                                      size: 13,
+                                                                      color: AppTheme
+                                                                          .brandPrimary,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : ListView.separated(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      itemCount: filtrados.length,
+                                      separatorBuilder: (_, _) =>
+                                          const SizedBox(height: 6),
+                                      itemBuilder: (context, idx) {
+                                        final p = filtrados[idx];
+                                        final promo =
+                                            _obtenerPromocionActivaParaProducto(
+                                              p,
+                                            );
+                                        final cartIdx = _carrito.indexWhere(
+                                          (c) =>
+                                              c.producto.idProducto ==
+                                              p.idProducto,
+                                        );
+                                        final inCart = cartIdx != -1;
+                                        final inCartQty = inCart
+                                            ? _carrito[cartIdx].cantidad
+                                            : 0.0;
+                                        final isLowStock =
+                                            p.stockActual <=
+                                            (p.stockMinimo > 0
+                                                ? p.stockMinimo
+                                                : 5.0);
+
+                                        return Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? AppTheme.cardDarkElevated
+                                                : Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                            border: Border.all(
+                                              color: inCart
+                                                  ? AppTheme.brandPrimary
+                                                        .withValues(alpha: 0.45)
+                                                  : (isDark
+                                                        ? AppTheme.borderDark
+                                                        : const Color(
+                                                            0xFFE2E8F0,
+                                                          )),
+                                              width: inCart ? 1.4 : 1.0,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              // Thumbnail
+                                              Stack(
+                                                children: [
+                                                  ProductImageWidget(
+                                                    imagenUrl: p.imagenUrl,
+                                                    nombre: p.nombre,
+                                                    codigoBarras:
+                                                        p.codigoBarras,
+                                                    categoria:
+                                                        p.nombreCategoria,
+                                                    size: 48,
+                                                    borderRadius: 12,
+                                                    isDark: isDark,
+                                                  ),
+                                                  if (promo != null)
+                                                    Positioned(
+                                                      top: 0,
+                                                      left: 0,
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 3,
+                                                              vertical: 1,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: const Color(
+                                                            0xFFEF4444,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                4,
+                                                              ),
+                                                        ),
+                                                        child: const Text(
+                                                          '🔥',
+                                                          style: TextStyle(
+                                                            fontSize: 8,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
                                                 ],
                                               ),
-                                              child: Center(
-                                                child: Icon(
-                                                  LucideIcons.info,
-                                                  size: 9.5,
-                                                  color: isDark
-                                                      ? AppTheme
-                                                            .textDarkSecondary
-                                                      : const Color(0xFF475569),
+                                              const SizedBox(width: 10),
+                                              // Name & Info
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      p.nombre,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            fontSize: 13,
+                                                            color: isDark
+                                                                ? Colors.white
+                                                                : AppTheme
+                                                                      .textDark,
+                                                          ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    FittedBox(
+                                                      fit: BoxFit.scaleDown,
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          Text(
+                                                            'S/ ${p.precioVenta.toStringAsFixed(2)}',
+                                                            style: GoogleFonts.outfit(
+                                                              fontSize: 13.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                              color: AppTheme
+                                                                  .brandPrimary,
+                                                              fontFeatures: const [
+                                                                FontFeature.tabularFigures(),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          if (p
+                                                              .esPesableOGranel)
+                                                            Text(
+                                                              '/kg',
+                                                              style: GoogleFonts.plusJakartaSans(
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color: isDark
+                                                                    ? AppTheme
+                                                                          .textDarkSecondary
+                                                                    : AppTheme
+                                                                          .textMuted,
+                                                              ),
+                                                            ),
+                                                          const SizedBox(
+                                                            width: 6,
+                                                          ),
+                                                          Text(
+                                                            '• Disp: ${_formatStock(p.stockActual)} u.',
+                                                            style: GoogleFonts.plusJakartaSans(
+                                                              fontSize: 10.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                              color: isLowStock
+                                                                  ? const Color(
+                                                                      0xFFEF4444,
+                                                                    )
+                                                                  : (isDark
+                                                                        ? AppTheme
+                                                                              .textDarkSecondary
+                                                                        : const Color(
+                                                                            0xFF64748B,
+                                                                          )),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                        ),
-                                        if (yaEnCarrito)
-                                          Positioned(
-                                            right: 0,
-                                            bottom: 0,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(
-                                                2.5,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: AppTheme.brandPrimary,
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: isDark
-                                                      ? const Color(0xFF1E2430)
-                                                      : Colors.white,
-                                                  width: 1.5,
+                                              const SizedBox(width: 8),
+                                              // Action: Stepper or Add Button
+                                              if (!inCart)
+                                                SizedBox(
+                                                  height: 32,
+                                                  child: ElevatedButton.icon(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor:
+                                                          AppTheme.brandPrimary,
+                                                      foregroundColor:
+                                                          Colors.white,
+                                                      elevation: 0,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 10,
+                                                          ),
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                    icon: Icon(
+                                                      p.esPesableOGranel
+                                                          ? LucideIcons.scale
+                                                          : LucideIcons.plus,
+                                                      size: 13,
+                                                    ),
+                                                    label: Text(
+                                                      p.esPesableOGranel
+                                                          ? 'Pesar'
+                                                          : 'Agregar',
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 11.5,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                          ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      if (p.esPesableOGranel) {
+                                                        Navigator.pop(ctx);
+                                                        _abrirModalBalanzaOEditar(
+                                                          p,
+                                                        );
+                                                      } else {
+                                                        await _verificarYAgregarAlCarrito(
+                                                          p,
+                                                        );
+                                                        if (mounted) {
+                                                          setModalState(() {});
+                                                        }
+                                                      }
+                                                    },
+                                                  ),
+                                                )
+                                              else
+                                                Container(
+                                                  height: 32,
+                                                  decoration: BoxDecoration(
+                                                    color: isDark
+                                                        ? AppTheme
+                                                              .cardDarkSunken
+                                                        : const Color(
+                                                            0xFFF1F5F9,
+                                                          ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: AppTheme
+                                                          .brandPrimary
+                                                          .withValues(
+                                                            alpha: 0.4,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      InkWell(
+                                                        borderRadius:
+                                                            const BorderRadius.horizontal(
+                                                              left:
+                                                                  Radius.circular(
+                                                                    9,
+                                                                  ),
+                                                            ),
+                                                        onTap: () {
+                                                          _decrementarCantidad(
+                                                            cartIdx,
+                                                          );
+                                                          if (mounted) {
+                                                            setModalState(
+                                                              () {},
+                                                            );
+                                                          }
+                                                        },
+                                                        child: Container(
+                                                          width: 28,
+                                                          height: 32,
+                                                          alignment:
+                                                              Alignment.center,
+                                                          child: const Icon(
+                                                            LucideIcons.minus,
+                                                            size: 13,
+                                                            color: AppTheme
+                                                                .brandPrimary,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        constraints:
+                                                            const BoxConstraints(
+                                                              minWidth: 26,
+                                                            ),
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 4,
+                                                            ),
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Text(
+                                                          _formatStock(
+                                                            inCartQty,
+                                                          ),
+                                                          style: GoogleFonts.outfit(
+                                                            fontSize: 13,
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                            color: isDark
+                                                                ? Colors.white
+                                                                : AppTheme
+                                                                      .textDark,
+                                                            fontFeatures: const [
+                                                              FontFeature.tabularFigures(),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      InkWell(
+                                                        borderRadius:
+                                                            const BorderRadius.horizontal(
+                                                              right:
+                                                                  Radius.circular(
+                                                                    9,
+                                                                  ),
+                                                            ),
+                                                        onTap: () {
+                                                          if (p
+                                                              .esPesableOGranel) {
+                                                            Navigator.pop(ctx);
+                                                            _abrirModalBalanzaOEditar(
+                                                              p,
+                                                            );
+                                                          } else {
+                                                            _incrementarCantidad(
+                                                              cartIdx,
+                                                            );
+                                                            if (mounted) {
+                                                              setModalState(
+                                                                () {},
+                                                              );
+                                                            }
+                                                          }
+                                                        },
+                                                        child: Container(
+                                                          width: 28,
+                                                          height: 32,
+                                                          decoration: BoxDecoration(
+                                                            color: AppTheme
+                                                                .brandPrimary
+                                                                .withValues(
+                                                                  alpha: 0.15,
+                                                                ),
+                                                            borderRadius:
+                                                                const BorderRadius.horizontal(
+                                                                  right:
+                                                                      Radius.circular(
+                                                                        9,
+                                                                      ),
+                                                                ),
+                                                          ),
+                                                          alignment:
+                                                              Alignment.center,
+                                                          child: const Icon(
+                                                            LucideIcons.plus,
+                                                            size: 13,
+                                                            color: AppTheme
+                                                                .brandPrimary,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ),
-                                              child: const Icon(
-                                                LucideIcons.check,
-                                                size: 9,
-                                                color: Colors.white,
-                                              ),
-                                            ),
+                                            ],
                                           ),
-                                      ],
-                                    ),
-                                    title: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            p.nombre,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 14,
-                                              color: isDark
-                                                  ? Colors.white
-                                                  : AppTheme.textDark,
-                                            ),
-                                          ),
-                                        ),
-                                        if (_obtenerPromocionActivaParaProducto(
-                                              p,
-                                            ) !=
-                                            null) ...[
-                                          const SizedBox(width: 6),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFEF4444),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              _obtenerPromocionActivaParaProducto(
-                                                    p,
-                                                  )!.badgeTexto.isNotEmpty
-                                                  ? _obtenerPromocionActivaParaProducto(
-                                                      p,
-                                                    )!.badgeTexto
-                                                  : '🔥 PROMO',
-                                              style: GoogleFonts.outfit(
-                                                fontSize: 9.5,
-                                                fontWeight: FontWeight.w900,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                    subtitle: Text(
-                                      'Disp: ${_formatStock(p.stockActual)} u.  •  Cód: ${p.codigo}',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark
-                                            ? AppTheme.textDarkSecondary
-                                            : const Color(0xFF334155),
-                                      ),
-                                    ),
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'S/ ${p.precioVenta.toStringAsFixed(2)}',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 15,
-                                            color: AppTheme.brandPrimary,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          style: IconButton.styleFrom(
-                                            backgroundColor:
-                                                AppTheme.brandPrimary,
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.all(8),
-                                            minimumSize: const Size(36, 36),
-                                          ),
-                                          icon: Icon(
-                                            p.esPesableOGranel
-                                                ? LucideIcons.scale
-                                                : LucideIcons.plus,
-                                            size: 16,
-                                          ),
-                                          onPressed: () async {
-                                            if (p.esPesableOGranel) {
-                                              Navigator.pop(ctx);
-                                              _abrirModalBalanzaOEditar(p);
-                                            } else {
-                                              await _verificarYAgregarAlCarrito(
-                                                p,
-                                              );
-                                              if (mounted) {
-                                                setModalState(() {});
-                                              }
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    onTap: () async {
-                                      if (p.esPesableOGranel) {
-                                        Navigator.pop(ctx);
-                                        _abrirModalBalanzaOEditar(p);
-                                      } else {
-                                        await _verificarYAgregarAlCarrito(p);
-                                        if (mounted) {
-                                          setModalState(() {});
-                                        }
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
+                                        );
+                                      },
+                                    )),
                       ),
                       const SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 46,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.brandPrimary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(23),
+                      // Floating Bottom Checkout Bar
+                      if (_carrito.isEmpty)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 44,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? Colors.white70
+                                  : AppTheme.textDarkSecondary,
+                              side: BorderSide(
+                                color: isDark
+                                    ? AppTheme.borderDark
+                                    : const Color(0xFFCBD5E1),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            onPressed: () => Navigator.pop(ctx),
+                            child: Text(
+                              'CERRAR CATÁLOGO',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 12.5,
+                                letterSpacing: 0.3,
+                              ),
                             ),
                           ),
-                          onPressed: () => Navigator.pop(ctx),
-                          child: Text(
-                            'LISTO • VOLVER A LA CANASTA (${_carrito.length} ITEMS)',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppTheme.cardDarkElevated
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: isDark
+                                  ? AppTheme.borderDarkElevated
+                                  : const Color(0xFFE2E8F0),
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.35 : 0.1,
+                                ),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 1.5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.brandPrimary.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        'CANASTA • ${_carrito.length} PROD.',
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppTheme.brandPrimary,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'S/ ${_totalVenta.toStringAsFixed(2)}',
+                                      style: GoogleFonts.outfit(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w900,
+                                        color: isDark
+                                            ? Colors.white
+                                            : AppTheme.textDark,
+                                        fontFeatures: const [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.brandPrimary,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 11,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                onPressed: () => Navigator.pop(ctx),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Listo / Cobrar',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    const Icon(
+                                      LucideIcons.arrowRight,
+                                      size: 15,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -7293,100 +8431,115 @@ class _VentasScreenState extends State<VentasScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Canasta de Venta',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: labelColor,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Canasta de Venta',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: labelColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                if (_carrito.isNotEmpty)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.brandPrimary,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '$_totalUnidadesTexto u.',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_carrito.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    tooltip: 'Poner en Espera (Pausar Ticket)',
+                                    icon: const Icon(
+                                      LucideIcons.pauseCircle,
+                                      size: 18,
+                                      color: Color(0xFFD97706),
+                                    ),
+                                    onPressed: _ponerVentaEnEspera,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  IconButton(
+                                    tooltip: 'Registrar como Consumo Interno de Bodega',
+                                    icon: const Icon(
+                                      LucideIcons.coffee,
+                                      size: 18,
+                                      color: Color(0xFF8B5CF6),
+                                    ),
+                                    onPressed: _registrarConsumoInterno,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                  if (!_esGastronomico) ...[
+                                    const SizedBox(width: 6),
+                                    IconButton(
+                                      tooltip:
+                                          'Garantía de Botellas / Retornables',
+                                      icon: const Icon(
+                                        LucideIcons.bottleWine,
+                                        size: 18,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                      onPressed: _abrirModalGarantiaEnvase,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                  ],
+                                  const SizedBox(width: 6),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: AppTheme.alertRed,
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: _vaciarCarritoManual,
+                                    child: Text(
+                                      'Vaciar',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            if (_carrito.isNotEmpty)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.brandPrimary,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '$_totalUnidadesTexto u.',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        if (_carrito.isNotEmpty)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: 'Poner en Espera (Pausar Ticket)',
-                                icon: const Icon(
-                                  LucideIcons.pauseCircle,
-                                  size: 18,
-                                  color: Color(0xFFD97706),
-                                ),
-                                onPressed: _ponerVentaEnEspera,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              const SizedBox(width: 6),
-                              IconButton(
-                                tooltip:
-                                    'Registrar como Consumo Interno de Bodega',
-                                icon: const Icon(
-                                  LucideIcons.coffee,
-                                  size: 18,
-                                  color: Color(0xFF8B5CF6),
-                                ),
-                                onPressed: _registrarConsumoInterno,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              if (!_esGastronomico) ...[
-                                const SizedBox(width: 6),
-                                IconButton(
-                                  tooltip: 'Garantía de Botellas / Retornables',
-                                  icon: const Icon(
-                                    LucideIcons.bottleWine,
-                                    size: 18,
-                                    color: Color(0xFF2563EB),
-                                  ),
-                                  onPressed: _abrirModalGarantiaEnvase,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
-                              const SizedBox(width: 6),
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppTheme.alertRed,
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                onPressed: _vaciarCarritoManual,
-                                child: Text(
-                                  'Vaciar',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 12),
