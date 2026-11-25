@@ -17,6 +17,7 @@ import '../../../core/widgets/karliz_barcode_scanner_modal.dart';
 import '../../../core/widgets/product_image_widget.dart';
 import '../../clientes/cliente_model.dart';
 import '../../clientes/cliente_service.dart';
+import '../../clientes/nuevo_cliente_sheet.dart';
 import '../../productos/producto_model.dart';
 import '../venta_model.dart';
 import '../venta_service.dart';
@@ -76,7 +77,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
   int _billeteSeleccionado = -1;
   double? _montoEfectivoCustom;
   bool _mostrarEfectivoInline = false;
-  bool _mostrarFiadoInline = false;
 
   // ── Estado Modo Catálogo & Buscador ──
   final TextEditingController _busquedaController = TextEditingController();
@@ -372,7 +372,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       _conceptoManualSeleccionado = '';
       _alertaMensaje = null;
       _mostrarEfectivoInline = false;
-      _mostrarFiadoInline = false;
     });
     KarlizSoundService.instance.playBarcodeBeep();
   }
@@ -423,7 +422,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
       }
       _alertaMensaje = null;
       _mostrarEfectivoInline = false;
-      _mostrarFiadoInline = false;
     });
     KarlizSoundService.instance.playBarcodeBeep();
   }
@@ -529,7 +527,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         _ticket.removeAt(index);
         if (_ticket.isEmpty) {
           _mostrarEfectivoInline = false;
-          _mostrarFiadoInline = false;
         }
       });
       HapticFeedback.mediumImpact();
@@ -545,7 +542,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
           ..addAll(_undoHistory.removeLast());
         if (_ticket.isEmpty) {
           _mostrarEfectivoInline = false;
-          _mostrarFiadoInline = false;
         }
       });
       HapticFeedback.mediumImpact();
@@ -556,7 +552,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         _ticket.removeLast();
         if (_ticket.isEmpty) {
           _mostrarEfectivoInline = false;
-          _mostrarFiadoInline = false;
         }
       });
       HapticFeedback.mediumImpact();
@@ -586,7 +581,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                 _ticket.clear();
                 _bufferCalculadora = '';
                 _mostrarEfectivoInline = false;
-                _mostrarFiadoInline = false;
               });
               HapticFeedback.heavyImpact();
             },
@@ -830,7 +824,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         _billeteSeleccionado = -1;
         _montoEfectivoCustom = null;
         _mostrarEfectivoInline = false;
-        _mostrarFiadoInline = false;
       });
 
       VentaService.notifyVentasChanged();
@@ -1986,7 +1979,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                       ? () {
                           setState(() {
                             _mostrarEfectivoInline = !_mostrarEfectivoInline;
-                            _mostrarFiadoInline = false;
                             _billeteSeleccionado = -1;
                             _montoEfectivoCustom = null;
                           });
@@ -2061,12 +2053,7 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                     ),
                   ),
                   onPressed: canCheckout
-                      ? () {
-                          setState(() {
-                            _mostrarFiadoInline = !_mostrarFiadoInline;
-                            _mostrarEfectivoInline = false;
-                          });
-                        }
+                      ? () => _abrirModalSeleccionarClienteFiado(total)
                       : null,
                   icon: const Icon(LucideIcons.bookUser, size: 18),
                   label: FittedBox(
@@ -2088,10 +2075,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         if (_mostrarEfectivoInline && _tieneItems) ...[
           const SizedBox(height: 12),
           _buildEfectivoBilletesBox(total, isDark, surface, border),
-        ],
-        if (_mostrarFiadoInline && _tieneItems) ...[
-          const SizedBox(height: 12),
-          _buildFiadosVecinosBox(total, isDark, surface, border),
         ],
       ],
     );
@@ -2375,15 +2358,32 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
-  Future<void> _abrirSelectorTodosClientes(double total) async {
+  Future<void> _abrirModalSeleccionarClienteFiado(double total) async {
     if (_isProcesandoVenta) return;
+    setState(() {
+      _mostrarEfectivoInline = false;
+    });
+
     final seleccionado = await showDialog<Cliente>(
       context: context,
-      builder: (_) => _SelectorClienteFiadoDialog(
+      barrierDismissible: true,
+      builder: (dialogCtx) => _SelectorClienteFiadoDialog(
         clientes: _clientesVecinos,
         totalVenta: total,
+        clienteService: _clienteService,
+        errorInicial: _errorClientes,
+        isCargandoInicial: _isCargandoClientes,
+        onClientesActualizados: (nuevos) {
+          if (mounted) {
+            setState(() {
+              _clientesVecinos = nuevos;
+              _errorClientes = null;
+            });
+          }
+        },
       ),
     );
+
     if (seleccionado != null && mounted) {
       await _ejecutarVenta(
         metodoPago: 'CREDITO',
@@ -2391,151 +2391,6 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
         cliente: seleccionado,
       );
     }
-  }
-
-  Widget _buildFiadosVecinosBox(
-    double total,
-    bool isDark,
-    Color surface,
-    Color border,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFFECDD3), width: 1.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'TOCA AL VECINO PARA CARGARLE LA DEUDA:',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFBE123C),
-                  ),
-                ),
-              ),
-              if (_clientesVecinos.length > 6)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  onPressed: _isProcesandoVenta
-                      ? null
-                      : () => _abrirSelectorTodosClientes(total),
-                  child: Text(
-                    'Ver todos (${_clientesVecinos.length})',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              IconButton(
-                tooltip: 'Recargar vecinos',
-                visualDensity: VisualDensity.compact,
-                onPressed: (_isCargandoClientes || _isProcesandoVenta)
-                    ? null
-                    : () => _cargarVecinos(mostrarErrorUsuario: true),
-                icon: const Icon(LucideIcons.refreshCw, size: 15),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (_isCargandoClientes)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: LinearProgressIndicator(minHeight: 2),
-            )
-          else if (_errorClientes != null)
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEE2E2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _errorClientes!,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF991B1B),
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => _cargarVecinos(mostrarErrorUsuario: true),
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            )
-          else if (_clientesVecinos.isEmpty)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'No hay clientes registrados aún.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _cargarVecinos(mostrarErrorUsuario: true),
-                  child: const Text('Actualizar'),
-                ),
-              ],
-            )
-          else
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: _clientesVecinos.take(6).map((c) {
-                final excede = c.excedeCon(total);
-                return ActionChip(
-                  avatar: Icon(
-                    excede ? LucideIcons.alertTriangle : LucideIcons.user,
-                    size: 14,
-                    color: excede ? AppTheme.alertRed : null,
-                  ),
-                  side: excede
-                      ? BorderSide(
-                          color: AppTheme.alertRed.withValues(alpha: 0.7),
-                        )
-                      : null,
-                  label: Text(
-                    excede ? '${c.nombreCompleto} (Límite)' : c.nombreCompleto,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: excede ? AppTheme.alertRed : null,
-                    ),
-                  ),
-                  onPressed: _isProcesandoVenta
-                      ? null
-                      : () => _ejecutarVenta(
-                          metodoPago: 'CREDITO',
-                          total: total,
-                          cliente: c,
-                        ),
-                );
-              }).toList(),
-            ),
-        ],
-      ),
-    );
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -3852,10 +3707,18 @@ class _EfectivoCustomDialogState extends State<_EfectivoCustomDialog> {
 class _SelectorClienteFiadoDialog extends StatefulWidget {
   final List<Cliente> clientes;
   final double totalVenta;
+  final ClienteService? clienteService;
+  final String? errorInicial;
+  final bool isCargandoInicial;
+  final ValueChanged<List<Cliente>>? onClientesActualizados;
 
   const _SelectorClienteFiadoDialog({
     required this.clientes,
     required this.totalVenta,
+    this.clienteService,
+    this.errorInicial,
+    this.isCargandoInicial = false,
+    this.onClientesActualizados,
   });
 
   @override
@@ -3866,6 +3729,17 @@ class _SelectorClienteFiadoDialog extends StatefulWidget {
 class _SelectorClienteFiadoDialogState
     extends State<_SelectorClienteFiadoDialog> {
   final TextEditingController _searchCtrl = TextEditingController();
+  late List<Cliente> _clientes;
+  late bool _isLoading;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _clientes = List<Cliente>.from(widget.clientes);
+    _isLoading = widget.isCargandoInicial;
+    _error = widget.errorInicial;
+  }
 
   @override
   void dispose() {
@@ -3873,82 +3747,566 @@ class _SelectorClienteFiadoDialogState
     super.dispose();
   }
 
+  Future<void> _recargarClientes() async {
+    if (widget.clienteService == null) return;
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final list = await widget.clienteService!.getClientes();
+      if (mounted) {
+        setState(() {
+          _clientes = list;
+          _isLoading = false;
+        });
+        widget.onClientesActualizados?.call(list);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = 'No se pudieron cargar los vecinos.';
+        });
+      }
+    }
+  }
+
+  Future<void> _abrirNuevoCliente(BuildContext context) async {
+    final query = _searchCtrl.text.trim();
+    final clientePrefill = query.isNotEmpty
+        ? Cliente(nombreCompleto: query)
+        : null;
+
+    final nuevo = await NuevoClienteSheet.show(
+      context,
+      cliente: clientePrefill,
+      clienteService: widget.clienteService,
+    );
+
+    if (nuevo != null && mounted) {
+      setState(() {
+        _clientes.insert(0, nuevo);
+      });
+      widget.onClientesActualizados?.call(_clientes);
+      if (context.mounted) {
+        Navigator.of(context).pop(nuevo);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final q = _searchCtrl.text.trim().toLowerCase();
-    final filtrados = q.isEmpty
-        ? widget.clientes
-        : widget.clientes
-              .where((c) => c.nombreCompleto.toLowerCase().contains(q))
-              .toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? AppTheme.cardDarkElevated : Colors.white;
+    final border = isDark ? AppTheme.borderDark : const Color(0xFFE2E8F0);
+    final textPrimary = isDark ? AppTheme.textDarkPrimary : AppTheme.textDark;
+    final textSecondary = isDark
+        ? AppTheme.textDarkSecondary
+        : AppTheme.textMuted;
 
-    return AlertDialog(
-      title: Text(
-        'Seleccionar vecino para fiado',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 15,
-          fontWeight: FontWeight.w800,
-        ),
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final maxHeight = (screenHeight * 0.85).clamp(320.0, 560.0);
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: border, width: 1.2),
       ),
-      content: SizedBox(
-        width: 340,
-        height: 320,
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchCtrl,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Buscar vecino...',
-                prefixIcon: const Icon(LucideIcons.search, size: 18),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+      backgroundColor: bg,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 480, maxHeight: maxHeight),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Encabezado con ícono, título y monto a fiar
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFBE123C).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      LucideIcons.bookUser,
+                      color: Color(0xFFBE123C),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Seleccionar vecino para fiado',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w800,
+                            color: textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Total a fiar: S/ ${widget.totalVenta.toStringAsFixed(2)}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFFBE123C),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: 'Cerrar',
+                    icon: Icon(LucideIcons.x, size: 20, color: textSecondary),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Barra de búsqueda y botón "+ Nuevo Cliente"
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 44,
+                      child: TextField(
+                        controller: _searchCtrl,
+                        onChanged: (_) => setState(() {}),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Buscar vecino o celular...',
+                          hintStyle: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            color: textSecondary,
+                          ),
+                          prefixIcon: Icon(
+                            LucideIcons.search,
+                            size: 17,
+                            color: textSecondary,
+                          ),
+                          suffixIcon: _searchCtrl.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(LucideIcons.x, size: 16),
+                                  onPressed: () {
+                                    _searchCtrl.clear();
+                                    setState(() {});
+                                  },
+                                )
+                              : null,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                          filled: true,
+                          fillColor: isDark
+                              ? AppTheme.cardDarkSunken
+                              : const Color(0xFFF8FAFC),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: border),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: border),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppTheme.brandPrimary,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      key: const ValueKey('btn_nuevo_cliente_fiado'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.brandPrimary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => _abrirNuevoCliente(context),
+                      icon: const Icon(LucideIcons.userPlus, size: 16),
+                      label: Text(
+                        'Nuevo',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Cuerpo con lista, carga, error o vacío
+              Expanded(
+                child: _buildBody(
+                  context,
+                  isDark,
+                  textPrimary,
+                  textSecondary,
+                  border,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filtrados.length,
-                itemBuilder: (_, idx) {
-                  final c = filtrados[idx];
-                  final excede = c.excedeCon(widget.totalVenta);
-                  return ListTile(
-                    dense: true,
-                    leading: Icon(
-                      excede ? LucideIcons.alertTriangle : LucideIcons.user,
-                      color: excede ? AppTheme.alertRed : null,
-                      size: 18,
-                    ),
-                    title: Text(
-                      c.nombreCompleto,
+              const SizedBox(height: 8),
+
+              // Pie de acción (Cancelar)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancelar',
                       style: GoogleFonts.plusJakartaSans(
                         fontWeight: FontWeight.w700,
+                        color: textSecondary,
                       ),
                     ),
-                    subtitle: Text(
-                      excede
-                          ? 'Excede límite de crédito (S/ ${c.limiteCredito.toStringAsFixed(2)})'
-                          : 'Disponible: S/ ${(c.limiteCredito - c.saldoDeudor).clamp(0, double.infinity).toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: excede ? AppTheme.alertRed : Colors.grey,
-                      ),
-                    ),
-                    onTap: () => Navigator.pop(context, c),
-                  );
-                },
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+    );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    bool isDark,
+    Color textPrimary,
+    Color textSecondary,
+    Color border,
+  ) {
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(strokeWidth: 2.5),
+            SizedBox(height: 12),
+            Text('Cargando vecinos...'),
+          ],
         ),
-      ],
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEE2E2),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFFECDD3)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                LucideIcons.alertCircle,
+                color: Color(0xFF991B1B),
+                size: 28,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF991B1B),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                key: const ValueKey('btn_reintentar_clientes'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBE123C),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: _recargarClientes,
+                icon: const Icon(LucideIcons.refreshCw, size: 14),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final q = _searchCtrl.text.trim().toLowerCase();
+    final filtrados = q.isEmpty
+        ? _clientes
+        : _clientes.where((c) {
+            final nombre = c.nombreCompleto.toLowerCase();
+            final tel = (c.telefono ?? '').toLowerCase();
+            final doc = (c.documento ?? '').toLowerCase();
+            return nombre.contains(q) || tel.contains(q) || doc.contains(q);
+          }).toList();
+
+    if (_clientes.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                LucideIcons.users,
+                size: 38,
+                color: textSecondary.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'No hay clientes registrados aún.',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Registra a tu primer vecino para poder anotarle fiados.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: textSecondary,
+                ),
+              ),
+              const SizedBox(height: 14),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.brandPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => _abrirNuevoCliente(context),
+                icon: const Icon(LucideIcons.userPlus, size: 16),
+                label: const Text('Registrar nuevo cliente'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (filtrados.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                LucideIcons.userX,
+                size: 36,
+                color: textSecondary.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'No se encontró a "${_searchCtrl.text.trim()}"',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.brandPrimary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => _abrirNuevoCliente(context),
+                icon: const Icon(LucideIcons.userPlus, size: 15),
+                label: const Text('Registrar como nuevo cliente'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: filtrados.length,
+      separatorBuilder: (_, _) => Divider(
+        height: 1,
+        thickness: 0.8,
+        color: border.withValues(alpha: 0.7),
+      ),
+      itemBuilder: (ctx, idx) {
+        final c = filtrados[idx];
+        final excede = c.excedeCon(widget.totalVenta);
+        final disponible = (c.limiteCredito - c.saldoDeudor).clamp(
+          0.0,
+          double.infinity,
+        );
+
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: () => Navigator.pop(context, c),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: excede
+                        ? const Color(0xFFFEE2E2)
+                        : (c.esCaserito
+                              ? const Color(0xFFFEF3C7)
+                              : (isDark
+                                    ? AppTheme.cardDarkSunken
+                                    : const Color(0xFFEEF2FF))),
+                    child: Icon(
+                      excede
+                          ? LucideIcons.alertTriangle
+                          : (c.esCaserito
+                                ? LucideIcons.star
+                                : LucideIcons.user),
+                      size: 16,
+                      color: excede
+                          ? AppTheme.alertRed
+                          : (c.esCaserito
+                                ? const Color(0xFFD97706)
+                                : AppTheme.brandPrimary),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                c.nombreCompleto,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: excede
+                                      ? AppTheme.alertRed
+                                      : textPrimary,
+                                ),
+                              ),
+                            ),
+                            if (c.esCaserito) ...[
+                              const SizedBox(width: 5),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: const Color(0xFFFDE68A),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Caserito',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFFB45309),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          excede
+                              ? 'Excede límite de crédito (S/ ${c.limiteCredito.toStringAsFixed(2)})'
+                              : 'Disponible: S/ ${disponible.toStringAsFixed(2)}${c.telefono != null && c.telefono!.trim().isNotEmpty ? ' • ${c.telefono}' : ''}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: excede
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: excede ? AppTheme.alertRed : textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  if (excede)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEE2E2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'Límite',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.alertRed,
+                        ),
+                      ),
+                    )
+                  else
+                    Icon(
+                      LucideIcons.chevronRight,
+                      size: 16,
+                      color: textSecondary.withValues(alpha: 0.6),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

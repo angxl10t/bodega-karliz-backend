@@ -32,6 +32,7 @@ class _FakeVentaService extends VentaService {
 class _FakeClienteService extends ClienteService {
   final List<Cliente> clientes;
   final bool shouldThrow;
+  Cliente? lastCreated;
 
   _FakeClienteService({this.clientes = const [], this.shouldThrow = false});
 
@@ -45,6 +46,19 @@ class _FakeClienteService extends ClienteService {
       throw Exception('Sin conexión al servidor de vecinos');
     }
     return clientes;
+  }
+
+  @override
+  Future<Cliente> crearCliente(Map<String, dynamic> data) async {
+    final nuevo = Cliente(
+      idCliente: (clientes.length + 1) * 100,
+      nombreCompleto: data['nombreCompleto'] ?? 'Nuevo Vecino',
+      telefono: data['telefono'],
+      limiteCredito: (data['limiteCredito'] as num?)?.toDouble() ?? 200.0,
+      saldoDeudor: 0.0,
+    );
+    lastCreated = nuevo;
+    return nuevo;
   }
 }
 
@@ -729,6 +743,157 @@ void main() {
               'Contraste insuficiente habilitado (isDark=$isDark): $enabledFg sobre $enabledBg',
         );
       }
+    },
+  );
+
+  testWidgets(
+    'Botón FIADO abre modal para seleccionar cliente existente o crear uno nuevo',
+    (tester) async {
+      final fakeVentaService = _FakeVentaService();
+      final clienteExistente = Cliente(
+        idCliente: 42,
+        nombreCompleto: 'Don Carlos Mendoza',
+        telefono: '987654321',
+        limiteCredito: 100.0,
+        saldoDeudor: 10.0,
+      );
+      final fakeClienteService = _FakeClienteService(
+        clientes: [clienteExistente],
+      );
+      OfflineSyncManager.instance.isOfflineNotifier.value = false;
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: dummyProductos,
+          onVolverAPos: () {},
+          ventaService: fakeVentaService,
+          clienteService: fakeClienteService,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Cambiar a Catálogo y seleccionar Leche Gloria (S/ 4.50)
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Leche Gloria Azul 400g'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('S/ 4.50'), findsWidgets);
+
+      // Tocar FIAR para abrir el modal
+      await tester.tap(find.text('FIAR'));
+      await tester.pumpAndSettle();
+
+      // Verificar que el modal de fiado está abierto
+      expect(find.text('Seleccionar vecino para fiado'), findsOneWidget);
+      expect(find.text('Total a fiar: S/ 4.50'), findsOneWidget);
+      expect(find.text('Don Carlos Mendoza'), findsOneWidget);
+      expect(find.text('Disponible: S/ 90.00 • 987654321'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('btn_nuevo_cliente_fiado')),
+        findsOneWidget,
+      );
+
+      // Probar filtro de búsqueda
+      final searchField = find.widgetWithText(
+        TextField,
+        'Buscar vecino o celular...',
+      );
+      expect(searchField, findsOneWidget);
+      await tester.enterText(searchField, 'noexiste');
+      await tester.pumpAndSettle();
+      expect(find.text('No se encontró a "noexiste"'), findsOneWidget);
+      expect(find.text('Registrar como nuevo cliente'), findsOneWidget);
+
+      // Limpiar búsqueda
+      await tester.enterText(searchField, '');
+      await tester.pumpAndSettle();
+      expect(find.text('Don Carlos Mendoza'), findsOneWidget);
+
+      // Seleccionar a Don Carlos Mendoza para completar la venta a crédito
+      await tester.tap(find.text('Don Carlos Mendoza'));
+      await tester.pumpAndSettle();
+
+      // Verificar que la venta se registró con CREDITO y el cliente 42
+      expect(fakeVentaService.sentVentas.length, 1);
+      final envio = fakeVentaService.sentVentas.first;
+      expect(envio.metodoPago, 'Crédito');
+      expect(envio.idCliente, 42);
+      expect(envio.clienteNombre, 'Don Carlos Mendoza');
+
+      // El ticket debe haberse limpiado y muestra confirmación de cobrado
+      expect(find.textContaining('Cobrado S/ 4.50 con Crédito'), findsOneWidget);
+      expect(find.textContaining('items en cuenta'), findsNothing);
+      expect(find.text('×1'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Permite registrar un nuevo cliente desde el modal de fiado y completar la venta',
+    (tester) async {
+      final fakeVentaService = _FakeVentaService();
+      final fakeClienteService = _FakeClienteService(clientes: []);
+      OfflineSyncManager.instance.isOfflineNotifier.value = false;
+
+      await tester.pumpWidget(
+        _createMostradorApp(
+          productos: dummyProductos,
+          onVolverAPos: () {},
+          ventaService: fakeVentaService,
+          clienteService: fakeClienteService,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Cambiar a Catálogo y seleccionar Arroz Costeño (S/ 5.20)
+      await tester.tap(find.text('Catálogo'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Arroz Costeño 1kg'));
+      await tester.pumpAndSettle();
+
+      // Tocar FIAR
+      await tester.tap(find.text('FIAR'));
+      await tester.pumpAndSettle();
+
+      // Como no hay clientes registrados, muestra estado vacío y botón para nuevo cliente
+      expect(find.text('No hay clientes registrados aún.'), findsOneWidget);
+      expect(find.text('Registrar nuevo cliente'), findsOneWidget);
+
+      // Tocar botón "+ Nuevo" en el modal
+      await tester.tap(find.byKey(const ValueKey('btn_nuevo_cliente_fiado')));
+      await tester.pumpAndSettle();
+
+      // Se abre NuevoClienteSheet
+      expect(find.text('Registrar Vecino'), findsOneWidget);
+
+      // Ingresar nombre del nuevo cliente
+      final nameField = find.widgetWithText(
+        TextFormField,
+        'Nombre y Apellidos *',
+      );
+      expect(nameField, findsOneWidget);
+      await tester.enterText(nameField, 'Doña Rosa Valdivia');
+      await tester.pumpAndSettle();
+
+      // Guardar el nuevo cliente
+      await tester.tap(find.text('Registrar Vecino'));
+      await tester.pumpAndSettle();
+
+      // La venta a crédito debe haberse completado automáticamente para el nuevo cliente
+      expect(fakeVentaService.sentVentas.length, 1);
+      final envio = fakeVentaService.sentVentas.first;
+      expect(envio.metodoPago, 'Crédito');
+      expect(
+        fakeClienteService.lastCreated?.nombreCompleto,
+        'Doña Rosa Valdivia',
+      );
+      expect(envio.idCliente, fakeClienteService.lastCreated?.idCliente);
+      expect(envio.clienteNombre, 'Doña Rosa Valdivia');
+
+      // Ticket limpio y confirmación de venta
+      expect(find.textContaining('Cobrado S/ 5.20 con Crédito'), findsOneWidget);
+      expect(find.textContaining('items en cuenta'), findsNothing);
+      expect(find.text('×1'), findsNothing);
     },
   );
 }

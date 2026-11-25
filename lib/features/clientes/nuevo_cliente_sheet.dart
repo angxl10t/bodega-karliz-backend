@@ -13,12 +13,14 @@ class NuevoClienteSheet extends StatefulWidget {
   final Cliente? clienteExistente;
   final VoidCallback? onGuardado;
   final ValueChanged<Cliente>? onCreated;
+  final ClienteService? clienteService;
 
   const NuevoClienteSheet({
     super.key,
     this.clienteExistente,
     this.onGuardado,
     this.onCreated,
+    this.clienteService,
   });
 
   static Future<Cliente?> show(
@@ -26,6 +28,7 @@ class NuevoClienteSheet extends StatefulWidget {
     Cliente? cliente,
     VoidCallback? onGuardado,
     ValueChanged<Cliente>? onCreated,
+    ClienteService? clienteService,
   }) {
     return AdaptiveModal.show<Cliente>(
       context: context,
@@ -34,6 +37,7 @@ class NuevoClienteSheet extends StatefulWidget {
         clienteExistente: cliente,
         onGuardado: onGuardado,
         onCreated: onCreated,
+        clienteService: clienteService,
       ),
     );
   }
@@ -51,7 +55,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
   final _limiteCtrl = TextEditingController(text: '200');
   final _notasCtrl = TextEditingController();
 
-  final ClienteService _clienteService = ClienteService();
+  late final ClienteService _clienteService;
   final DocumentoService _docService = DocumentoService();
 
   bool _isConsultandoDoc = false;
@@ -62,6 +66,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
   @override
   void initState() {
     super.initState();
+    _clienteService = widget.clienteService ?? ClienteService();
     final c = widget.clienteExistente;
     if (c != null) {
       _nombreCtrl.text = c.nombreCompleto;
@@ -167,8 +172,11 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
     };
 
     try {
+      final esEdicion =
+          widget.clienteExistente != null &&
+          widget.clienteExistente!.idCliente != null;
       Cliente cGuardado;
-      if (widget.clienteExistente != null) {
+      if (esEdicion) {
         cGuardado = await _clienteService.actualizarCliente(
           widget.clienteExistente!.idCliente!,
           data,
@@ -195,7 +203,9 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isWide = ResponsiveLayout.isTabletOrLarger(context);
-    final esEdicion = widget.clienteExistente != null;
+    final esEdicion =
+        widget.clienteExistente != null &&
+        widget.clienteExistente!.idCliente != null;
     final resolvedRadius = isWide
         ? BorderRadius.circular(24)
         : const BorderRadius.vertical(top: Radius.circular(28));
@@ -524,35 +534,38 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
                                   : const Color(0xFFE2E8F0)),
                       ),
                     ),
-                    child: SwitchListTile(
-                      value: _esCaserito,
-                      contentPadding: EdgeInsets.zero,
-                      activeThumbColor: const Color(0xFFF59E0B),
-                      title: Row(
-                        children: [
-                          const Icon(
-                            LucideIcons.star,
-                            size: 16,
-                            color: Color(0xFFF59E0B),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Marcar como Caserito (VIP)',
-                            style: GoogleFonts.outfit(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w800,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: SwitchListTile(
+                        value: _esCaserito,
+                        contentPadding: EdgeInsets.zero,
+                        activeThumbColor: const Color(0xFFF59E0B),
+                        title: Row(
+                          children: [
+                            const Icon(
+                              LucideIcons.star,
+                              size: 16,
+                              color: Color(0xFFF59E0B),
                             ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text(
-                        'Identifica a los vecinos leales para ofrecerles mejor atención.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: AppTheme.getAdaptiveMutedText(isDark),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Marcar como Caserito (VIP)',
+                              style: GoogleFonts.outfit(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
                         ),
+                        subtitle: Text(
+                          'Identifica a los vecinos leales para ofrecerles mejor atención.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: AppTheme.getAdaptiveMutedText(isDark),
+                          ),
+                        ),
+                        onChanged: (val) => setState(() => _esCaserito = val),
                       ),
-                      onChanged: (val) => setState(() => _esCaserito = val),
                     ),
                   ),
                   const SizedBox(height: 22),
