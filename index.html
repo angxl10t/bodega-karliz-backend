@@ -33,10 +33,9 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com blob:; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://*.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:* data: blob: wss:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';">
 
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+  <!-- Fuentes Locales Pre-cargadas para Evitar FOUT/FOIT y Saltos de Tipografía en Safari iOS -->
+  <link rel="preload" href="fonts/Outfit-900.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/Outfit-800.ttf" as="font" type="font/ttf" crossorigin>
 
   <!-- iOS meta tags & icons (PWA Add to Home Screen) -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -53,6 +52,23 @@
   <link rel="manifest" href="manifest.json">
 
   <style>
+    @font-face {
+      font-family: 'Outfit';
+      src: url('fonts/Outfit-900.ttf') format('truetype'),
+           url('assets/fonts/Outfit-900.ttf') format('truetype');
+      font-weight: 900;
+      font-style: normal;
+      font-display: block;
+    }
+    @font-face {
+      font-family: 'Outfit';
+      src: url('fonts/Outfit-800.ttf') format('truetype'),
+           url('assets/fonts/Outfit-800.ttf') format('truetype');
+      font-weight: 800;
+      font-style: normal;
+      font-display: block;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -85,7 +101,7 @@
       touch-action: manipulation;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      font-family: 'Outfit', sans-serif;
     }
     #loading-container {
       display: flex;
@@ -105,9 +121,15 @@
       animation: rappiEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards,
                  rappiBreathe 2.2s ease-in-out infinite 0.7s;
       transform-origin: center center;
+      -webkit-transform-origin: center center;
+      will-change: transform, opacity;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
     }
     .wordmark {
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 54px;
       font-weight: 900;
       letter-spacing: -1.4px;
@@ -116,10 +138,12 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin: 0;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
     }
     .pos-pill {
       display: inline-block;
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 13px;
       font-weight: 900;
       letter-spacing: 1.0px;
@@ -130,6 +154,8 @@
       color: var(--pos-color);
       box-shadow: 0 4px 12px var(--pos-shadow);
       margin-bottom: 2px;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
     }
 
     .shimmer-container {
