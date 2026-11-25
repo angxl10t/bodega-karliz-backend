@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -93,12 +94,17 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _exitController, curve: Curves.easeOutCubic),
     );
 
-    // Iniciar entrada y encadenar respiración viva continua
-    _entranceController.forward().then((_) {
-      if (mounted) {
-        _pulseController.repeat(reverse: true);
-      }
-    });
+    // Iniciar entrada o enganchar de inmediato si es Web para evitar doble escala
+    if (kIsWeb) {
+      _entranceController.value = 1.0;
+      _pulseController.repeat(reverse: true);
+    } else {
+      _entranceController.forward().then((_) {
+        if (mounted) {
+          _pulseController.repeat(reverse: true);
+        }
+      });
+    }
 
     // Iniciar precalentamiento y navegación paralela
     AuthService().precalentarServidor();
@@ -272,12 +278,19 @@ class _SplashScreenState extends State<SplashScreen>
                             },
                             child: Text(
                               'CajaYa',
-                              style: GoogleFonts.outfit(
-                                fontSize: 52,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -1.2,
-                                color: Colors.white,
-                              ),
+                              style:
+                                  GoogleFonts.outfit(
+                                    fontSize: 52,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -1.2,
+                                    color: Colors.white,
+                                  ).copyWith(
+                                    fontFamily: 'Outfit',
+                                    fontFamilyFallback: const [
+                                      'Outfit',
+                                      'sans-serif',
+                                    ],
+                                  ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -317,12 +330,21 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             child: Text(
                               'POS',
-                              style: GoogleFonts.outfit(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.0,
-                                color: isDark ? AppTheme.bgDark : Colors.white,
-                              ),
+                              style:
+                                  GoogleFonts.outfit(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.0,
+                                    color: isDark
+                                        ? AppTheme.bgDark
+                                        : Colors.white,
+                                  ).copyWith(
+                                    fontFamily: 'Outfit',
+                                    fontFamilyFallback: const [
+                                      'Outfit',
+                                      'sans-serif',
+                                    ],
+                                  ),
                             ),
                           ),
                         ],
@@ -390,14 +412,21 @@ class _SplashScreenState extends State<SplashScreen>
                     const SizedBox(height: 10),
                     Text(
                       'Iniciando terminal...',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? AppTheme.textDarkSecondary
-                            : const Color(0xFF64748B),
-                        letterSpacing: 0.3,
-                      ),
+                      style:
+                          GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppTheme.textDarkSecondary
+                                : const Color(0xFF64748B),
+                            letterSpacing: 0.3,
+                          ).copyWith(
+                            fontFamily: 'PlusJakartaSans',
+                            fontFamilyFallback: const [
+                              'PlusJakartaSans',
+                              'sans-serif',
+                            ],
+                          ),
                     ),
                   ],
                 ),
