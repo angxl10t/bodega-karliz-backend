@@ -50,6 +50,10 @@ import '../../core/widgets/solicitar_pin_dialog.dart';
 import '../movimientos/movimiento_service.dart';
 import '../auth/auth_service.dart';
 import 'hardware_mostrador_modal.dart';
+import 'widgets/mostrador_calculadora_view.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/permisos_cajero_service.dart';
 import '../../core/widgets/tab_deferred_refresh.dart';
 
@@ -123,6 +127,10 @@ class _VentasScreenState extends State<VentasScreen>
   String? _direccionBodega;
   String? _telefonoBodega;
   String? _lemaBodega;
+
+  static const String _prefModoMostradorKey =
+      'cajaya_pos_modo_mostrador_activo';
+  bool _modoMostradorActivo = false;
 
   bool _identificarCliente = false;
   final _clienteNombreController = TextEditingController();
@@ -442,6 +450,30 @@ class _VentasScreenState extends State<VentasScreen>
     _cargarConfiguracionTributaria();
     _cargarProductos();
     _cargarPromociones();
+    _cargarModoMostrador();
+  }
+
+  Future<void> _cargarModoMostrador() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final activo = prefs.getBool(_prefModoMostradorKey) ?? false;
+      if (mounted && activo != _modoMostradorActivo) {
+        setState(() {
+          _modoMostradorActivo = activo;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleModoMostrador(bool activo) async {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _modoMostradorActivo = activo;
+    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefModoMostradorKey, activo);
+    } catch (_) {}
   }
 
   Future<void> _cargarConfiguracionTributaria() async {
@@ -6663,6 +6695,15 @@ class _VentasScreenState extends State<VentasScreen>
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (_modoMostradorActivo) {
+      return MostradorCalculadoraView(
+        productosDisponibles: _productosDisponibles,
+        onVolverAPos: () => _toggleModoMostrador(false),
+        isDark: isDark,
+      );
+    }
+
     final cardBg = isDark ? AppTheme.cardDark : Colors.white;
     final borderColor = isDark ? AppTheme.borderDark : AppTheme.borderLight;
     final labelColor = isDark ? Colors.white : AppTheme.textDark;
@@ -6812,12 +6853,40 @@ class _VentasScreenState extends State<VentasScreen>
           case 'tips':
             BriefingTurnoModal.show(context);
             break;
+          case 'mostrador':
+            _toggleModoMostrador(true);
+            break;
           case 'sync':
             if (!_isLoading) _cargarProductos(forceRefresh: true);
             break;
         }
       },
       itemBuilder: (ctx) => [
+        PopupMenuItem<String>(
+          value: 'mostrador',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                LucideIcons.calculator,
+                size: 15,
+                color: Color(0xFF2563EB),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Modo Mostrador Rápido',
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         PopupMenuItem<String>(
           value: 'fiscal',
           child: Row(
@@ -6961,6 +7030,14 @@ class _VentasScreenState extends State<VentasScreen>
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
+                _buildPosActionChip(
+                  icon: LucideIcons.calculator,
+                  label: 'Modo Mostrador',
+                  iconColor: const Color(0xFF2563EB),
+                  onTap: () => _toggleModoMostrador(true),
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
                 ValueListenableBuilder<int>(
                   valueListenable: VentaEnEsperaService.countNotifier,
                   builder: (context, count, _) {
