@@ -1254,6 +1254,59 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
     );
   }
 
+  ButtonStyle _buildUndoButtonStyle(
+    bool isDark, {
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      horizontal: 12,
+      vertical: 10,
+    ),
+  }) {
+    final enabledFg = isDark
+        ? const Color(0xFFFECACA)
+        : const Color(0xFF991B1B);
+    final enabledBg = isDark
+        ? const Color(0xFF45141B)
+        : const Color(0xFFFEE2E2);
+    final enabledBorder = isDark
+        ? const Color(0xFFF87171).withValues(alpha: 0.65)
+        : const Color(0xFFFCA5A5);
+
+    final disabledFg = isDark
+        ? const Color(0xFFCBD5E1)
+        : const Color(0xFF475569);
+    final disabledBg = isDark
+        ? AppTheme.cardDarkElevated
+        : const Color(0xFFF1F5F9);
+    final disabledBorder = isDark
+        ? AppTheme.borderDarkElevated
+        : const Color(0xFFCBD5E1);
+
+    return ButtonStyle(
+      padding: WidgetStatePropertyAll(padding),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith((states) {
+        return states.contains(WidgetState.disabled) ? disabledFg : enabledFg;
+      }),
+      iconColor: WidgetStateProperty.resolveWith((states) {
+        return states.contains(WidgetState.disabled) ? disabledFg : enabledFg;
+      }),
+      backgroundColor: WidgetStateProperty.resolveWith((states) {
+        return states.contains(WidgetState.disabled) ? disabledBg : enabledBg;
+      }),
+      side: WidgetStateProperty.resolveWith((states) {
+        final color = states.contains(WidgetState.disabled)
+            ? disabledBorder
+            : enabledBorder;
+        return BorderSide(color: color, width: 1.2);
+      }),
+      textStyle: WidgetStatePropertyAll(
+        GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
   // ── Columna Tira de Papel (TICKET UNIFICADO) ──
   Widget _buildTicketPaperCol(
     bool isDark,
@@ -1320,27 +1373,18 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
           );
 
     final Widget undoButton = OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppTheme.alertRed,
-        side: const BorderSide(color: Color(0xFFFECDD3)),
-        backgroundColor: const Color(0xFFFFF1F2),
+      style: _buildUndoButtonStyle(
+        isDark,
         padding: EdgeInsets.symmetric(
           horizontal: isCompactVertical ? 10 : 12,
           vertical: isCompactVertical ? 12 : 10,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       onPressed: (_puedeDeshacer && !_isProcesandoVenta)
           ? _deshacerUltimo
           : null,
       icon: const Icon(LucideIcons.undo2, size: 15),
-      label: Text(
-        'Deshacer último',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
+      label: const Text('Deshacer último'),
     );
 
     return ClipRect(
@@ -2807,6 +2851,13 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                       Row(
                         children: [
                           OutlinedButton.icon(
+                            style: _buildUndoButtonStyle(
+                              isDark,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
                             onPressed: (_puedeDeshacer && !_isProcesandoVenta)
                                 ? () {
                                     _deshacerUltimo();
@@ -3097,7 +3148,13 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                               icon: Icon(
                                 LucideIcons.undo2,
                                 size: 18,
-                                color: AppTheme.alertRed,
+                                color: (_puedeDeshacer && !_isProcesandoVenta)
+                                    ? (isDark
+                                          ? const Color(0xFFFCA5A5)
+                                          : const Color(0xFF991B1B))
+                                    : (isDark
+                                          ? const Color(0xFF64748B)
+                                          : const Color(0xFF94A3B8)),
                               ),
                               onPressed: (_puedeDeshacer && !_isProcesandoVenta)
                                   ? _deshacerUltimo
@@ -3109,7 +3166,9 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                               icon: Icon(
                                 LucideIcons.trash2,
                                 size: 18,
-                                color: AppTheme.alertRed,
+                                color: isDark
+                                    ? const Color(0xFFFCA5A5)
+                                    : const Color(0xFF991B1B),
                               ),
                               onPressed: _isProcesandoVenta
                                   ? null
@@ -3148,12 +3207,20 @@ class _MostradorCalculadoraViewState extends State<MostradorCalculadoraView> {
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: isDark
-                              ? Colors.white60
-                              : const Color(0xFF64748B),
+                              ? Colors.white70
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     OutlinedButton.icon(
+                      style: _buildUndoButtonStyle(
+                        isDark,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
                       onPressed: _isProcesandoVenta ? null : _deshacerUltimo,
                       icon: const Icon(LucideIcons.undo2, size: 15),
                       label: const Text('Deshacer último'),

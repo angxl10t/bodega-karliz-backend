@@ -659,4 +659,76 @@ void main() {
       }
     },
   );
+
+  testWidgets(
+    'Botón Deshacer último mantiene contraste legible (>= 4.5:1) en tema claro y oscuro, habilitado e inhabilitado',
+    (tester) async {
+      double contrastRatio(Color fg, Color bg) {
+        final l1 = fg.computeLuminance();
+        final l2 = bg.computeLuminance();
+        return (l1 > l2 ? l1 + 0.05 : l2 + 0.05) /
+            (l1 > l2 ? l2 + 0.05 : l1 + 0.05);
+      }
+
+      for (final isDark in [false, true]) {
+        SharedPreferences.setMockInitialValues({
+          'cajaya_mostrador_subvista_activa': 'calculadora',
+        });
+        tester.view.physicalSize = const Size(1280, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.resetPhysicalSize);
+
+        await tester.pumpWidget(
+          _createMostradorApp(
+            appKey: ValueKey('undo_contrast_$isDark'),
+            isDark: isDark,
+            productos: dummyProductos,
+            onVolverAPos: () {},
+            ventaService: _FakeVentaService(),
+            clienteService: _FakeClienteService(),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final btnFinder = find.ancestor(
+          of: find.text('Deshacer último'),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        );
+        expect(btnFinder, findsOneWidget);
+
+        // Estado deshabilitado inicial
+        final disabledBtn = tester.widget<ButtonStyleButton>(btnFinder);
+        expect(disabledBtn.onPressed, isNull);
+        final disabledFg = disabledBtn.style!.foregroundColor!.resolve({
+          WidgetState.disabled,
+        })!;
+        final disabledBg = disabledBtn.style!.backgroundColor!.resolve({
+          WidgetState.disabled,
+        })!;
+        expect(
+          contrastRatio(disabledFg, disabledBg),
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'Contraste insuficiente deshabilitado (isDark=$isDark): $disabledFg sobre $disabledBg',
+        );
+
+        // Agrega S/ 5 y verifica estado habilitado
+        await tester.tap(find.byKey(const ValueKey('numpad_5')));
+        await tester.pump();
+        await tester.tap(find.text('SUMAR AL\nTICKET'));
+        await tester.pump();
+
+        final enabledBtn = tester.widget<ButtonStyleButton>(btnFinder);
+        expect(enabledBtn.onPressed, isNotNull);
+        final enabledFg = enabledBtn.style!.foregroundColor!.resolve({})!;
+        final enabledBg = enabledBtn.style!.backgroundColor!.resolve({})!;
+        expect(
+          contrastRatio(enabledFg, enabledBg),
+          greaterThanOrEqualTo(4.5),
+          reason:
+              'Contraste insuficiente habilitado (isDark=$isDark): $enabledFg sobre $enabledBg',
+        );
+      }
+    },
+  );
 }
