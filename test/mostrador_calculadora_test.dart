@@ -137,10 +137,7 @@ void main() {
       addTearDown(() => tester.view.resetPhysicalSize());
 
       await tester.pumpWidget(
-        _createMostradorApp(
-          productos: dummyProductos,
-          onVolverAPos: () {},
-        ),
+        _createMostradorApp(productos: dummyProductos, onVolverAPos: () {}),
       );
       await tester.pumpAndSettle();
 
@@ -167,46 +164,42 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Cálculo de vuelto con billetes rápidos en efectivo',
-    (tester) async {
-      tester.view.physicalSize = const Size(1200, 1200);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(() => tester.view.resetPhysicalSize());
+  testWidgets('Cálculo de vuelto con billetes rápidos en efectivo', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
 
-      await tester.pumpWidget(
-        _createMostradorApp(
-          productos: dummyProductos,
-          onVolverAPos: () {},
-        ),
-      );
-      await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _createMostradorApp(productos: dummyProductos, onVolverAPos: () {}),
+    );
+    await tester.pumpAndSettle();
 
-      // Cargar un monto de S/ 15.00
-      await tester.tap(find.byKey(const ValueKey('numpad_1')));
-      await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('numpad_5')));
-      await tester.pump();
-      await tester.tap(find.text('SUMAR AL\nTICKET'));
-      await tester.pump();
+    // Cargar un monto de S/ 15.00
+    await tester.tap(find.byKey(const ValueKey('numpad_1')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('numpad_5')));
+    await tester.pump();
+    await tester.tap(find.text('SUMAR AL\nTICKET'));
+    await tester.pump();
 
-      // Abrir selector de billetes en Efectivo
-      final btnEfectivo = find.text('EFECTIVO');
-      expect(btnEfectivo, findsOneWidget);
-      await tester.tap(btnEfectivo);
-      await tester.pumpAndSettle();
+    // Abrir selector de billetes en Efectivo
+    final btnEfectivo = find.text('EFECTIVO');
+    expect(btnEfectivo, findsOneWidget);
+    await tester.tap(btnEfectivo);
+    await tester.pumpAndSettle();
 
-      // Deben aparecer los chips de billetes (Exacto, S/ 20, S/ 50, S/ 100)
-      expect(find.text('Exacto'), findsOneWidget);
-      expect(find.text('S/ 20'), findsOneWidget);
+    // Deben aparecer los chips de billetes (Exacto, S/ 20, S/ 50, S/ 100)
+    expect(find.text('Exacto'), findsOneWidget);
+    expect(find.text('S/ 20'), findsOneWidget);
 
-      // Tocar billete S/ 20
-      await tester.tap(find.text('S/ 20'));
-      await tester.pumpAndSettle();
+    // Tocar billete S/ 20
+    await tester.tap(find.text('S/ 20'));
+    await tester.pumpAndSettle();
 
-      // Debe calcular y mostrar el vuelto exacto: S/ 20 - S/ 15 = S/ 5.00
-      expect(find.textContaining('VUELTO A ENTREGAR'), findsOneWidget);
-      expect(find.textContaining('5.00'), findsWidgets);
-    },
-  );
+    // Debe calcular y mostrar el vuelto exacto: S/ 20 - S/ 15 = S/ 5.00
+    expect(find.textContaining('VUELTO A ENTREGAR'), findsOneWidget);
+    expect(find.textContaining('5.00'), findsWidgets);
+  });
 }
