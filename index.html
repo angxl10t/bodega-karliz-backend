@@ -110,8 +110,11 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -343,7 +346,7 @@
     // Registro de Service Worker para habilitación de PWA e instalación en Escritorio (Chrome / Edge)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('sw.js?v=25').catch(function(err) {
+        navigator.serviceWorker.register('sw.js?v=26').catch(function(err) {
           console.warn('PWA service worker registration notice:', err);
         });
       });
