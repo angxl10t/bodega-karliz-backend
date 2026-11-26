@@ -21,8 +21,11 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
   <meta name="description" content="CajaYa POS - Punto de Venta & Control de Inventario">
-  <meta name="theme-color" content="#FFFFFF">
+  <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#090A0F" media="(prefers-color-scheme: dark)">
   
   <!-- Directivas Anti-Caché para Actualización Inmediata en Navegador -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -164,9 +167,12 @@
       flex-shrink: 0;
       z-index: 20;
       position: relative;
+      background-color: #2563EB;
       filter: drop-shadow(0 8px 20px rgba(37, 99, 235, 0.40));
       animation: iconEntrance 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       will-change: transform, opacity;
+      -webkit-backface-visibility: hidden;
+      transform: translate3d(0, 0, 0);
     }
     @keyframes iconEntrance {
       0% {
@@ -187,8 +193,10 @@
       margin-left: 0px;
       width: 0px;
       opacity: 0;
-      animation: maskExpand 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.15) 0.4s forwards;
+      animation: maskExpand 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.38s forwards;
       will-change: width, opacity;
+      -webkit-backface-visibility: hidden;
+      transform: translate3d(0, 0, 0);
     }
     @keyframes maskExpand {
       0% {
@@ -196,7 +204,7 @@
         opacity: 0;
       }
       100% {
-        width: 216px;
+        width: 220px;
         opacity: 1;
       }
     }
@@ -207,8 +215,9 @@
       gap: 8px;
       padding-left: 12px;
       transform: translate3d(-85%, 0, 0);
-      animation: textPush 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.15) 0.4s forwards;
+      animation: textPush 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.38s forwards;
       will-change: transform;
+      -webkit-backface-visibility: hidden;
     }
     @keyframes textPush {
       0% {
@@ -225,12 +234,15 @@
       font-weight: 900;
       letter-spacing: -1.2px;
       line-height: 1;
+      color: #2563EB;
       background: var(--wordmark-grad);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin: 0;
       -webkit-text-size-adjust: none;
       text-size-adjust: none;
+      -webkit-backface-visibility: hidden;
+      transform: translate3d(0, 0, 0);
     }
     .pos-pill {
       display: inline-block;
@@ -335,10 +347,13 @@
   </script>
 
   <script>
-    // Gestor de remoción del contenedor de carga (HTML -> Flutter Web)
+    // Gestor determinista y sincronizado de remoción (Exactamente 1.8s)
     (function() {
       var dismissed = false;
-      function dismissLoadingScreen() {
+      var minTimePassed = false;
+      var flutterReady = false;
+
+      function performDismiss() {
         if (dismissed) return;
         dismissed = true;
         var container = document.getElementById('loading-container');
@@ -351,9 +366,26 @@
           }, 380);
         }
       }
-      window.dismissCajaYaLoader = dismissLoadingScreen;
 
-      // 1. Observer: Detectar cuando Flutter monta elementos en el DOM
+      function checkAndDismiss() {
+        if (minTimePassed && flutterReady) {
+          performDismiss();
+        }
+      }
+
+      // 1. Garantizar presencia de marca de exactamente 1.8 segundos (1800ms)
+      setTimeout(function() {
+        minTimePassed = true;
+        checkAndDismiss();
+      }, 1800);
+
+      // Invocado por Flutter cuando monta su primer frame y prepara la ruta
+      window.dismissCajaYaLoader = function() {
+        flutterReady = true;
+        checkAndDismiss();
+      };
+
+      // 2. Observer: Detectar cuando Flutter monta elementos en el DOM
       function setupObserver() {
         if (!document.body) return;
         var observer = new MutationObserver(function(mutations, obs) {
@@ -363,9 +395,8 @@
                            document.querySelector('flt-renderer');
           if (flutterApp) {
             obs.disconnect();
-            requestAnimationFrame(function() {
-              setTimeout(dismissLoadingScreen, 50);
-            });
+            flutterReady = true;
+            checkAndDismiss();
           }
         });
         observer.observe(document.body, { childList: true, subtree: true });
@@ -377,11 +408,17 @@
         setupObserver();
       }
 
-      // 2. Evento estándar de Flutter si el browser lo dispara
-      window.addEventListener('flutter-first-frame', dismissLoadingScreen);
+      window.addEventListener('flutter-first-frame', function() {
+        flutterReady = true;
+        checkAndDismiss();
+      });
 
-      // 3. Fallback de seguridad: si pasan 3.5 segundos, forzar el desvanecimiento para evitar que quede perenne
-      setTimeout(dismissLoadingScreen, 3500);
+      // 3. Fallback de seguridad absoluto (4.0s)
+      setTimeout(function() {
+        minTimePassed = true;
+        flutterReady = true;
+        performDismiss();
+      }, 4000);
     })();
   </script>
 
