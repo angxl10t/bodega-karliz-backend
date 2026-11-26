@@ -13,7 +13,16 @@ class ThemeProvider extends ChangeNotifier {
   static const String _assistedIconsKey = 'a11y_assisted_icons';
   static const String _soundEnabledKey = 'a11y_sound_enabled';
 
-  bool _isDarkMode = false;
+  static bool _detectInitialBrightness() {
+    try {
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _isDarkMode = _detectInitialBrightness();
   Color _accentColor = AppTheme.brandPrimary;
   String _accentColorHex = '#2563EB';
 
@@ -47,7 +56,8 @@ class ThemeProvider extends ChangeNotifier {
 
   Future<void> _cargarTemaGuardado() async {
     final prefs = await SharedPreferences.getInstance();
-    _isDarkMode = prefs.getBool(_themeKey) ?? false;
+    final savedTheme = prefs.getBool(_themeKey);
+    _isDarkMode = savedTheme ?? _detectInitialBrightness();
     _fontScale = prefs.getDouble(_fontScaleKey) ?? 1.0;
     _highContrast = prefs.getBool(_highContrastKey) ?? false;
     _assistedIcons = prefs.getBool(_assistedIconsKey) ?? true;

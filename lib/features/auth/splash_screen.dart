@@ -137,12 +137,10 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
     );
 
-    // En Web, si el HTML ya reprodujo la entrada, fijar directamente en 1.0 y remover loader HTML
+    // En Web, index.html garantiza los 1.8s exactos de presencia de marca.
+    // Flutter se prepara en paralelo sin demora doble.
     if (kIsWeb) {
       _entranceController.value = 1.0;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        dismissWebLoader();
-      });
     } else {
       _entranceController.forward();
     }
@@ -152,14 +150,67 @@ class _SplashScreenState extends State<SplashScreen>
     _navigateNextDeterministic();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(const AssetImage('assets/images/cajaya_icon.png'), context);
+  }
+
   /// Navegación con tiempo fijo exacto de 1.8 segundos (1,800 ms)
   Future<void> _navigateNextDeterministic() async {
     try {
-      // 1,550 ms de presencia de marca + 250 ms de fade-out = 1,800 ms exactos (1.8s)
-      final fixedDuration = Future.delayed(const Duration(milliseconds: 1550));
       final authFuture = AuthService().isLoggedIn();
 
-      // Ejecutar en paralelo el tiempo fijo y la comprobación de sesión local
+      if (kIsWeb) {
+        // En Web, index.html mantiene el lockup de marca por los 1.8s requeridos.
+        // Flutter resuelve autenticación, permisos y tema en segundo plano.
+        final isLoggedIn = await authFuture;
+
+        if (!mounted) return;
+
+        String destinationRoute = '/login';
+
+        if (isLoggedIn) {
+          try {
+            final permisosFuture = PermisosCajeroService.obtenerPermisos();
+            final colorFuture = AuthService().getColorPrimario();
+            final roleFuture = AuthService().getUserRole();
+
+            final details = await Future.wait([
+              permisosFuture,
+              colorFuture,
+              roleFuture,
+            ]);
+            final colorHex = details[1] as String;
+            final role = details[2] as String;
+
+            if (colorHex.isNotEmpty && mounted) {
+              context.read<ThemeProvider>().setAccentColorFromHex(colorHex);
+            }
+
+            if (role.toUpperCase() == 'SUPERADMIN') {
+              destinationRoute = '/superadmin';
+            } else {
+              destinationRoute = '/home';
+            }
+          } catch (_) {
+            destinationRoute = '/home';
+          }
+        }
+
+        if (!mounted) return;
+
+        // Disolver loader HTML y navegar de inmediato a la ruta destino
+        dismissWebLoader();
+        if (mounted) {
+          context.go(destinationRoute);
+        }
+        return;
+      }
+
+      // En Móvil Nativo o Desktop (sin HTML loader): reloj determinista de 1.8s
+      // 1,550 ms de presencia de marca + 250 ms de fade-out = 1,800 ms exactos (1.8s)
+      final fixedDuration = Future.delayed(const Duration(milliseconds: 1550));
       final results = await Future.wait([fixedDuration, authFuture]);
       final isLoggedIn = results[1] as bool;
 
@@ -169,7 +220,6 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (isLoggedIn) {
         try {
-          // Obtener permisos, tema y rol en paralelo
           final permisosFuture = PermisosCajeroService.obtenerPermisos();
           final colorFuture = AuthService().getColorPrimario();
           final roleFuture = AuthService().getUserRole();
@@ -200,9 +250,6 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Disolver suavemente la pantalla antes de la transición de ruta
       await _exitController.forward();
-      if (kIsWeb) {
-        dismissWebLoader();
-      }
       if (mounted) {
         context.go(destinationRoute);
       }
@@ -229,7 +276,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark ||
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+            Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : Colors.white,
@@ -281,6 +331,7 @@ class _SplashScreenState extends State<SplashScreen>
                       scale: _iconScaleAnim,
                       child: Container(
                         decoration: BoxDecoration(
+                          color: const Color(0xFF2563EB),
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
