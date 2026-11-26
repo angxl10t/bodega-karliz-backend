@@ -148,7 +148,6 @@
     .brand-mark {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
       position: relative;
       z-index: 10;
       will-change: opacity, transform;
@@ -156,40 +155,68 @@
       backface-visibility: hidden;
       -webkit-transform: translate3d(0, 0, 0);
       transform: translate3d(0, 0, 0);
-      animation: cleanEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    @keyframes cleanEntrance {
+    .real-app-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 14px;
+      object-fit: cover;
+      flex-shrink: 0;
+      z-index: 20;
+      position: relative;
+      filter: drop-shadow(0 8px 20px rgba(37, 99, 235, 0.40));
+      animation: iconEntrance 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: transform, opacity;
+    }
+    @keyframes iconEntrance {
       0% {
         opacity: 0;
-        transform: translate3d(0, 6px, 0);
+        transform: translate3d(0, 8px, 0) scale(0.88);
       }
       100% {
         opacity: 1;
-        transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0) scale(1);
       }
     }
 
-    .logo-box {
-      width: 46px;
-      height: 46px;
-      border-radius: 13px;
-      background: var(--pos-bg);
+    .wordmark-mask {
+      overflow: hidden;
       display: flex;
       align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 18px var(--pos-shadow);
-      will-change: transform;
+      white-space: nowrap;
+      margin-left: 0px;
+      width: 0px;
+      opacity: 0;
+      animation: maskExpand 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.15) 0.4s forwards;
+      will-change: width, opacity;
     }
-    .logo-box svg {
-      width: 27px;
-      height: 27px;
-      fill: #FFFFFF;
+    @keyframes maskExpand {
+      0% {
+        width: 0px;
+        opacity: 0;
+      }
+      100% {
+        width: 216px;
+        opacity: 1;
+      }
     }
 
-    .wordmark-group {
+    .wordmark-rail {
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      padding-left: 12px;
+      transform: translate3d(-85%, 0, 0);
+      animation: textPush 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.15) 0.4s forwards;
+      will-change: transform;
+    }
+    @keyframes textPush {
+      0% {
+        transform: translate3d(-85%, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
     }
 
     .wordmark {
@@ -220,6 +247,19 @@
       margin-bottom: 2px;
       -webkit-text-size-adjust: none;
       text-size-adjust: none;
+      animation: posPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) 0.75s forwards;
+      will-change: transform;
+    }
+    @keyframes posPop {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.10);
+      }
+      100% {
+        transform: scale(1);
+      }
     }
 
     .shimmer-container {
@@ -266,14 +306,12 @@
   <div id="loading-container">
     <div class="ambient-glow"></div>
     <div class="brand-mark">
-      <div class="logo-box">
-        <svg viewBox="0 0 100 100" aria-hidden="true">
-          <path d="M64 35 C52 21 36 21 26 34 C15 48 15 69 27 82 C38 92 54 89 66 76 C74 66 84 48 90 30 C79 46 68 63 57 71 C47 79 36 76 31 65 C26 54 30 41 42 35 C49 31 57 32 64 35 Z" />
-        </svg>
-      </div>
-      <div class="wordmark-group">
-        <span class="wordmark">CajaYa</span>
-        <span class="pos-pill">POS</span>
+      <img src="icons/cajaya_icon.png" alt="CajaYa POS" class="real-app-icon">
+      <div class="wordmark-mask">
+        <div class="wordmark-rail">
+          <span class="wordmark">CajaYa</span>
+          <span class="pos-pill">POS</span>
+        </div>
       </div>
     </div>
     <div class="shimmer-container">

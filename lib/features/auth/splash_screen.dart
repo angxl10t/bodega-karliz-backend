@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'auth_service.dart';
-import '../../core/cajaya_vectors.dart';
 import '../../core/permisos_cajero_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
@@ -13,13 +12,13 @@ import '../../core/web_loader.dart';
 
 /// Pantalla de bienvenida (Splash Screen) ultra-fluida para CajaYa POS.
 ///
-/// Implementa la Opción 2 (Isotipo C-Check + Revelado de Texto Fijo):
-/// - Isotipo oficial CajaYa (`CajaYaLogoMark`) con entrada de giro y escala sutil.
-/// - Revelado tipográfico de 'CajaYa POS' con deslizamiento y opacidad sincronizada.
-/// - CERO latidos ni rebotes continuos (escala 1.0x firme e inmutable).
-/// - Resplandor ambiental estático y elegante que no compite en escala.
-/// - Sincronización perfecta con el cargador Web (sin doble escala).
-/// - Micro-indicador de progreso inferior fluido ('Iniciando terminal...').
+/// Implementa la **Variante 1: Empuje Cinético Escalonado con Ícono Real y Tiempo Fijo de 1.8s**:
+/// - Ícono real oficial en 3D (`assets/images/cajaya_icon.png`).
+/// - Aparición centrada del ícono y posterior desplazamiento a la izquierda.
+/// - Empuje cinético desenmascarado de la frase 'CajaYa POS' hacia la derecha.
+/// - Píldora 'POS' con micro-asentamiento elástico.
+/// - Tiempo fijo exacto garantizado de 1.8 segundos, desacoplado de la red.
+/// - Desvanecimiento cruzado suave hacia el Punto de Venta o Login.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -36,82 +35,102 @@ class _SplashScreenState extends State<SplashScreen>
   // Animaciones de entrada coreografiadas
   late final Animation<double> _glowFadeAnim;
   late final Animation<double> _iconScaleAnim;
-  late final Animation<double> _iconRotationAnim;
   late final Animation<double> _iconFadeAnim;
+  late final Animation<double> _maskWidthAnim;
+  late final Animation<Offset> _textPushAnim;
   late final Animation<double> _textFadeAnim;
-  late final Animation<Offset> _textSlideAnim;
+  late final Animation<double> _posScaleAnim;
 
-  // Animación de salida (solo fade out limpio sin zoom de salida)
+  // Animación de salida (fade out limpio de 250ms sin zoom)
   late final Animation<double> _exitFadeAnim;
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Controlador de Entrada Coreografiada (600ms)
+    // 1. Controlador de Entrada Coreografiada (1100ms)
     _entranceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 1100),
     );
 
     _glowFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: const Interval(0.0, 0.50, curve: Curves.easeOut),
-      ),
-    );
-
-    // Entrada del Isotipo (escala sutil 0.72 a 1.0 y rotación -0.08 a 0)
-    _iconScaleAnim = Tween<double>(begin: 0.72, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: const Interval(0.0, 0.65, curve: Curves.easeOutBack),
-      ),
-    );
-
-    _iconRotationAnim = Tween<double>(begin: -0.08, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: const Interval(0.0, 0.65, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _iconFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
         curve: const Interval(0.0, 0.40, curve: Curves.easeOut),
       ),
     );
 
-    // Revelado del Texto "CajaYa POS" (deslizamiento suave y fade sincronizado)
-    _textFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+    // Entrada del Ícono Real al centro (0ms - 400ms)
+    _iconScaleAnim = Tween<double>(begin: 0.88, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Interval(0.28, 0.85, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.38, curve: Curves.easeOutBack),
       ),
     );
 
-    _textSlideAnim =
+    _iconFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.0, 0.32, curve: Curves.easeOut),
+      ),
+    );
+
+    // Apertura de la máscara de desenmascaramiento (400ms - 950ms)
+    _maskWidthAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.36, 0.86, curve: Curves.easeInOutCubic),
+      ),
+    );
+
+    // Empuje cinético del texto hacia la derecha
+    _textPushAnim =
         Tween<Offset>(
-          begin: const Offset(-0.06, 0.0),
+          begin: const Offset(-0.85, 0.0),
           end: Offset.zero,
         ).animate(
           CurvedAnimation(
             parent: _entranceController,
-            curve: const Interval(0.28, 0.85, curve: Curves.easeOutCubic),
+            curve: const Interval(0.36, 0.86, curve: Curves.easeOutCubic),
           ),
         );
 
-    // 2. Controlador de Shimmer de Carga (1500ms en bucle)
+    _textFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.36, 0.65, curve: Curves.easeOut),
+      ),
+    );
+
+    // Micro-asentamiento magnético para la píldora "POS"
+    _posScaleAnim =
+        TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.0, end: 1.10),
+            weight: 50,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.10, end: 1.0),
+            weight: 50,
+          ),
+        ]).animate(
+          CurvedAnimation(
+            parent: _entranceController,
+            curve: const Interval(0.72, 1.0, curve: Curves.easeInOut),
+          ),
+        );
+
+    // 2. Controlador de Shimmer de Carga (1400ms en bucle)
     _shimmerController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
     )..repeat();
 
-    // 3. Controlador de Transición de Salida (280ms - fade out limpio)
+    // 3. Controlador de Transición de Salida (250ms - fade out limpio)
     _exitController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 280),
+      duration: const Duration(milliseconds: 250),
     );
 
     _exitFadeAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
@@ -128,19 +147,20 @@ class _SplashScreenState extends State<SplashScreen>
       _entranceController.forward();
     }
 
-    // Iniciar precalentamiento y navegación paralela
+    // Iniciar precalentamiento y navegación paralela con reloj determinista de 1.8s
     AuthService().precalentarServidor();
-    _navigateNext();
+    _navigateNextDeterministic();
   }
 
-  Future<void> _navigateNext() async {
+  /// Navegación con tiempo fijo exacto de 1.8 segundos (1,800 ms)
+  Future<void> _navigateNextDeterministic() async {
     try {
-      // Tiempo mínimo de apreciación de marca para evitar parpadeos (1000ms)
-      final minDuration = Future.delayed(const Duration(milliseconds: 1000));
+      // 1,550 ms de presencia de marca + 250 ms de fade-out = 1,800 ms exactos (1.8s)
+      final fixedDuration = Future.delayed(const Duration(milliseconds: 1550));
       final authFuture = AuthService().isLoggedIn();
 
-      // Ejecutar en paralelo la espera mínima y la comprobación de sesión
-      final results = await Future.wait([minDuration, authFuture]);
+      // Ejecutar en paralelo el tiempo fijo y la comprobación de sesión local
+      final results = await Future.wait([fixedDuration, authFuture]);
       final isLoggedIn = results[1] as bool;
 
       if (!mounted) return;
@@ -222,20 +242,20 @@ class _SplashScreenState extends State<SplashScreen>
               child: FadeTransition(
                 opacity: _glowFadeAnim,
                 child: Container(
-                  width: 280,
-                  height: 280,
+                  width: 290,
+                  height: 290,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: RadialGradient(
                       colors: isDark
                           ? [
-                              AppTheme.brandPrimary.withValues(alpha: 0.20),
-                              const Color(0xFF06B6D4).withValues(alpha: 0.07),
+                              AppTheme.brandPrimary.withValues(alpha: 0.22),
+                              const Color(0xFF06B6D4).withValues(alpha: 0.06),
                               Colors.transparent,
                             ]
                           : [
-                              AppTheme.brandPrimary.withValues(alpha: 0.09),
-                              const Color(0xFF38BDF8).withValues(alpha: 0.03),
+                              AppTheme.brandPrimary.withValues(alpha: 0.10),
+                              const Color(0xFF38BDF8).withValues(alpha: 0.04),
                               Colors.transparent,
                             ],
                       stops: const [0.0, 0.5, 1.0],
@@ -246,7 +266,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // 2. Logotipo Central Protagónico: Isotipo C-Check + Texto Fijo (Opción 2)
+          // 2. Lockup Central Protagónico: Ícono Real 3D + Empuje de "CajaYa POS"
           Center(
             child: FadeTransition(
               opacity: _exitFadeAnim,
@@ -254,124 +274,163 @@ class _SplashScreenState extends State<SplashScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Isotipo Vectorial con escala y giro de entrada
+                  // Ícono Real Oficial del App (54x54) con entrada suave
                   FadeTransition(
                     opacity: _iconFadeAnim,
                     child: ScaleTransition(
                       scale: _iconScaleAnim,
-                      child: RotationTransition(
-                        turns: _iconRotationAnim,
-                        child: const CajaYaLogoMark(size: 46),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isDark
+                                          ? const Color(0xFF38BDF8)
+                                          : AppTheme.brandPrimary)
+                                      .withValues(alpha: 0.40),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Image.asset(
+                            'assets/images/cajaya_icon.png',
+                            width: 54,
+                            height: 54,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
 
-                  // Texto "CajaYa" y píldora "POS" revelados con deslizamiento suave
-                  FadeTransition(
-                    opacity: _textFadeAnim,
-                    child: SlideTransition(
-                      position: _textSlideAnim,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          ShaderMask(
-                            blendMode: BlendMode.srcIn,
-                            shaderCallback: (bounds) {
-                              if (isDark) {
-                                return const LinearGradient(
-                                  colors: [
-                                    Color(0xFF60A5FA),
-                                    Color(0xFF38BDF8),
-                                    Color(0xFFBAE6FD),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ).createShader(bounds);
-                              }
-                              return const LinearGradient(
-                                colors: [
-                                  Color(0xFF1D4ED8),
-                                  Color(0xFF2563EB),
-                                  Color(0xFF06B6D4),
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ).createShader(bounds);
-                            },
-                            child: Text(
-                              'CajaYa',
-                              style:
-                                  GoogleFonts.outfit(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: -1.2,
-                                    color: Colors.white,
-                                  ).copyWith(
-                                    fontFamily: 'Outfit',
-                                    fontFamilyFallback: const [
-                                      'Outfit',
-                                      'sans-serif',
-                                    ],
-                                  ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // Insignia "POS" Elegante
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3.5,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: isDark
-                                    ? const [
+                  // Máscara de Desborde que se abre hacia la derecha
+                  AnimatedBuilder(
+                    animation: _maskWidthAnim,
+                    builder: (context, child) {
+                      return ClipRect(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          widthFactor: _maskWidthAnim.value,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: SlideTransition(
+                        position: _textPushAnim,
+                        child: FadeTransition(
+                          opacity: _textFadeAnim,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Palabra "CajaYa" con Gradiente Exclusivo
+                              ShaderMask(
+                                blendMode: BlendMode.srcIn,
+                                shaderCallback: (bounds) {
+                                  if (isDark) {
+                                    return const LinearGradient(
+                                      colors: [
+                                        Color(0xFF60A5FA),
                                         Color(0xFF38BDF8),
-                                        Color(0xFF2563EB),
-                                      ]
-                                    : const [
-                                        Color(0xFF2563EB),
-                                        Color(0xFF1D4ED8),
+                                        Color(0xFFBAE6FD),
                                       ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color:
-                                      (isDark
-                                              ? const Color(0xFF38BDF8)
-                                              : AppTheme.brandPrimary)
-                                          .withValues(alpha: 0.35),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ).createShader(bounds);
+                                  }
+                                  return const LinearGradient(
+                                    colors: [
+                                      Color(0xFF1D4ED8),
+                                      Color(0xFF2563EB),
+                                      Color(0xFF06B6D4),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ).createShader(bounds);
+                                },
+                                child: Text(
+                                  'CajaYa',
+                                  style:
+                                      GoogleFonts.outfit(
+                                        fontSize: 48,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: -1.2,
+                                        color: Colors.white,
+                                      ).copyWith(
+                                        fontFamily: 'Outfit',
+                                        fontFamilyFallback: const [
+                                          'Outfit',
+                                          'sans-serif',
+                                        ],
+                                      ),
                                 ),
-                              ],
-                            ),
-                            child: Text(
-                              'POS',
-                              style:
-                                  GoogleFonts.outfit(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.0,
-                                    color: isDark
-                                        ? AppTheme.bgDark
-                                        : Colors.white,
-                                  ).copyWith(
-                                    fontFamily: 'Outfit',
-                                    fontFamilyFallback: const [
-                                      'Outfit',
-                                      'sans-serif',
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Insignia "POS" con micro-asentamiento
+                              ScaleTransition(
+                                scale: _posScaleAnim,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: isDark
+                                          ? const [
+                                              Color(0xFF38BDF8),
+                                              Color(0xFF2563EB),
+                                            ]
+                                          : const [
+                                              Color(0xFF2563EB),
+                                              Color(0xFF1D4ED8),
+                                            ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            (isDark
+                                                    ? const Color(0xFF38BDF8)
+                                                    : AppTheme.brandPrimary)
+                                                .withValues(alpha: 0.35),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 3),
+                                      ),
                                     ],
                                   ),
-                            ),
+                                  child: Text(
+                                    'POS',
+                                    style:
+                                        GoogleFonts.outfit(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1.0,
+                                          color: isDark
+                                              ? AppTheme.bgDark
+                                              : Colors.white,
+                                        ).copyWith(
+                                          fontFamily: 'Outfit',
+                                          fontFamilyFallback: const [
+                                            'Outfit',
+                                            'sans-serif',
+                                          ],
+                                        ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -380,7 +439,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // 3. Micro-Indicador Shimmer de Conexión (Retroalimentación activa)
+          // 3. Micro-Indicador Shimmer de Conexión
           Positioned(
             bottom: 48,
             left: 0,
