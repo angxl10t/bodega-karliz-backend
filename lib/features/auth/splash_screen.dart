@@ -5,18 +5,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'auth_service.dart';
+import '../../core/cajaya_vectors.dart';
 import '../../core/permisos_cajero_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
 
 /// Pantalla de bienvenida (Splash Screen) ultra-fluida para CajaYa POS.
 ///
-/// Diseñada bajo los lineamientos oficiales de `cajaya-brand-ui-ux` y `ui-ux-design-system`:
-/// - Entrada suave y orgánica a 60/120 FPS (700ms).
-/// - Respiración viva continua en bucle infinito (`easeInOutSine`) que evita la sensación
-///   de pantalla congelada mientras las llamadas de red se resuelven en segundo plano.
-/// - Resplandor ambiental dinámico con micro-shimmer de progreso elegante.
-/// - Carga asíncrona paralela y transición de salida coordinada con fundido suave.
+/// Implementa la Opción 2 (Isotipo C-Check + Revelado de Texto Fijo):
+/// - Isotipo oficial CajaYa (`CajaYaLogoMark`) con entrada de giro y escala sutil.
+/// - Revelado tipográfico de 'CajaYa POS' con deslizamiento y opacidad sincronizada.
+/// - CERO latidos ni rebotes continuos (escala 1.0x firme e inmutable).
+/// - Resplandor ambiental estático y elegante que no compite en escala.
+/// - Sincronización perfecta con el cargador Web (sin doble escala).
+/// - Micro-indicador de progreso inferior fluido ('Iniciando terminal...').
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,83 +29,99 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _entranceController;
-  late final AnimationController _pulseController;
   late final AnimationController _exitController;
   late final AnimationController _shimmerController;
 
-  late final Animation<double> _fadeAnim;
-  late final Animation<double> _scaleAnim;
-  late final Animation<double> _pulseAnim;
-  late final Animation<double> _glowPulseAnim;
+  // Animaciones de entrada coreografiadas
+  late final Animation<double> _glowFadeAnim;
+  late final Animation<double> _iconScaleAnim;
+  late final Animation<double> _iconRotationAnim;
+  late final Animation<double> _iconFadeAnim;
+  late final Animation<double> _textFadeAnim;
+  late final Animation<Offset> _textSlideAnim;
+
+  // Animación de salida (solo fade out limpio sin zoom de salida)
   late final Animation<double> _exitFadeAnim;
-  late final Animation<double> _exitScaleAnim;
 
   @override
   void initState() {
     super.initState();
 
-    // 1. Controlador de Entrada Inicial (700ms)
+    // 1. Controlador de Entrada Coreografiada (600ms)
     _entranceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 600),
     );
 
-    _fadeAnim = CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOutCubic,
-    );
-
-    _scaleAnim = Tween<double>(begin: 0.84, end: 1.0).animate(
+    _glowFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _entranceController,
-        curve: const Cubic(0.16, 1.0, 0.3, 1.0), // Resorte suave natural
+        curve: const Interval(0.0, 0.50, curve: Curves.easeOut),
       ),
     );
 
-    // 2. Controlador de Respiración Orgánica Continua (Bucle Infinito a 2200ms)
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2200),
+    // Entrada del Isotipo (escala sutil 0.72 a 1.0 y rotación -0.08 a 0)
+    _iconScaleAnim = Tween<double>(begin: 0.72, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOutBack),
+      ),
     );
 
-    _pulseAnim = Tween<double>(begin: 0.988, end: 1.022).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
+    _iconRotationAnim = Tween<double>(begin: -0.08, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.0, 0.65, curve: Curves.easeOutCubic),
+      ),
     );
 
-    _glowPulseAnim = Tween<double>(begin: 0.85, end: 1.15).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOutSine),
+    _iconFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.0, 0.40, curve: Curves.easeOut),
+      ),
     );
 
-    // 3. Controlador de Shimmer de Carga (1500ms en bucle)
+    // Revelado del Texto "CajaYa POS" (deslizamiento suave y fade sincronizado)
+    _textFadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.28, 0.85, curve: Curves.easeOut),
+      ),
+    );
+
+    _textSlideAnim =
+        Tween<Offset>(
+          begin: const Offset(-0.06, 0.0),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: _entranceController,
+            curve: const Interval(0.28, 0.85, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // 2. Controlador de Shimmer de Carga (1500ms en bucle)
     _shimmerController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     )..repeat();
 
-    // 4. Controlador de Transición de Salida (320ms)
+    // 3. Controlador de Transición de Salida (280ms - fade out limpio)
     _exitController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 280),
     );
 
     _exitFadeAnim = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
     );
 
-    _exitScaleAnim = Tween<double>(begin: 1.0, end: 1.045).animate(
-      CurvedAnimation(parent: _exitController, curve: Curves.easeOutCubic),
-    );
-
-    // Iniciar entrada o enganchar de inmediato si es Web para evitar doble escala
+    // En Web, si el HTML ya reprodujo la entrada, fijar directamente en 1.0 para continuidad perfecta
     if (kIsWeb) {
       _entranceController.value = 1.0;
-      _pulseController.repeat(reverse: true);
     } else {
-      _entranceController.forward().then((_) {
-        if (mounted) {
-          _pulseController.repeat(reverse: true);
-        }
-      });
+      _entranceController.forward();
     }
 
     // Iniciar precalentamiento y navegación paralela
@@ -171,7 +189,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void dispose() {
     _entranceController.dispose();
-    _pulseController.dispose();
     _shimmerController.dispose();
     _exitController.dispose();
     super.dispose();
@@ -186,81 +203,75 @@ class _SplashScreenState extends State<SplashScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Resplandor Ambiental con Respiración Orgánica Continua
+          // 1. Resplandor Ambiental Estático (Firme, sin vaivén ni latidos)
           Positioned.fill(
             child: Center(
-              child: AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  final glowScale = _entranceController.isCompleted
-                      ? _glowPulseAnim.value
-                      : _fadeAnim.value;
-                  return Transform.scale(
-                    scale: glowScale,
-                    child: Container(
-                      width: 280,
-                      height: 280,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: isDark
-                              ? [
-                                  AppTheme.brandPrimary.withValues(alpha: 0.22),
-                                  const Color(0xFF06B6D4)
-                                      .withValues(alpha: 0.08),
-                                  Colors.transparent,
-                                ]
-                              : [
-                                  AppTheme.brandPrimary.withValues(alpha: 0.10),
-                                  const Color(0xFF38BDF8)
-                                      .withValues(alpha: 0.04),
-                                  Colors.transparent,
-                                ],
-                          stops: const [0.0, 0.5, 1.0],
-                        ),
-                      ),
+              child: FadeTransition(
+                opacity: _glowFadeAnim,
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: isDark
+                          ? [
+                              AppTheme.brandPrimary.withValues(alpha: 0.20),
+                              const Color(0xFF06B6D4).withValues(alpha: 0.07),
+                              Colors.transparent,
+                            ]
+                          : [
+                              AppTheme.brandPrimary.withValues(alpha: 0.09),
+                              const Color(0xFF38BDF8).withValues(alpha: 0.03),
+                              Colors.transparent,
+                            ],
+                      stops: const [0.0, 0.5, 1.0],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
             ),
           ),
 
-          // 2. Logotipo Central Protagónico (Con respiración y transición de salida)
+          // 2. Logotipo Central Protagónico: Isotipo C-Check + Texto Fijo (Opción 2)
           Center(
             child: FadeTransition(
               opacity: _exitFadeAnim,
-              child: ScaleTransition(
-                scale: _exitScaleAnim,
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: ScaleTransition(
-                    scale: _scaleAnim,
-                    child: AnimatedBuilder(
-                      animation: _pulseController,
-                      builder: (context, child) {
-                        final currentScale = _entranceController.isCompleted
-                            ? _pulseAnim.value
-                            : 1.0;
-                        return Transform.scale(
-                          scale: currentScale,
-                          child: child,
-                        );
-                      },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Isotipo Vectorial con escala y giro de entrada
+                  FadeTransition(
+                    opacity: _iconFadeAnim,
+                    child: ScaleTransition(
+                      scale: _iconScaleAnim,
+                      child: RotationTransition(
+                        turns: _iconRotationAnim,
+                        child: const CajaYaLogoMark(size: 46),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Texto "CajaYa" y píldora "POS" revelados con deslizamiento suave
+                  FadeTransition(
+                    opacity: _textFadeAnim,
+                    child: SlideTransition(
+                      position: _textSlideAnim,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Palabra "CajaYa" con Gradiente Exclusivo
                           ShaderMask(
                             blendMode: BlendMode.srcIn,
                             shaderCallback: (bounds) {
                               if (isDark) {
                                 return const LinearGradient(
                                   colors: [
-                                    Color(0xFF60A5FA), // Light Sky Blue
-                                    Color(0xFF38BDF8), // Electric Cyan
-                                    Color(0xFFBAE6FD), // Diamond Highlight
+                                    Color(0xFF60A5FA),
+                                    Color(0xFF38BDF8),
+                                    Color(0xFFBAE6FD),
                                   ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
@@ -268,9 +279,9 @@ class _SplashScreenState extends State<SplashScreen>
                               }
                               return const LinearGradient(
                                 colors: [
-                                  Color(0xFF1D4ED8), // Deep Cobalt
-                                  Color(0xFF2563EB), // Electric Cobalt
-                                  Color(0xFF06B6D4), // Cyan Glow
+                                  Color(0xFF1D4ED8),
+                                  Color(0xFF2563EB),
+                                  Color(0xFF06B6D4),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -280,7 +291,7 @@ class _SplashScreenState extends State<SplashScreen>
                               'CajaYa',
                               style:
                                   GoogleFonts.outfit(
-                                    fontSize: 52,
+                                    fontSize: 48,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: -1.2,
                                     color: Colors.white,
@@ -351,85 +362,81 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
 
-          // 3. Micro-Indicador Shimmer de Conexión (Retroalimentación activa sin freeze)
+          // 3. Micro-Indicador Shimmer de Conexión (Retroalimentación activa)
           Positioned(
             bottom: 48,
             left: 0,
             right: 0,
             child: FadeTransition(
-              opacity: _fadeAnim,
-              child: FadeTransition(
-                opacity: _exitFadeAnim,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Pista de Shimmer
-                    Container(
-                      width: 110,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : const Color(0xFFE2E8F0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: AnimatedBuilder(
-                        animation: _shimmerController,
-                        builder: (context, _) {
-                          return FractionallySizedBox(
-                            alignment: Alignment(
-                              -1.5 + (_shimmerController.value * 3.0),
-                              0.0,
-                            ),
-                            widthFactor: 0.45,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.transparent,
-                                    isDark
-                                        ? const Color(0xFF38BDF8)
-                                        : AppTheme.brandPrimary,
-                                    isDark
-                                        ? const Color(0xFF60A5FA)
-                                        : const Color(0xFF06B6D4),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+              opacity: _exitFadeAnim,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 110,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : const Color(0xFF64748B).withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Iniciando terminal...',
-                      style:
-                          GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? AppTheme.textDarkSecondary
-                                : const Color(0xFF64748B),
-                            letterSpacing: 0.3,
-                          ).copyWith(
-                            fontFamily: 'PlusJakartaSans',
-                            fontFamilyFallback: const [
-                              'PlusJakartaSans',
-                              'sans-serif',
-                            ],
+                    clipBehavior: Clip.antiAlias,
+                    child: AnimatedBuilder(
+                      animation: _shimmerController,
+                      builder: (context, child) {
+                        return FractionallySizedBox(
+                          alignment: Alignment(
+                            (_shimmerController.value * 2.8) - 1.4,
+                            0,
                           ),
+                          widthFactor: 0.45,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  isDark
+                                      ? const Color(0xFF38BDF8)
+                                      : AppTheme.brandPrimary,
+                                  isDark
+                                      ? const Color(0xFF60A5FA)
+                                      : const Color(0xFF06B6D4),
+                                  Colors.transparent,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Iniciando terminal...',
+                    style:
+                        GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.textDarkSecondary
+                              : const Color(0xFF64748B),
+                          letterSpacing: 0.3,
+                        ).copyWith(
+                          fontFamily: 'PlusJakartaSans',
+                          fontFamilyFallback: const [
+                            'PlusJakartaSans',
+                            'sans-serif',
+                          ],
+                        ),
+                  ),
+                ],
               ),
             ),
           ),

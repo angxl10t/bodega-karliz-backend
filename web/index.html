@@ -114,25 +114,88 @@
       position: relative;
       transition: opacity 0.35s ease, visibility 0.35s ease;
     }
+    .ambient-glow {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.09) 0%, rgba(56, 189, 248, 0.03) 50%, transparent 72%);
+      pointer-events: none;
+      opacity: 0;
+      animation: glowFade 0.5s ease forwards;
+    }
+    @media (prefers-color-scheme: dark) {
+      .ambient-glow {
+        background: radial-gradient(circle, rgba(37, 99, 235, 0.20) 0%, rgba(6, 182, 212, 0.07) 50%, transparent 72%);
+      }
+    }
+    @keyframes glowFade {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
     .brand-mark {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      animation: rappiEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-                 rappiBreathe 2.2s ease-in-out infinite 0.7s;
-      transform-origin: center center;
-      -webkit-transform-origin: center center;
+      gap: 12px;
+      position: relative;
+      z-index: 10;
       will-change: transform, opacity;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
     }
+    .logo-box {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      background: var(--pos-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px var(--pos-shadow);
+      animation: iconPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .logo-box svg {
+      width: 27px;
+      height: 27px;
+      fill: #FFFFFF;
+    }
+    @keyframes iconPop {
+      0% {
+        opacity: 0;
+        transform: scale(0.72) rotate(-8deg);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    .wordmark-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: textSlideReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
+    }
+    @keyframes textSlideReveal {
+      0% {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
     .wordmark {
       font-family: 'Outfit', sans-serif;
-      font-size: 54px;
+      font-size: 48px;
       font-weight: 900;
-      letter-spacing: -1.4px;
+      letter-spacing: -1.2px;
       line-height: 1;
       background: var(--wordmark-grad);
       -webkit-background-clip: text;
@@ -148,7 +211,7 @@
       font-weight: 900;
       letter-spacing: 1.0px;
       line-height: 1;
-      padding: 5px 9px;
+      padding: 3.5px 8px;
       border-radius: 8px;
       background: var(--pos-bg);
       color: var(--pos-color);
@@ -165,7 +228,8 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      animation: rappiEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      animation: glowFade 0.5s ease 0.2s forwards;
     }
     .shimmer-track {
       width: 110px;
@@ -194,31 +258,21 @@
       0% { left: -50%; }
       100% { left: 110%; }
     }
-    @keyframes rappiEntrance {
-      0% {
-        opacity: 0;
-        transform: scale(0.84) translateY(8px);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-    @keyframes rappiBreathe {
-      0%, 100% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.022);
-      }
-    }
   </style>
 </head>
 <body>
   <div id="loading-container">
+    <div class="ambient-glow"></div>
     <div class="brand-mark">
-      <span class="wordmark">CajaYa</span>
-      <span class="pos-pill">POS</span>
+      <div class="logo-box">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M64 35 C52 21 36 21 26 34 C15 48 15 69 27 82 C38 92 54 89 66 76 C74 66 84 48 90 30 C79 46 68 63 57 71 C47 79 36 76 31 65 C26 54 30 41 42 35 C49 31 57 32 64 35 Z" />
+        </svg>
+      </div>
+      <div class="wordmark-group">
+        <span class="wordmark">CajaYa</span>
+        <span class="pos-pill">POS</span>
+      </div>
     </div>
     <div class="shimmer-container">
       <div class="shimmer-track">
