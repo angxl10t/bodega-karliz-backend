@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Servicio centralizado de sonido y retroalimentación auditiva para Bodega KARLIZ.
@@ -43,7 +44,9 @@ class KarlizSoundService {
       if (_beepPlayer == null) {
         await init();
       }
-      await _beepPlayer?.stop();
+      if (!kIsWeb) {
+        await _beepPlayer?.stop();
+      }
       await _beepPlayer?.play(
         AssetSource('audio/barcode_beep.wav'),
         mode: PlayerMode.lowLatency,
@@ -62,7 +65,9 @@ class KarlizSoundService {
       if (_errorPlayer == null) {
         await init();
       }
-      await _errorPlayer?.stop();
+      if (!kIsWeb) {
+        await _errorPlayer?.stop();
+      }
       await _errorPlayer?.play(
         AssetSource('audio/error_beep.wav'),
         mode: PlayerMode.lowLatency,
@@ -82,7 +87,9 @@ class KarlizSoundService {
       if (_beepPlayer == null) {
         await init();
       }
-      await _beepPlayer?.stop();
+      if (!kIsWeb) {
+        await _beepPlayer?.stop();
+      }
       await _beepPlayer?.play(
         AssetSource('audio/barcode_beep.wav'),
         mode: PlayerMode.lowLatency,

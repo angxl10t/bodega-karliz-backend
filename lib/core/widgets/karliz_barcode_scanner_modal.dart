@@ -318,7 +318,7 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Verifique los permisos de cámara en Android o use el ingreso manual.',
+                            'Verifique los permisos de cámara en los ajustes del dispositivo/navegador o use el ingreso manual.',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
@@ -537,8 +537,22 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
                         : Colors.black45,
                     tooltip: 'Linterna',
                     onTap: () async {
-                      await _controller.toggleTorch();
-                      setState(() => _isTorchOn = !_isTorchOn);
+                      try {
+                        await _controller.toggleTorch();
+                        if (mounted) setState(() => _isTorchOn = !_isTorchOn);
+                      } catch (_) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'La linterna no está disponible en este navegador',
+                              ),
+                              duration: Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
                     },
                   ),
                   const SizedBox(height: 12),
@@ -547,7 +561,11 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
                     color: Colors.white,
                     bgColor: Colors.black45,
                     tooltip: 'Girar Cámara',
-                    onTap: () => _controller.switchCamera(),
+                    onTap: () async {
+                      try {
+                        await _controller.switchCamera();
+                      } catch (_) {}
+                    },
                   ),
                   const SizedBox(height: 12),
                   _buildCircularButton(
