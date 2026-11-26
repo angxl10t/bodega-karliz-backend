@@ -327,12 +327,37 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
                           ),
                           const SizedBox(height: 20),
                           ElevatedButton.icon(
-                            onPressed: _abrirDialogoManual,
-                            icon: const Icon(LucideIcons.keyboard, size: 18),
-                            label: const Text('Ingresar Código Manualmente'),
+                            onPressed: () async {
+                              try {
+                                await _controller.start();
+                              } catch (_) {}
+                            },
+                            icon: const Icon(LucideIcons.refreshCw, size: 18),
+                            label: const Text('Solicitar Permiso / Reintentar'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.brandPrimary,
                               foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _abrirDialogoManual,
+                            icon: const Icon(LucideIcons.keyboard, size: 18),
+                            label: const Text('Ingresar Código Manualmente'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white24),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),

@@ -34,7 +34,7 @@
 
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com blob:; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://*.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:* data: blob: wss:; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com blob:; script-src-elem 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.gstatic.com https://*.gstatic.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://*.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:* https://cdn.jsdelivr.net https://unpkg.com data: blob: wss:; worker-src 'self' blob: https://cdn.jsdelivr.net; child-src 'self' blob:; object-src 'none';">
 
   <!-- Fuentes Locales Pre-cargadas para Evitar FOUT/FOIT y Saltos de Tipografía en Safari iOS -->
   <link rel="preload" href="fonts/Outfit-900.ttf" as="font" type="font/ttf" crossorigin>
@@ -346,7 +346,7 @@
     // Registro de Service Worker para habilitación de PWA e instalación en Escritorio (Chrome / Edge)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('sw.js?v=26').catch(function(err) {
+        navigator.serviceWorker.register('sw.js?v=27').catch(function(err) {
           console.warn('PWA service worker registration notice:', err);
         });
       });
