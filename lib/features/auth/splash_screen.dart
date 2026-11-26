@@ -281,6 +281,15 @@ class _SplashScreenState extends State<SplashScreen>
         WidgetsBinding.instance.platformDispatcher.platformBrightness ==
             Brightness.dark;
 
+    // En Web, index.html ya ejecuta la animación cinemática 100% GPU en su propio lienzo.
+    // Mantener un lienzo limpio en Flutter elimina el doble logo desfasado y el salto de 40px en Safari iOS.
+    if (kIsWeb) {
+      return Scaffold(
+        backgroundColor: isDark ? AppTheme.bgDark : Colors.white,
+        body: const SizedBox.expand(),
+      );
+    }
+
     return Scaffold(
       backgroundColor: isDark ? AppTheme.bgDark : Colors.white,
       body: Stack(
