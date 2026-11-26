@@ -9,6 +9,7 @@ import '../../core/cajaya_vectors.dart';
 import '../../core/permisos_cajero_service.dart';
 import '../../core/theme.dart';
 import '../../core/theme_provider.dart';
+import '../../core/web_loader.dart';
 
 /// Pantalla de bienvenida (Splash Screen) ultra-fluida para CajaYa POS.
 ///
@@ -117,9 +118,12 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _exitController, curve: Curves.easeInCubic),
     );
 
-    // En Web, si el HTML ya reprodujo la entrada, fijar directamente en 1.0 para continuidad perfecta
+    // En Web, si el HTML ya reprodujo la entrada, fijar directamente en 1.0 y remover loader HTML
     if (kIsWeb) {
       _entranceController.value = 1.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        dismissWebLoader();
+      });
     } else {
       _entranceController.forward();
     }
@@ -176,10 +180,16 @@ class _SplashScreenState extends State<SplashScreen>
 
       // Disolver suavemente la pantalla antes de la transición de ruta
       await _exitController.forward();
+      if (kIsWeb) {
+        dismissWebLoader();
+      }
       if (mounted) {
         context.go(destinationRoute);
       }
     } catch (_) {
+      if (kIsWeb) {
+        dismissWebLoader();
+      }
       if (mounted) {
         context.go('/login');
       }
@@ -188,6 +198,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    if (kIsWeb) {
+      dismissWebLoader();
+    }
     _entranceController.dispose();
     _shimmerController.dispose();
     _exitController.dispose();

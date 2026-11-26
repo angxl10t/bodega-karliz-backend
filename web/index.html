@@ -104,15 +104,26 @@
       font-family: 'Outfit', sans-serif;
     }
     #loading-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      width: 100vw;
       background-color: var(--bg-color);
-      position: relative;
-      transition: opacity 0.35s ease, visibility 0.35s ease;
+      z-index: 999999;
+      pointer-events: auto;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity;
+    }
+    #loading-container.loaded {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
     .ambient-glow {
       position: absolute;
@@ -122,7 +133,7 @@
       background: radial-gradient(circle, rgba(37, 99, 235, 0.09) 0%, rgba(56, 189, 248, 0.03) 50%, transparent 72%);
       pointer-events: none;
       opacity: 0;
-      animation: glowFade 0.5s ease forwards;
+      animation: glowFade 0.4s ease forwards;
     }
     @media (prefers-color-scheme: dark) {
       .ambient-glow {
@@ -140,12 +151,24 @@
       gap: 12px;
       position: relative;
       z-index: 10;
-      will-change: transform, opacity;
+      will-change: opacity, transform;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      animation: cleanEntrance 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+    @keyframes cleanEntrance {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 6px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
     .logo-box {
       width: 46px;
       height: 46px;
@@ -155,40 +178,18 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 6px 18px var(--pos-shadow);
-      animation: iconPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: transform;
     }
     .logo-box svg {
       width: 27px;
       height: 27px;
       fill: #FFFFFF;
     }
-    @keyframes iconPop {
-      0% {
-        opacity: 0;
-        transform: scale(0.72) rotate(-8deg);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1) rotate(0deg);
-      }
-    }
 
     .wordmark-group {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      opacity: 0;
-      animation: textSlideReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
-    }
-    @keyframes textSlideReveal {
-      0% {
-        opacity: 0;
-        transform: translateX(-10px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
     }
 
     .wordmark {
@@ -229,7 +230,7 @@
       align-items: center;
       gap: 10px;
       opacity: 0;
-      animation: glowFade 0.5s ease 0.2s forwards;
+      animation: glowFade 0.4s ease 0.15s forwards;
     }
     .shimmer-track {
       width: 110px;
@@ -245,6 +246,7 @@
       width: 45%;
       background: linear-gradient(90deg, transparent, #38BDF8, #60A5FA, transparent);
       border-radius: 10px;
+      will-change: transform;
       animation: shimmerGlide 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
     .shimmer-label {
@@ -255,8 +257,8 @@
     }
 
     @keyframes shimmerGlide {
-      0% { left: -50%; }
-      100% { left: 110%; }
+      0% { transform: translate3d(-100%, 0, 0); }
+      100% { transform: translate3d(240%, 0, 0); }
     }
   </style>
 </head>
@@ -292,6 +294,57 @@
         });
       });
     }
+  </script>
+
+  <script>
+    // Gestor de remoción del contenedor de carga (HTML -> Flutter Web)
+    (function() {
+      var dismissed = false;
+      function dismissLoadingScreen() {
+        if (dismissed) return;
+        dismissed = true;
+        var container = document.getElementById('loading-container');
+        if (container) {
+          container.classList.add('loaded');
+          setTimeout(function() {
+            if (container && container.parentNode) {
+              container.parentNode.removeChild(container);
+            }
+          }, 380);
+        }
+      }
+      window.dismissCajaYaLoader = dismissLoadingScreen;
+
+      // 1. Observer: Detectar cuando Flutter monta elementos en el DOM
+      function setupObserver() {
+        if (!document.body) return;
+        var observer = new MutationObserver(function(mutations, obs) {
+          var flutterApp = document.querySelector('flutter-view') ||
+                           document.querySelector('flt-glass-pane') ||
+                           document.querySelector('flt-scene-host') ||
+                           document.querySelector('flt-renderer');
+          if (flutterApp) {
+            obs.disconnect();
+            requestAnimationFrame(function() {
+              setTimeout(dismissLoadingScreen, 50);
+            });
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupObserver);
+      } else {
+        setupObserver();
+      }
+
+      // 2. Evento estándar de Flutter si el browser lo dispara
+      window.addEventListener('flutter-first-frame', dismissLoadingScreen);
+
+      // 3. Fallback de seguridad: si pasan 3.5 segundos, forzar el desvanecimiento para evitar que quede perenne
+      setTimeout(dismissLoadingScreen, 3500);
+    })();
   </script>
 
   <script src="flutter_bootstrap.js?v=1.0.25_v22" async></script>
