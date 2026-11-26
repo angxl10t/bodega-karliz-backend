@@ -157,8 +157,19 @@
       z-index: 10;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
-      transform: translate3d(0, 0, 0);
+      transform: translate3d(108px, 0, 0);
+      animation: lockupSlide 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: transform;
     }
+    @keyframes lockupSlide {
+      0%, 35% {
+        transform: translate3d(108px, 0, 0);
+      }
+      100% {
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
     .real-app-icon {
       width: 54px;
       height: 54px;
@@ -169,19 +180,15 @@
       position: relative;
       background-color: #2563EB;
       filter: drop-shadow(0 8px 20px rgba(37, 99, 235, 0.40));
-      animation: iconKinetic 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: iconPopIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       will-change: transform, opacity;
       -webkit-backface-visibility: hidden;
-      transform: translate3d(108px, 0, 0);
+      transform: translate3d(0, 0, 0);
     }
-    @keyframes iconKinetic {
+    @keyframes iconPopIn {
       0% {
         opacity: 0;
-        transform: translate3d(108px, 8px, 0) scale(0.88);
-      }
-      35% {
-        opacity: 1;
-        transform: translate3d(108px, 0, 0) scale(1);
+        transform: translate3d(0, 8px, 0) scale(0.88);
       }
       100% {
         opacity: 1;
@@ -194,12 +201,13 @@
       align-items: center;
       gap: 8px;
       padding-left: 12px;
+      position: relative;
       z-index: 10;
       white-space: nowrap;
       animation: textKineticPush 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       will-change: transform, opacity, clip-path;
       -webkit-backface-visibility: hidden;
-      transform: translate3d(-30px, 0, 0);
+      transform: translate3d(-40px, 0, 0);
       clip-path: inset(0 100% 0 0);
       -webkit-clip-path: inset(0 100% 0 0);
       opacity: 0;
@@ -207,7 +215,7 @@
     @keyframes textKineticPush {
       0%, 35% {
         opacity: 0;
-        transform: translate3d(-30px, 0, 0);
+        transform: translate3d(-40px, 0, 0);
         clip-path: inset(0 100% 0 0);
         -webkit-clip-path: inset(0 100% 0 0);
       }
@@ -331,7 +339,7 @@
     // Registro de Service Worker para habilitación de PWA e instalación en Escritorio (Chrome / Edge)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('sw.js?v=23').catch(function(err) {
+        navigator.serviceWorker.register('sw.js?v=24').catch(function(err) {
           console.warn('PWA service worker registration notice:', err);
         });
       });
@@ -414,6 +422,6 @@
     })();
   </script>
 
-  <script src="flutter_bootstrap.js?v=1.0.25_v23" async></script>
+  <script src="flutter_bootstrap.js?v=1.0.25_v24" async></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // Service Worker para CajaYa Cloud POS (PWA)
-const CACHE_NAME = 'cajaya-pwa-v23';
+const CACHE_NAME = 'cajaya-pwa-v24';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
