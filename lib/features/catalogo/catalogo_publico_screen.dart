@@ -5410,7 +5410,7 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() => notasCtrl.dispose());
   }
 
   void _mostrarCarritoModal() {

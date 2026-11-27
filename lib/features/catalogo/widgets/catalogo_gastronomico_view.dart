@@ -82,6 +82,12 @@ class CatalogoGastronomicoView extends StatefulWidget {
 class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
   final ScrollController _catScrollCtrl = ScrollController();
 
+  @override
+  void dispose() {
+    _catScrollCtrl.dispose();
+    super.dispose();
+  }
+
   String get _giroNegocio =>
       (widget.bodega['giroNegocio']?.toString() ?? 'POLLERIA').toUpperCase();
 

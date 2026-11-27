@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 class SecurityGuard {
   /// Verifica si el dispositivo presenta indicios de Root o modificación de sistema
   static bool isDeviceRooted() {
-    if (kIsWeb || !Platform.isAndroid) return false;
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return false;
 
     // Rutas conocidas de binarios de escalación de privilegios y paquetes SuperUser/Magisk
     const paths = [
