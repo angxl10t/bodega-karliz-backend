@@ -1023,7 +1023,7 @@ class ResumenNuevoRus {
     double parseDouble(dynamic val) {
       if (val == null) return 0.0;
       if (val is num) return val.toDouble();
-      return double.tryParse(val.toString()) ?? 0.0;
+      return double.tryParse(val.toString().replaceAll(',', '.')) ?? 0.0;
     }
 
     return ResumenNuevoRus(

@@ -1977,6 +1977,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                 .toString()
                                                 .trim(),
                                             fit: BoxFit.cover,
+                                            cacheWidth: 300,
+                                            cacheHeight: 300,
                                             errorBuilder: (_, _, _) => Center(
                                               child: Icon(
                                                 LucideIcons.store,

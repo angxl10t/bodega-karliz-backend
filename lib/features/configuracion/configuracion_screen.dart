@@ -531,9 +531,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   }
 
   Color _hexToColor(String hex) {
-    String cleanHex = hex.replaceAll('#', '');
-    if (cleanHex.length == 6) cleanHex = 'FF$cleanHex';
-    return Color(int.parse('0x$cleanHex'));
+    try {
+      String cleanHex = hex.replaceAll('#', '').trim();
+      if (cleanHex.length == 6) cleanHex = 'FF$cleanHex';
+      final val = int.tryParse(cleanHex, radix: 16);
+      if (val != null) return Color(val);
+    } catch (_) {}
+    return AppTheme.brandPrimary;
   }
 
   @override
