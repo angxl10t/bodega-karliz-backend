@@ -100,11 +100,21 @@ class PermisosCajeroService {
 
   static PermisosCajero _cachedPermisos = const PermisosCajero();
   static bool _inicializado = false;
+  static bool _cleanupRegistered = false;
+
+  static void _ensureCleanupRegistered() {
+    if (_cleanupRegistered) return;
+    _cleanupRegistered = true;
+    SecureStorageService.registerSessionCleanup(resetMemory);
+  }
 
   /// Notificador para que los widgets se redibujen automáticamente cuando cambian los permisos
   static final ValueNotifier<int> permisosRevision = ValueNotifier<int>(0);
 
-  static PermisosCajero get currentPermisos => _cachedPermisos;
+  static PermisosCajero get currentPermisos {
+    _ensureCleanupRegistered();
+    return _cachedPermisos;
+  }
 
   /// Si el usuario actual es ADMIN o SUPERADMIN, tiene todos los permisos activos sin restricción
   static bool get esAdminOsuperior => AuthService.esAdmin;
@@ -168,6 +178,7 @@ class PermisosCajeroService {
     String? username,
     bool forceRefresh = false,
   }) async {
+    _ensureCleanupRegistered();
     if (_inicializado &&
         bodegaId == null &&
         username == null &&

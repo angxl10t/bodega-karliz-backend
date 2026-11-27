@@ -2022,7 +2022,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('No se pudo comprobar actualizaciones: '),
+            content: Text('No se pudo comprobar actualizaciones: $e'),
             backgroundColor: AppTheme.alertRed,
           ),
         );

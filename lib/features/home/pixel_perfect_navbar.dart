@@ -170,6 +170,7 @@ class _KarlizPixelPerfectNavBarState extends State<KarlizPixelPerfectNavBar>
           const cornerRadius = 22.0;
           final pad = max(18.0, cornerRadius);
           final tabList = widget.currentItems;
+          if (tabList.isEmpty) return const SizedBox.shrink();
           final tabWidth = (w - 2 * pad) / tabList.length;
           final span = min(30.0, tabWidth * 0.44);
 
