@@ -38,6 +38,9 @@ import '../promociones/promociones_screen.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_models.dart';
+import '../../core/notificaciones/notificacion_service.dart';
+import '../../core/notificaciones/notificaciones_campana_button.dart';
+import '../../core/notificaciones/in_app_notification_banner.dart';
 import '../../core/window/window_service.dart';
 
 import 'package:shorebird_code_push/shorebird_code_push.dart';
@@ -78,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _lastInactivityResetAt;
   bool _orientationConfigured = false;
   bool _railCollapsed = false;
+  StreamSubscription<NotificacionItem>? _notifSubscription;
 
   void _selectTab(int index) {
     final safeIndex = index.clamp(0, _screens.length - 1);
@@ -117,6 +121,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     OfflineSyncManager.instance.init();
+    NotificacionService.iniciarStream();
+    _notifSubscription = NotificacionService.onNotificacionRecibida.listen((
+      notif,
+    ) {
+      if (!mounted) return;
+      InAppNotificationBanner.show(
+        context,
+        notif,
+        onTapAction: () {
+          if (notif.esPedidoWeb) {
+            _selectTab(1); // Ventas / Mostrador
+          } else if (notif.esStockCritico) {
+            _selectTab(3); // Inventario / Productos
+          }
+        },
+      );
+    });
     BodegaService.sugerenciasPendientesNotifier.addListener(
       _onSugerenciasNotifierChanged,
     );
@@ -151,6 +172,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     HardwareKeyboard.instance.removeHandler(_handleGlobalShortcut);
+    _notifSubscription?.cancel();
+    NotificacionService.detenerStream();
     BodegaService.sugerenciasPendientesNotifier.removeListener(
       _onSugerenciasNotifierChanged,
     );
@@ -2459,7 +2482,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Botón rápido de alternancia de tema con efecto de gota de agua líquida
                     Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: 6),
                       child: Center(
                         child: WaterDropThemeButton(
                           isDark: isDark,
@@ -2474,6 +2497,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderColor: isDark
                               ? AppTheme.borderDark
                               : const Color(0xFFCBD5E1),
+                        ),
+                      ),
+                    ),
+
+                    // Campana de Alertas y Notificaciones en Tiempo Real (SSE)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Center(
+                        child: NotificacionesCampanaButton(
+                          onAbrirPedidosWeb: () => _selectTab(1),
+                          onAbrirComprasInventario: () => _selectTab(3),
                         ),
                       ),
                     ),
@@ -2739,6 +2773,11 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: 11,
           backgroundColor: isDark ? AppTheme.cardDark : Colors.white,
           borderColor: isDark ? AppTheme.borderDark : const Color(0xFFCBD5E1),
+        ),
+        const SizedBox(width: 6),
+        NotificacionesCampanaButton(
+          onAbrirPedidosWeb: () => _selectTab(1),
+          onAbrirComprasInventario: () => _selectTab(3),
         ),
         if (showFullscreen) ...[
           const SizedBox(width: 6),
