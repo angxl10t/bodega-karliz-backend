@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 @Service
 public class VentaService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VentaService.class);
+
     private final VentaRepository ventaRepository;
     private final VentaDetalleRepository ventaDetalleRepository;
     private final ProductoRepository productoRepository;
@@ -36,6 +38,7 @@ public class VentaService {
     private final SunatRestEmissionService sunatRestEmissionService;
     private final ClienteRepository clienteRepository;
     private final AnalyticsService analyticsService;
+    private final NotificacionService notificacionService;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaDetalleRepository ventaDetalleRepository,
@@ -46,7 +49,7 @@ public class VentaService {
                         SunatRestEmissionService sunatRestEmissionService,
                         ClienteRepository clienteRepository) {
         this(ventaRepository, ventaDetalleRepository, productoRepository, movimientoInventarioRepository,
-             tenantService, bodegaRepository, sunatRestEmissionService, clienteRepository, null);
+             tenantService, bodegaRepository, sunatRestEmissionService, clienteRepository, null, null);
     }
 
     @Autowired
@@ -58,7 +61,8 @@ public class VentaService {
                         com.bodega.backend.repository.BodegaRepository bodegaRepository,
                         SunatRestEmissionService sunatRestEmissionService,
                         ClienteRepository clienteRepository,
-                        @Autowired(required = false) AnalyticsService analyticsService) {
+                        @Autowired(required = false) AnalyticsService analyticsService,
+                        @Autowired(required = false) NotificacionService notificacionService) {
         this.ventaRepository = ventaRepository;
         this.ventaDetalleRepository = ventaDetalleRepository;
         this.productoRepository = productoRepository;
@@ -68,6 +72,7 @@ public class VentaService {
         this.sunatRestEmissionService = sunatRestEmissionService;
         this.clienteRepository = clienteRepository;
         this.analyticsService = analyticsService;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional
@@ -201,6 +206,41 @@ public class VentaService {
         if (!productosAActualizar.isEmpty()) {
             productoRepository.saveAll(productosAActualizar);
             movimientoInventarioRepository.saveAll(movimientosAGuardar);
+
+            // Verificación y emisión de alertas de Stock Crítico (SSE) exclusivas para Administradores
+            if (notificacionService != null) {
+                for (Producto prod : productosAActualizar) {
+                    BigDecimal stockActual = prod.getStockActual() != null ? prod.getStockActual() : BigDecimal.ZERO;
+                    BigDecimal stockMin = prod.getStockMinimo() != null ? prod.getStockMinimo() : BigDecimal.valueOf(5);
+                    if (stockActual.compareTo(stockMin) <= 0) {
+                        try {
+                            String meta = String.format("{\"idProducto\":%d,\"nombre\":\"%s\",\"stockActual\":%s,\"stockMinimo\":%s}",
+                                    prod.getIdProducto(),
+                                    prod.getNombre() != null ? prod.getNombre().replace("\"", "\\\"") : "Producto",
+                                    stockActual,
+                                    stockMin);
+                            boolean agotado = stockActual.compareTo(BigDecimal.ZERO) <= 0;
+                            String titulo = agotado
+                                    ? "🔴 Stock Agotado: " + prod.getNombre()
+                                    : "⚠️ Stock Crítico: " + prod.getNombre();
+                            String mensaje = "Quedan solo " + stockActual + " unidades en almacén (Mínimo: " + stockMin + "). Reponer pronto.";
+
+                            notificacionService.crearYNotificar(
+                                    bodega != null ? bodega : prod.getBodega(),
+                                    null,
+                                    "ADMIN",
+                                    "STOCK_CRITICO",
+                                    titulo,
+                                    mensaje,
+                                    meta,
+                                    agotado ? "ALTA" : "MEDIA"
+                            );
+                        } catch (Exception notifEx) {
+                            log.error("[VentaService] Error emitiendo alerta de stock crítico: {}", notifEx.getMessage());
+                        }
+                    }
+                }
+            }
         }
 
         if (totalVenta.compareTo(BigDecimal.ZERO) <= 0) {

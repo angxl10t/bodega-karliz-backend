@@ -27,6 +27,7 @@ public class PedidoWebService {
 
     private final PedidoWebRepository pedidoWebRepository;
     private final ProductoRepository productoRepository;
+    private final NotificacionService notificacionService;
 
     // Control de revisiones en memoria ultraligero:
     // Evita consultas a PostgreSQL cuando no hay nuevos pedidos (0% DB overhead en sondeo POS)
@@ -36,8 +37,15 @@ public class PedidoWebService {
 
     public PedidoWebService(PedidoWebRepository pedidoWebRepository,
                             ProductoRepository productoRepository) {
+        this(pedidoWebRepository, productoRepository, null);
+    }
+
+    public PedidoWebService(PedidoWebRepository pedidoWebRepository,
+                            ProductoRepository productoRepository,
+                            @org.springframework.beans.factory.annotation.Autowired(required = false) NotificacionService notificacionService) {
         this.pedidoWebRepository = pedidoWebRepository;
         this.productoRepository = productoRepository;
+        this.notificacionService = notificacionService;
     }
 
     /**
@@ -140,6 +148,30 @@ public class PedidoWebService {
         Long idBodega = bodega.getIdBodega();
         revisionPorBodega.compute(idBodega, (k, v) -> v == null ? 1L : v + 1L);
         conteoPendientesPorBodega.compute(idBodega, (k, v) -> v == null ? 1L : v + 1L);
+
+        // Disparar notificación SSE en tiempo real a administradores y cajeros
+        if (notificacionService != null) {
+            try {
+                String meta = String.format("{\"idPedidoWeb\":%d,\"codigoPedido\":\"%s\",\"total\":%s,\"cliente\":\"%s\"}",
+                        guardado.getIdPedidoWeb(),
+                        guardado.getCodigoPedido(),
+                        guardado.getTotal() != null ? guardado.getTotal().toString() : "0.00",
+                        guardado.getNombreCliente() != null ? guardado.getNombreCliente().replace("\"", "\\\"") : "Cliente");
+
+                notificacionService.crearYNotificar(
+                        bodega,
+                        null,
+                        "TODOS",
+                        "NUEVO_PEDIDO_WEB",
+                        "¡Nuevo Pedido Web " + guardado.getCodigoPedido() + "!",
+                        "Cliente: " + guardado.getNombreCliente() + " • Total: S/ " + guardado.getTotal(),
+                        meta,
+                        "ALTA"
+                );
+            } catch (Exception notifEx) {
+                log.error("[PedidoWeb] Error emitiendo notificación SSE: {}", notifEx.getMessage());
+            }
+        }
 
         log.info("Pedido web registrado exitosamente [id={}, codigo={}, bodega={}]",
                 guardado.getIdPedidoWeb(), guardado.getCodigoPedido(), idBodega);
