@@ -82,6 +82,7 @@ class _MonitorNuevoRusModalState extends State<MonitorNuevoRusModal> {
   }
 
   Future<void> _cambiarRegimen(bool esNuevoRus) async {
+    if (_isSaving) return;
     final nuevoRegimen = esNuevoRus ? 'NUEVO_RUS' : 'INFORMAL';
 
     setState(() => _isSaving = true);

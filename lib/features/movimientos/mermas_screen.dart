@@ -812,6 +812,7 @@ class _RegistrarMermaSheetState extends State<_RegistrarMermaSheet> {
   }
 
   Future<void> _guardarMerma() async {
+    if (_isSaving) return;
     if (!_formKey.currentState!.validate() || _productoSeleccionado == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

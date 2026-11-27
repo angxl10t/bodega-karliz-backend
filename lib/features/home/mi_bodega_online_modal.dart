@@ -300,6 +300,7 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
   }
 
   Future<void> _guardarTelefono() async {
+    if (_guardandoTelefono) return;
     final nuevo = _telefonoCtrl.text.trim();
     if (nuevo.isNotEmpty && nuevo.length != 9) {
       ScaffoldMessenger.of(context).showSnackBar(

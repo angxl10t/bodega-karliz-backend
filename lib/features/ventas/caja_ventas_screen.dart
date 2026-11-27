@@ -2384,6 +2384,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
   }
 
   Future<void> _confirmarAnulacion(VentaRegistro venta) async {
+    if (_isLoading) return;
     if (!_esAdmin) {
       final autorizado = await SolicitarPinDialog.mostrar(
         context,
@@ -2613,31 +2614,36 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     }
 
     if (resultado?.confirmar == true) {
-      final res = await _ventaService.anularVentaConDetalle(
-        venta.idVenta,
-        motivo: resultado!.motivo.isNotEmpty ? resultado.motivo : null,
-      );
-      if (mounted) {
-        if (res.ok) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Venta #${venta.idVenta} anulada con éxito. Stock restablecido.',
+      setState(() => _isLoading = true);
+      try {
+        final res = await _ventaService.anularVentaConDetalle(
+          venta.idVenta,
+          motivo: resultado!.motivo.isNotEmpty ? resultado.motivo : null,
+        );
+        if (mounted) {
+          if (res.ok) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Venta #${venta.idVenta} anulada con éxito. Stock restablecido.',
+                ),
+                backgroundColor: AppTheme.accentGreen,
               ),
-              backgroundColor: AppTheme.accentGreen,
-            ),
-          );
-          _cargarDatos();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                res.error ?? 'Error al anular la venta en el servidor',
+            );
+            _cargarDatos();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  res.error ?? 'Error al anular la venta en el servidor',
+                ),
+                backgroundColor: AppTheme.alertRed,
               ),
-              backgroundColor: AppTheme.alertRed,
-            ),
-          );
+            );
+          }
         }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }

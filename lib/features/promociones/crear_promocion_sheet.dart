@@ -193,6 +193,7 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
   }
 
   Future<void> _guardar() async {
+    if (_guardando) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _guardando = true);

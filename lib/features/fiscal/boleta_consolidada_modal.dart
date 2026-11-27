@@ -187,6 +187,7 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
   }
 
   Future<void> _guardarRegistro({bool imprimirAlTerminar = false}) async {
+    if (_isSaving) return;
     if (!_formKey.currentState!.validate()) return;
 
     final monto = double.tryParse(_montoCtrl.text.replaceAll(',', '.')) ?? 0.0;

@@ -143,6 +143,7 @@ class _NuevoClienteSheetState extends State<NuevoClienteSheet> {
   }
 
   Future<void> _guardar() async {
+    if (_isGuardando) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {

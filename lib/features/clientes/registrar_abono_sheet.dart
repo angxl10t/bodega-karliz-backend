@@ -79,6 +79,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
   }
 
   Future<void> _procesarAbono() async {
+    if (_isGuardando) return;
     final monto =
         double.tryParse(_montoCtrl.text.replaceAll(',', '.').trim()) ?? 0.0;
     if (monto <= 0) {

@@ -56,6 +56,7 @@ class _RegistroBodegaSheetState extends State<RegistroBodegaSheet> {
   }
 
   Future<void> _submit() async {
+    if (_isLoading) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {

@@ -133,6 +133,7 @@ class _ConfiguracionTicketModalState extends State<ConfiguracionTicketModal> {
   }
 
   Future<void> _guardar() async {
+    if (_isSaving) return;
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
     final cfg = _obtenerConfiguracionActual();

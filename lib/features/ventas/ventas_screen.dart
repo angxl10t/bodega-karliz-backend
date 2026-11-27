@@ -2614,6 +2614,7 @@ class _VentasScreenState extends State<VentasScreen>
   }
 
   Future<void> _registrarConsumoInterno() async {
+    if (_isProcesando) return;
     if (_carrito.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -2814,20 +2815,19 @@ class _VentasScreenState extends State<VentasScreen>
         }
       }
 
+      if (!mounted) return;
       setState(() => _isProcesando = false);
       _vaciarCarrito();
       KarlizSoundService.instance.playBarcodeBeep();
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '✅ $exitos productos registrados como consumo interno de bodega.',
-            ),
-            backgroundColor: const Color(0xFF8B5CF6),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '✅ $exitos productos registrados como consumo interno de bodega.',
           ),
-        );
-      }
+          backgroundColor: const Color(0xFF8B5CF6),
+        ),
+      );
     }
   }
 
@@ -3218,14 +3218,13 @@ class _VentasScreenState extends State<VentasScreen>
       final productosFrescos = await _productoService.getProductos(
         forceRefresh: true,
       );
-      if (mounted) {
-        setState(() {
-          _productosDisponibles = List<Producto>.from(
-            productosFrescos.where((p) => p.stockActual > 0),
-          );
-          _recalcularTabletCatalogCache();
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _productosDisponibles = List<Producto>.from(
+          productosFrescos.where((p) => p.stockActual > 0),
+        );
+        _recalcularTabletCatalogCache();
+      });
 
       for (final p in productosFrescos) {
         if (_coincideCodigo(p, codeClean)) {
@@ -3259,6 +3258,7 @@ class _VentasScreenState extends State<VentasScreen>
           final productosFrescos = await _productoService.getProductos(
             forceRefresh: true,
           );
+          if (!mounted) return;
           for (final p in productosFrescos) {
             if (_coincideCodigoBalanza(p, prodSku5, prodSku4)) {
               productoEncontrado = p;

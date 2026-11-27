@@ -65,6 +65,7 @@ class _DevolverBotellaDialogState extends State<DevolverBotellaDialog> {
   }
 
   Future<void> _confirmarDevolucion() async {
+    if (_procesando) return;
     setState(() => _procesando = true);
     HapticFeedback.heavyImpact();
 
