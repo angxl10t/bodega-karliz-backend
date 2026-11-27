@@ -593,12 +593,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         },
       ),
     ).then((_) {
-      nombreCtrl.dispose();
-      rucCtrl.dispose();
-      telCtrl.dispose();
-      dirCtrl.dispose();
-      userCtrl.dispose();
-      passCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () {
+        nombreCtrl.dispose();
+        rucCtrl.dispose();
+        telCtrl.dispose();
+        dirCtrl.dispose();
+        userCtrl.dispose();
+        passCtrl.dispose();
+      });
     });
   }
 
@@ -1035,7 +1037,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           );
         },
       ),
-    ).then((_) => msgCtrl.dispose());
+    ).then((_) {
+      Future.delayed(const Duration(milliseconds: 350), () => msgCtrl.dispose());
+    });
   }
 
   Future<void> _eliminarAnuncio() async {
@@ -1505,7 +1509,9 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           );
         },
       ),
-    ).then((_) => passCtrl.dispose());
+    ).then((_) {
+      Future.delayed(const Duration(milliseconds: 350), () => passCtrl.dispose());
+    });
   }
 
   Future<void> _toggleEstadoUsuario(UsuarioItem u) async {
@@ -5411,13 +5417,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         },
       ),
     ).then((_) {
-      codigoCtrl.dispose();
-      nombreCtrl.dispose();
-      marcaCtrl.dispose();
-      categoriaCtrl.dispose();
-      precioVentaCtrl.dispose();
-      precioCostoCtrl.dispose();
-      imagenUrlCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () {
+        codigoCtrl.dispose();
+        nombreCtrl.dispose();
+        marcaCtrl.dispose();
+        categoriaCtrl.dispose();
+        precioVentaCtrl.dispose();
+        precioCostoCtrl.dispose();
+        imagenUrlCtrl.dispose();
+      });
     });
   }
 
@@ -5769,11 +5777,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         },
       ),
     ).then((_) {
-      precioVentaCtrl.dispose();
-      precioCostoCtrl.dispose();
-      nombreCtrl.dispose();
-      marcaCtrl.dispose();
-      motivoCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () {
+        precioVentaCtrl.dispose();
+        precioCostoCtrl.dispose();
+        nombreCtrl.dispose();
+        marcaCtrl.dispose();
+        motivoCtrl.dispose();
+      });
     });
   }
 

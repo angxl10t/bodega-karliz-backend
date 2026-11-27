@@ -47,6 +47,9 @@ class MermasService {
     if (producto.idProducto == null || cantidad <= 0) return false;
 
     final usuario = await AuthService().getUsername();
+    final int? idProd = producto.idProducto;
+    if (idProd == null || idProd <= 0) return false;
+
     final costoTotal = cantidad * costoUnitario;
 
     final motivoKardex =
@@ -54,7 +57,7 @@ class MermasService {
 
     // 1. Descontar del inventario en backend / Kardex
     final ok = await _movimientoService.registrarAjuste(
-      idProducto: producto.idProducto!,
+      idProducto: idProd,
       cantidad: cantidad,
       tipoAjuste: motivo.toUpperCase(),
       motivo: motivoKardex,
@@ -65,7 +68,7 @@ class MermasService {
     // 2. Guardar en registro histórico de mermas
     final merma = MermaRegistro(
       idMerma: 'MRM-${DateTime.now().millisecondsSinceEpoch}',
-      idProducto: producto.idProducto!,
+      idProducto: idProd,
       nombreProducto: producto.nombre,
       cantidad: cantidad,
       motivo: motivo.toUpperCase(),

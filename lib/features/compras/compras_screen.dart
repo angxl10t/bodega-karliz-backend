@@ -1449,7 +1449,10 @@ class _ComprasScreenState extends State<ComprasScreen>
       },
     ).then((_) {
       modalDebounce?.cancel();
-      searchCtrl.dispose();
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => searchCtrl.dispose(),
+      );
     });
   }
 
@@ -1921,8 +1924,10 @@ class _ComprasScreenState extends State<ComprasScreen>
         },
       ),
     ).then((_) {
-      cantCtrl.dispose();
-      costoCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () {
+        cantCtrl.dispose();
+        costoCtrl.dispose();
+      });
     });
   }
 

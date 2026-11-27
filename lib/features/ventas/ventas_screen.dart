@@ -1288,7 +1288,10 @@ class _VentasScreenState extends State<VentasScreen>
           ? refCtrl.text.trim()
           : 'Cliente ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
     } finally {
-      refCtrl.dispose();
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => refCtrl.dispose(),
+      );
     }
 
     if (confirmado == true) {
@@ -2587,8 +2590,10 @@ class _VentasScreenState extends State<VentasScreen>
           ? motivoCtrl.text.trim()
           : 'Cortesía';
     } finally {
-      valorCtrl.dispose();
-      motivoCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () {
+        valorCtrl.dispose();
+        motivoCtrl.dispose();
+      });
     }
 
     if (resultado == true) {
@@ -2805,7 +2810,10 @@ class _VentasScreenState extends State<VentasScreen>
           ? motivoCtrl.text.trim()
           : 'Consumo interno de bodega';
     } finally {
-      motivoCtrl.dispose();
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => motivoCtrl.dispose(),
+      );
     }
 
     if (confirmado == true) {
@@ -4025,8 +4033,10 @@ class _VentasScreenState extends State<VentasScreen>
         },
       ),
     ).then((_) {
-      cantCtrl.dispose();
-      dineroCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () {
+        cantCtrl.dispose();
+        dineroCtrl.dispose();
+      });
     });
   }
 
@@ -6496,7 +6506,10 @@ class _VentasScreenState extends State<VentasScreen>
       },
     ).then((_) {
       modalDebounce?.cancel();
-      searchCtrl.dispose();
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => searchCtrl.dispose(),
+      );
     });
   }
 
@@ -13011,7 +13024,10 @@ class _VentasScreenState extends State<VentasScreen>
       },
     ).whenComplete(() {
       searchDebounce?.cancel();
-      searchCtrl.dispose();
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => searchCtrl.dispose(),
+      );
     });
   }
 

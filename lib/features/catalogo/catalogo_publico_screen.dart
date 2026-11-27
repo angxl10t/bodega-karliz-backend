@@ -5434,7 +5434,12 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
           },
         );
       },
-    ).whenComplete(() => notasCtrl.dispose());
+    ).whenComplete(() {
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => notasCtrl.dispose(),
+      );
+    });
   }
 
   void _mostrarCarritoModal() {

@@ -1331,7 +1331,7 @@ class PagoYapeModal {
         ),
       );
     } finally {
-      codOperacionCtrl.dispose();
+      Future.delayed(const Duration(milliseconds: 350), () => codOperacionCtrl.dispose());
     }
   }
 }

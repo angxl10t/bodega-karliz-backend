@@ -1038,7 +1038,7 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
       }
     }
   } finally {
-    ctrl.dispose();
+    Future.delayed(const Duration(milliseconds: 350), () => ctrl.dispose());
   }
 }
 
@@ -2628,7 +2628,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         ),
       );
     } finally {
-      motivoCtrl.dispose();
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => motivoCtrl.dispose(),
+      );
     }
 
     if (resultado?.confirmar == true) {

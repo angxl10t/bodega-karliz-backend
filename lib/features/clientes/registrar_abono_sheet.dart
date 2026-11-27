@@ -95,6 +95,15 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
       return;
     }
 
+    final idCliente = widget.cliente.idCliente;
+    if (idCliente == null) {
+      setState(() {
+        _errorMsg = 'Cliente no válido (sin identificador)';
+        _isGuardando = false;
+      });
+      return;
+    }
+
     setState(() {
       _isGuardando = true;
       _errorMsg = null;
@@ -102,7 +111,7 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
 
     try {
       final abono = await _clienteService.registrarAbono(
-        widget.cliente.idCliente!,
+        idCliente,
         monto: monto,
         metodoPago: _metodoPago,
         notas: _notasCtrl.text.trim().isNotEmpty

@@ -295,9 +295,11 @@ class _ClientesScreenState extends State<ClientesScreen>
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
+              final id = c.idCliente;
+              if (id == null) return;
               Navigator.pop(ctx);
               try {
-                await _clienteService.eliminarCliente(c.idCliente!);
+                await _clienteService.eliminarCliente(id);
                 _cargarDatos(forceRefresh: true);
               } catch (e) {
                 if (mounted) {

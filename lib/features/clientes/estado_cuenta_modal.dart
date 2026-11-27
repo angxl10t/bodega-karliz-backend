@@ -47,10 +47,13 @@ class _EstadoCuentaModalState extends State<EstadoCuentaModal> {
   }
 
   Future<void> _cargar() async {
+    final idCliente = widget.cliente.idCliente;
+    if (idCliente == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
     setState(() => _isLoading = true);
-    final data = await _clienteService.getEstadoCuenta(
-      widget.cliente.idCliente!,
-    );
+    final data = await _clienteService.getEstadoCuenta(idCliente);
     if (mounted) {
       setState(() {
         _estadoCuenta = data;
