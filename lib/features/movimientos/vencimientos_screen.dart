@@ -76,11 +76,17 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
 
   Future<void> _actualizarFechaVencimiento(Producto p) async {
     final now = DateTime.now();
+    final firstDate = now.subtract(const Duration(days: 365));
+    final lastDate = now.add(const Duration(days: 365 * 3));
+    DateTime initial = p.fechaVencimiento ?? now.plusDays(30);
+    if (initial.isBefore(firstDate)) initial = firstDate;
+    if (initial.isAfter(lastDate)) initial = lastDate;
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: p.fechaVencimiento ?? now.plusDays(30),
-      firstDate: now.subtract(const Duration(days: 365)),
-      lastDate: now.add(const Duration(days: 365 * 3)),
+      initialDate: initial,
+      firstDate: firstDate,
+      lastDate: lastDate,
       helpText: 'SELECCIONA FECHA DE VENCIMIENTO / LOTE',
       confirmText: 'GUARDAR',
       cancelText: 'CANCELAR',

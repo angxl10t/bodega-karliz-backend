@@ -1138,17 +1138,26 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                             InkWell(
                               onTap: () async {
                                 final now = DateTime.now();
+                                final firstDate = now.subtract(
+                                  const Duration(days: 365),
+                                );
+                                final lastDate = now.add(
+                                  const Duration(days: 365 * 5),
+                                );
+                                DateTime initial = _fechaVencimiento ??
+                                    now.add(const Duration(days: 30));
+                                if (initial.isBefore(firstDate)) {
+                                  initial = firstDate;
+                                }
+                                if (initial.isAfter(lastDate)) {
+                                  initial = lastDate;
+                                }
+
                                 final picked = await showDatePicker(
                                   context: context,
-                                  initialDate:
-                                      _fechaVencimiento ??
-                                      now.add(const Duration(days: 30)),
-                                  firstDate: now.subtract(
-                                    const Duration(days: 365),
-                                  ),
-                                  lastDate: now.add(
-                                    const Duration(days: 365 * 5),
-                                  ),
+                                  initialDate: initial,
+                                  firstDate: firstDate,
+                                  lastDate: lastDate,
                                 );
                                 if (picked != null) {
                                   setState(() => _fechaVencimiento = picked);

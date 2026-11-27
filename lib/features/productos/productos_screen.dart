@@ -3434,18 +3434,29 @@ class _ProductosScreenState extends State<ProductosScreen>
                                       onPressed: () async {
                                         Navigator.pop(ctx);
                                         final now = DateTime.now();
+                                        final firstDate = now.subtract(
+                                          const Duration(days: 365),
+                                        );
+                                        final lastDate = now.add(
+                                          const Duration(days: 365 * 3),
+                                        );
+                                        DateTime initial =
+                                            p.fechaVencimiento ??
+                                            now.add(const Duration(days: 30));
+                                        if (initial.isBefore(firstDate)) {
+                                          initial = firstDate;
+                                        }
+                                        if (initial.isAfter(lastDate)) {
+                                          initial = lastDate;
+                                        }
+
                                         final picked = await showDatePicker(
                                           context: context,
-                                          initialDate:
-                                              p.fechaVencimiento ??
-                                              now.add(const Duration(days: 30)),
-                                          firstDate: now.subtract(
-                                            const Duration(days: 365),
-                                          ),
-                                          lastDate: now.add(
-                                            const Duration(days: 365 * 3),
-                                          ),
-                                          helpText: 'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
+                                          initialDate: initial,
+                                          firstDate: firstDate,
+                                          lastDate: lastDate,
+                                          helpText:
+                                              'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
                                           confirmText: 'GUARDAR',
                                           cancelText: 'CANCELAR',
                                         );

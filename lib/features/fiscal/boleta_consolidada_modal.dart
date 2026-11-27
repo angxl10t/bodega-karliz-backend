@@ -173,11 +173,17 @@ class _BoletaConsolidadaModalState extends State<BoletaConsolidadaModal> {
   }
 
   Future<void> _seleccionarFechaCalendario() async {
+    final firstDate = DateTime(2025, 1, 1);
+    final lastDate = DateTime.now().add(const Duration(days: 1));
+    DateTime initial = _fechaSeleccionada;
+    if (initial.isBefore(firstDate)) initial = firstDate;
+    if (initial.isAfter(lastDate)) initial = lastDate;
+
     final picked = await showDatePicker(
       context: context,
-      initialDate: _fechaSeleccionada,
-      firstDate: DateTime(2025, 1, 1),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      initialDate: initial,
+      firstDate: firstDate,
+      lastDate: lastDate,
       locale: const Locale('es', 'PE'),
     );
     if (picked != null && picked != _fechaSeleccionada) {

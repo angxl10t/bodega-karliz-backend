@@ -1301,11 +1301,21 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                         Expanded(
                           child: InkWell(
                             onTap: () async {
+                              final firstDate = DateTime(2025);
+                              final lastDate = DateTime(2030);
+                              DateTime initial = _fechaInicio ?? DateTime.now();
+                              if (initial.isBefore(firstDate)) {
+                                initial = firstDate;
+                              }
+                              if (initial.isAfter(lastDate)) {
+                                initial = lastDate;
+                              }
+
                               final picked = await showDatePicker(
                                 context: context,
-                                initialDate: _fechaInicio ?? DateTime.now(),
-                                firstDate: DateTime(2025),
-                                lastDate: DateTime(2030),
+                                initialDate: initial,
+                                firstDate: firstDate,
+                                lastDate: lastDate,
                                 builder: (ctx, child) => Theme(
                                   data: isDark
                                       ? ThemeData.dark()
@@ -1413,16 +1423,27 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                         Expanded(
                           child: InkWell(
                             onTap: () async {
-                              final initial =
-                                  _fechaFin ??
+                              final firstDate = _fechaInicio ?? DateTime(2025);
+                              DateTime lastDate = DateTime(2030);
+                              if (lastDate.isBefore(firstDate)) {
+                                lastDate = firstDate.add(const Duration(days: 365));
+                              }
+                              DateTime initial = _fechaFin ??
                                   (_fechaInicio ?? DateTime.now()).add(
                                     const Duration(days: 7),
                                   );
+                              if (initial.isBefore(firstDate)) {
+                                initial = firstDate;
+                              }
+                              if (initial.isAfter(lastDate)) {
+                                initial = lastDate;
+                              }
+
                               final picked = await showDatePicker(
                                 context: context,
                                 initialDate: initial,
-                                firstDate: _fechaInicio ?? DateTime(2025),
-                                lastDate: DateTime(2030),
+                                firstDate: firstDate,
+                                lastDate: lastDate,
                                 builder: (ctx, child) => Theme(
                                   data: isDark
                                       ? ThemeData.dark()

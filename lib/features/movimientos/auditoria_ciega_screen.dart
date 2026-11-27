@@ -119,6 +119,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
 
   Future<void> _escanearCodigo() async {
     final codigo = await KarlizBarcodeScannerModal.scan(context);
+    if (!mounted) return;
     if (codigo != null && codigo.isNotEmpty) {
       if (_sesion == null) return;
       final match = _sesion!.items.firstWhere(
@@ -220,6 +221,7 @@ class _AuditoriaCiegaScreenState extends State<AuditoriaCiegaScreen> {
   }
 
   Future<void> _aplicarRegularizacionAlSistema() async {
+    if (_isAplicandoAjuste) return;
     if (_sesion == null) return;
 
     final discrepantes = _sesion!.items
