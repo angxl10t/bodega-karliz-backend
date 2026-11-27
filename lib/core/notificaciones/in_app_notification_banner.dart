@@ -17,12 +17,11 @@ class InAppNotificationBanner {
     NotificacionItem notif, {
     VoidCallback? onTapAction,
   }) {
-    _dismissTimer?.cancel();
-    _currentEntry?.remove();
-    _currentEntry = null;
+    if (!context.mounted) return;
+    dismiss();
 
     final overlay = Overlay.maybeOf(context);
-    if (overlay == null) return;
+    if (overlay == null || !overlay.mounted) return;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -184,7 +183,13 @@ class InAppNotificationBanner {
   static void dismiss() {
     _dismissTimer?.cancel();
     _dismissTimer = null;
-    _currentEntry?.remove();
-    _currentEntry = null;
+    if (_currentEntry != null) {
+      try {
+        if (_currentEntry!.mounted) {
+          _currentEntry!.remove();
+        }
+      } catch (_) {}
+      _currentEntry = null;
+    }
   }
 }

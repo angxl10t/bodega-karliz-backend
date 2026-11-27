@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bodega_mobile/core/notificaciones/in_app_notification_banner.dart';
 import 'package:bodega_mobile/core/notificaciones/notificacion_service.dart';
 import 'package:bodega_mobile/core/notificaciones/notificaciones_sheet.dart';
 import 'package:bodega_mobile/core/notificaciones/notificaciones_campana_button.dart';
@@ -166,5 +167,57 @@ void main() {
       expect(find.text('¡Nuevo Pedido Web #W-9999!'), findsOneWidget);
       expect(find.text('⚠️ Stock Crítico: Arroz Costeño'), findsOneWidget);
     });
+
+    testWidgets(
+      'InAppNotificationBanner shows, dismisses and handles rapid calls without exception',
+      (tester) async {
+        final notif = NotificacionItem(
+          idNotificacion: 99,
+          idBodega: 1,
+          rolDestinatario: 'TODOS',
+          tipo: 'NUEVO_PEDIDO_WEB',
+          titulo: '¡Nuevo Pedido Web #W-5555!',
+          mensaje: 'Total: S/ 80.00',
+          leido: false,
+          fechaCreacion: DateTime.now(),
+        );
+
+        late BuildContext testContext;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (ctx) {
+                  testContext = ctx;
+                  return const Text('Pantalla Principal');
+                },
+              ),
+            ),
+          ),
+        );
+
+        // Primer llamado
+        InAppNotificationBanner.show(testContext, notif);
+        await tester.pump();
+
+        expect(find.text('¡Nuevo Pedido Web #W-5555!'), findsOneWidget);
+
+        // Segundo llamado inmediato (reemplazo limpio sin fugas ni excepciones)
+        InAppNotificationBanner.show(testContext, notif);
+        await tester.pump();
+
+        expect(find.text('¡Nuevo Pedido Web #W-5555!'), findsOneWidget);
+
+        // Descarte explícito
+        InAppNotificationBanner.dismiss();
+        await tester.pump();
+
+        expect(find.text('¡Nuevo Pedido Web #W-5555!'), findsNothing);
+
+        // Descarte redundante sin error
+        expect(() => InAppNotificationBanner.dismiss(), returnsNormally);
+      },
+    );
   });
 }

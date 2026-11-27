@@ -153,7 +153,10 @@ class NotificacionService {
         return;
       }
 
-      final uri = Uri.parse('${ApiConstants.baseUrl}/notificaciones/stream');
+      final queryParam = kIsWeb ? '?token=${Uri.encodeComponent(token)}' : '';
+      final uri = Uri.parse(
+        '${ApiConstants.baseUrl}/notificaciones/stream$queryParam',
+      );
       final request = http.Request('GET', uri)
         ..headers['Authorization'] = 'Bearer $token'
         ..headers['Accept'] = 'text/event-stream'
@@ -195,6 +198,13 @@ class NotificacionService {
             }
           }
         }
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // Sesión expirada o token revocado: no realizar reintentos infinitos
+        isConnectedNotifier.value = false;
+        _isActive = false;
+        await SecureStorageService.clearAuth();
+        ApiClient.onSessionExpired?.call();
+        return;
       } else {
         isConnectedNotifier.value = false;
       }
