@@ -626,8 +626,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
       'Puedes renovar fácilmente vía Yape o Plin al número ${PagoYapeModal.officialYapeDisplay} para continuar disfrutando de tu sistema sin interrupciones. ¡Muchas gracias por tu preferencia!',
     );
     final uri = Uri.parse('https://wa.me/$num?text=$texto');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
+      await launchUrl(uri, mode: LaunchMode.platformDefault);
     }
   }
 
@@ -6298,8 +6304,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                 ),
                 onPressed: () async {
                   final uri = Uri.parse(whatsappUrl);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  try {
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } else {
+                      await launchUrl(uri, mode: LaunchMode.platformDefault);
+                    }
+                  } catch (_) {
+                    await launchUrl(uri, mode: LaunchMode.platformDefault);
                   }
                 },
               )

@@ -2911,10 +2911,22 @@ class _ComprasScreenState extends State<ComprasScreen>
                                   final url = Uri.parse(
                                     'https://wa.me/$phoneUrl?text=${Uri.encodeComponent(buffer.toString())}',
                                   );
-                                  if (await canLaunchUrl(url)) {
+                                  try {
+                                    if (await canLaunchUrl(url)) {
+                                      await launchUrl(
+                                        url,
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    } else {
+                                      await launchUrl(
+                                        url,
+                                        mode: LaunchMode.platformDefault,
+                                      );
+                                    }
+                                  } catch (_) {
                                     await launchUrl(
                                       url,
-                                      mode: LaunchMode.externalApplication,
+                                      mode: LaunchMode.platformDefault,
                                     );
                                   }
                                 },

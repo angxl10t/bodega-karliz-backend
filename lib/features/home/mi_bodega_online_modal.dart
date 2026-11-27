@@ -1179,10 +1179,22 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                           final uri = Uri.parse(
                             'https://wa.me/?text=${Uri.encodeComponent(mensajeWhatsApp)}',
                           );
-                          if (await canLaunchUrl(uri)) {
+                          try {
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } else {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.platformDefault,
+                              );
+                            }
+                          } catch (_) {
                             await launchUrl(
                               uri,
-                              mode: LaunchMode.externalApplication,
+                              mode: LaunchMode.platformDefault,
                             );
                           }
                         },
@@ -1217,10 +1229,22 @@ class _MiBodegaOnlineModalState extends State<MiBodegaOnlineModal> {
                       ),
                       onPressed: () async {
                         final uri = Uri.parse(catalogoUrl);
-                        if (await canLaunchUrl(uri)) {
+                        try {
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } else {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.platformDefault,
+                            );
+                          }
+                        } catch (_) {
                           await launchUrl(
                             uri,
-                            mode: LaunchMode.externalApplication,
+                            mode: LaunchMode.platformDefault,
                           );
                         }
                       },

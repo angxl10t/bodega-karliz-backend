@@ -10955,7 +10955,7 @@ class _VentasScreenState extends State<VentasScreen>
               onPressed: () {
                 setState(() => _identificarCliente = true);
                 Future.delayed(const Duration(milliseconds: 100), () {
-                  _clienteDocFocusNode.requestFocus();
+                  if (mounted) _clienteDocFocusNode.requestFocus();
                 });
               },
             ),

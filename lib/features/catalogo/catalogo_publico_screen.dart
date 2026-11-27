@@ -2413,11 +2413,25 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                   final uri = Uri.parse(
                                                     'https://wa.me/$tf?text=$msg',
                                                   );
-                                                  if (await canLaunchUrl(uri)) {
+                                                  try {
+                                                    if (await canLaunchUrl(uri)) {
+                                                      await launchUrl(
+                                                        uri,
+                                                        mode: LaunchMode
+                                                            .externalApplication,
+                                                      );
+                                                    } else {
+                                                      await launchUrl(
+                                                        uri,
+                                                        mode: LaunchMode
+                                                            .platformDefault,
+                                                      );
+                                                    }
+                                                  } catch (_) {
                                                     await launchUrl(
                                                       uri,
                                                       mode: LaunchMode
-                                                          .externalApplication,
+                                                          .platformDefault,
                                                     );
                                                   }
                                                 },

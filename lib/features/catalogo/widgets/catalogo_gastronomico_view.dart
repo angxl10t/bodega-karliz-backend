@@ -898,10 +898,22 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
                           ? '51$l'
                           : (l.startsWith('51') ? l : '51$l');
                       final uri = Uri.parse('https://wa.me/$tf');
-                      if (await canLaunchUrl(uri)) {
+                      try {
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        } else {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.platformDefault,
+                          );
+                        }
+                      } catch (_) {
                         await launchUrl(
                           uri,
-                          mode: LaunchMode.externalApplication,
+                          mode: LaunchMode.platformDefault,
                         );
                       }
                     },
