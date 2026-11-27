@@ -192,9 +192,17 @@ class PedidoWebService {
         final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
         _pedidos.clear();
         for (final item in decoded) {
-          _pedidos.add(
-            PedidoWeb.fromJson(Map<String, dynamic>.from(item as Map)),
-          );
+          try {
+            if (item is Map) {
+              _pedidos.add(
+                PedidoWeb.fromJson(Map<String, dynamic>.from(item)),
+              );
+            }
+          } catch (itemErr) {
+            debugPrint(
+              '[PedidoWeb] Error deserializando pedido web individual: $itemErr',
+            );
+          }
         }
         _actualizarConteo();
       }

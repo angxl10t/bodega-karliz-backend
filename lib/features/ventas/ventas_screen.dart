@@ -146,6 +146,8 @@ class _VentasScreenState extends State<VentasScreen>
   final FocusNode _tabletSearchFocusNode = FocusNode();
   final StringBuffer _hwScanBuffer = StringBuffer();
   DateTime _lastHwKeyTime = DateTime.now();
+  final List<String> _scanQueue = [];
+  bool _isProcessingScan = false;
 
   bool _isLoading = true;
   bool _isProcesando = false;
@@ -429,7 +431,7 @@ class _VentasScreenState extends State<VentasScreen>
             _recomputeFilteredTabletProductos();
           });
         }
-        _procesarCodigoEscaneado(code);
+        _encolarCodigoEscaneado(code);
       }
     } else if (event.character != null && event.character!.isNotEmpty) {
       _hwScanBuffer.write(event.character);
@@ -585,6 +587,7 @@ class _VentasScreenState extends State<VentasScreen>
     _tabletSearchCtrl.dispose();
     _tabletSearchFocusNode.dispose();
     _screenFocusNode.dispose();
+    _scanQueue.clear();
     super.dispose();
   }
 
@@ -938,15 +941,17 @@ class _VentasScreenState extends State<VentasScreen>
 
     if (totalActualProducto + cantidad > p.stockActual) {
       KarlizSoundService.instance.playErrorBeep();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Stock máximo alcanzado para ${p.nombre} (${_formatStock(p.stockActual)} u.)',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Stock máximo alcanzado para ${p.nombre} (${_formatStock(p.stockActual)} u.)',
+            ),
+            backgroundColor: AppTheme.alertRed,
+            duration: const Duration(seconds: 2),
           ),
-          backgroundColor: AppTheme.alertRed,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+        );
+      }
       return;
     }
 
@@ -956,6 +961,7 @@ class _VentasScreenState extends State<VentasScreen>
     HapticFeedback.lightImpact();
 
     final totalAnterior = _totalVenta;
+    if (!mounted) return;
     setState(() {
       if (idx != -1) {
         _carrito[idx].cantidad += cantidad;
@@ -983,6 +989,7 @@ class _VentasScreenState extends State<VentasScreen>
   }) async {
     if (GastronomiaHelper.esProductoConPresa(p.nombre, p.nombreCategoria)) {
       final res = await SelectorPresaModal.show(context, producto: p);
+      if (!mounted) return;
       if (res != null) {
         _agregarAlCarrito(
           p,
@@ -1034,15 +1041,17 @@ class _VentasScreenState extends State<VentasScreen>
         _actualizarMontoExactoSiCorresponde(totalAnterior);
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'No hay más stock disponible para ${item.producto.nombre}',
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'No hay más stock disponible para ${item.producto.nombre}',
+            ),
+            backgroundColor: AppTheme.alertRed,
+            duration: const Duration(seconds: 1),
           ),
-          backgroundColor: AppTheme.alertRed,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -3189,6 +3198,28 @@ class _VentasScreenState extends State<VentasScreen>
     );
   }
 
+  void _encolarCodigoEscaneado(String code) {
+    final clean = code.trim();
+    if (clean.isEmpty) return;
+    _scanQueue.add(clean);
+    if (!_isProcessingScan) {
+      _procesarColaEscaneos();
+    }
+  }
+
+  Future<void> _procesarColaEscaneos() async {
+    if (_isProcessingScan) return;
+    _isProcessingScan = true;
+    try {
+      while (_scanQueue.isNotEmpty && mounted) {
+        final nextCode = _scanQueue.removeAt(0);
+        await _procesarCodigoEscaneado(nextCode);
+      }
+    } finally {
+      _isProcessingScan = false;
+    }
+  }
+
   Future<void> _escanearCodigoParaVenta() async {
     final scannedCode = await KarlizBarcodeScannerModal.scan(
       context,
@@ -3196,7 +3227,7 @@ class _VentasScreenState extends State<VentasScreen>
       subtitle: 'Enfoque el código del producto para agregarlo',
     );
     if (scannedCode != null && scannedCode.trim().isNotEmpty) {
-      await _procesarCodigoEscaneado(scannedCode);
+      _encolarCodigoEscaneado(scannedCode);
     }
   }
 
@@ -3204,7 +3235,7 @@ class _VentasScreenState extends State<VentasScreen>
     final codeClean = rawCode.trim();
     if (codeClean.isEmpty) return;
 
-    // 1. Buscar entre los productos en memoria del POS
+    // 1. Buscar primero entre los productos con stock disponibles en memoria
     Producto? productoEncontrado;
     for (final p in _safeDisponibles) {
       if (_coincideCodigo(p, codeClean)) {
@@ -3213,23 +3244,39 @@ class _VentasScreenState extends State<VentasScreen>
       }
     }
 
-    // 2. Si no estaba en _safeDisponibles, consultar al servidor con forceRefresh
+    // 2. Si no estaba en _safeDisponibles, consultar la caché local completa en memoria
+    // (permite detectar de inmediato productos con stock 0 sin demora de red)
+    bool yaRefrescoServidor = false;
     if (productoEncontrado == null) {
-      final productosFrescos = await _productoService.getProductos(
-        forceRefresh: true,
-      );
-      if (!mounted) return;
-      setState(() {
-        _productosDisponibles = List<Producto>.from(
-          productosFrescos.where((p) => p.stockActual > 0),
-        );
-        _recalcularTabletCatalogCache();
-      });
+      final cached = ProductoService.cachedProductos;
+      if (cached != null) {
+        for (final p in cached) {
+          if (_coincideCodigo(p, codeClean)) {
+            productoEncontrado = p;
+            break;
+          }
+        }
+      }
 
-      for (final p in productosFrescos) {
-        if (_coincideCodigo(p, codeClean)) {
-          productoEncontrado = p;
-          break;
+      // Si no existe en memoria ni en caché local, consultar al servidor con forceRefresh
+      if (productoEncontrado == null) {
+        yaRefrescoServidor = true;
+        final productosFrescos = await _productoService.getProductos(
+          forceRefresh: true,
+        );
+        if (!mounted) return;
+        setState(() {
+          _productosDisponibles = List<Producto>.from(
+            productosFrescos.where((p) => p.stockActual > 0),
+          );
+          _recalcularTabletCatalogCache();
+        });
+
+        for (final p in productosFrescos) {
+          if (_coincideCodigo(p, codeClean)) {
+            productoEncontrado = p;
+            break;
+          }
         }
       }
     }
@@ -3254,7 +3301,21 @@ class _VentasScreenState extends State<VentasScreen>
             break;
           }
         }
+
         if (productoEncontrado == null) {
+          final cached = ProductoService.cachedProductos;
+          if (cached != null) {
+            for (final p in cached) {
+              if (_coincideCodigoBalanza(p, prodSku5, prodSku4)) {
+                productoEncontrado = p;
+                esBalanzaDetectada = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (productoEncontrado == null && !yaRefrescoServidor) {
           final productosFrescos = await _productoService.getProductos(
             forceRefresh: true,
           );

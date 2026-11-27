@@ -126,9 +126,17 @@ class VentaEnEsperaService {
         final List<dynamic> decoded = jsonDecode(raw) as List<dynamic>;
         _ventas.clear();
         for (final item in decoded) {
-          _ventas.add(
-            VentaEnEspera.fromJson(Map<String, dynamic>.from(item as Map)),
-          );
+          try {
+            if (item is Map) {
+              _ventas.add(
+                VentaEnEspera.fromJson(Map<String, dynamic>.from(item)),
+              );
+            }
+          } catch (itemErr) {
+            debugPrint(
+              '[VentaEnEspera] Error deserializando ticket en espera: $itemErr',
+            );
+          }
         }
         countNotifier.value = _ventas.length;
       }

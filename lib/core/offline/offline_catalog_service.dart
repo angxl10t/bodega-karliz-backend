@@ -140,9 +140,20 @@ class OfflineCatalogService {
       if (jsonString == null || jsonString.isEmpty) return [];
 
       final List<dynamic> decoded = jsonDecode(jsonString);
-      final productos = decoded
-          .map((j) => Producto.fromJson(j as Map<String, dynamic>))
-          .toList();
+      final productos = <Producto>[];
+      for (final j in decoded) {
+        try {
+          if (j is Map<String, dynamic>) {
+            productos.add(Producto.fromJson(j));
+          } else if (j is Map) {
+            productos.add(Producto.fromJson(Map<String, dynamic>.from(j)));
+          }
+        } catch (itemErr) {
+          debugPrint(
+            '[OfflineCatalog] Error deserializando producto individual en caché: $itemErr',
+          );
+        }
+      }
 
       _inMemoryCatalog = productos;
       _lastSavedTenant = tenant;

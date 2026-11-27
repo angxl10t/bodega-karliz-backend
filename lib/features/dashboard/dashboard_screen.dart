@@ -10,6 +10,7 @@ import '../../core/offline/offline_models.dart';
 import '../../core/offline/offline_queue_sheet.dart';
 import '../../core/offline/offline_sync_manager.dart';
 import '../../core/responsive_layout.dart';
+import '../../core/secure_storage_service.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/adaptive_modal.dart';
 import '../../core/widgets/plan_upgrade_modal.dart';
@@ -218,8 +219,10 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _cargarMetaDiaria() async {
     try {
+      final tenant = await SecureStorageService.read('id_bodega') ?? 'default';
       final prefs = await SharedPreferences.getInstance();
-      final m = prefs.getDouble('meta_diaria_cajaya');
+      final key = 'meta_diaria_cajaya_$tenant';
+      final m = prefs.getDouble(key) ?? prefs.getDouble('meta_diaria_cajaya');
       if (m != null && m > 0 && mounted) {
         setState(() => _metaDiaria = m);
       }
@@ -228,7 +231,10 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _guardarMetaDiaria(double nuevaMeta) async {
     try {
+      final tenant = await SecureStorageService.read('id_bodega') ?? 'default';
       final prefs = await SharedPreferences.getInstance();
+      final key = 'meta_diaria_cajaya_$tenant';
+      await prefs.setDouble(key, nuevaMeta);
       await prefs.setDouble('meta_diaria_cajaya', nuevaMeta);
       if (mounted) setState(() => _metaDiaria = nuevaMeta);
     } catch (_) {}
@@ -236,8 +242,11 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Future<void> _cargarFavoritos() async {
     try {
+      final tenant = await SecureStorageService.read('id_bodega') ?? 'default';
       final prefs = await SharedPreferences.getInstance();
-      final list = prefs.getStringList('cajaya_operaciones_favoritas');
+      final key = 'cajaya_operaciones_favoritas_$tenant';
+      final list = prefs.getStringList(key) ??
+          prefs.getStringList('cajaya_operaciones_favoritas');
       if (list != null && list.isNotEmpty && mounted) {
         setState(() => _favoritosIds = list);
       }
@@ -376,7 +385,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
     setState(() => _favoritosIds = updated);
     try {
+      final tenant = await SecureStorageService.read('id_bodega') ?? 'default';
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('cajaya_operaciones_favoritas_$tenant', updated);
       await prefs.setStringList('cajaya_operaciones_favoritas', updated);
     } catch (_) {}
 

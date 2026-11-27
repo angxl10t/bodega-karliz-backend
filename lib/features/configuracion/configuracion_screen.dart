@@ -3813,284 +3813,28 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
 
   // --- DIÁLOGOS DE USUARIOS ---
   void _abrirModalCrearUsuario() {
-    final nameCtrl = TextEditingController();
-    final userCtrl = TextEditingController();
-    final pinCtrl = TextEditingController();
-    String rolSeleccionado = 'CAJERO';
-    bool isSaving = false;
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (dialogCtx, setModalState) {
-          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-          final primaryColor = Theme.of(dialogCtx).colorScheme.primary;
-
-          return AlertDialog(
-            backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            title: Row(
-              children: [
-                Icon(LucideIcons.userPlus, color: primaryColor, size: 20),
-                const SizedBox(width: 10),
-                Text(
-                  'Nuevo Colaborador',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  key: const Key('inputNombreCajero'),
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre Completo',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  key: const Key('inputUsuarioCajero'),
-                  controller: userCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Usuario de Ingreso',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        key: const Key('inputPinCajero'),
-                        controller: pinCtrl,
-                        maxLength: 4,
-                        keyboardType: TextInputType.number,
-                        style: GoogleFonts.firaCode(
-                          letterSpacing: 2,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        decoration: const InputDecoration(
-                          labelText: 'PIN (4 dígitos)',
-                          border: OutlineInputBorder(),
-                          counterText: '',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      key: const Key('btnGenerarPinAzar'),
-                      onPressed: () {
-                        final randomPin = (1000 + Random().nextInt(9000))
-                            .toString();
-                        setModalState(() => pinCtrl.text = randomPin);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor.withValues(alpha: 0.15),
-                        foregroundColor: primaryColor,
-                        elevation: 0,
-                      ),
-                      child: const Text('PIN al Azar'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancelar'),
-              ),
-              ElevatedButton(
-                key: const Key('btnConfirmarCrearCajero'),
-                onPressed: isSaving
-                    ? null
-                    : () async {
-                        final user = userCtrl.text.trim();
-                        final pin = pinCtrl.text.trim();
-                        final name = nameCtrl.text.trim();
-                        if (user.isEmpty || pin.length != 4) return;
-
-                        setModalState(() => isSaving = true);
-                        try {
-                          await _usuariosService.crearUsuario(
-                            username: user,
-                            nombreCompleto: name,
-                            password: pin,
-                            rol: rolSeleccionado,
-                          );
-                          final updatedUsers = await _usuariosService
-                              .listarUsuarios();
-                          if (!mounted) return;
-                          setState(() => _usuarios = updatedUsers);
-                          if (ctx.mounted) Navigator.pop(ctx);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '¡Colaborador $user creado exitosamente!',
-                                ),
-                                backgroundColor: AppTheme.accentGreen,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error: $e'),
-                                backgroundColor: AppTheme.alertRed,
-                              ),
-                            );
-                          }
-                        } finally {
-                          if (dialogCtx.mounted) {
-                            setModalState(() => isSaving = false);
-                          }
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: isSaving
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Crear Cajero'),
-              ),
-            ],
-          );
+      builder: (ctx) => _DialogoCrearUsuario(
+        usuariosService: _usuariosService,
+        onUsuarioCreado: () async {
+          final updatedUsers = await _usuariosService.listarUsuarios();
+          if (mounted) {
+            setState(() => _usuarios = updatedUsers);
+          }
         },
       ),
-    ).then((_) {
-      nameCtrl.dispose();
-      userCtrl.dispose();
-      pinCtrl.dispose();
-    });
+    );
   }
 
   void _abrirModalCambiarPin(UsuarioItem u) {
-    final pinCtrl = TextEditingController();
-    bool isSaving = false;
-
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (dialogCtx, setModalState) {
-          final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
-          final primaryColor = Theme.of(dialogCtx).colorScheme.primary;
-
-          return AlertDialog(
-            backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-            title: Text(
-              'Cambiar PIN de @${u.username}',
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-              ),
-            ),
-            content: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: pinCtrl,
-                    maxLength: 4,
-                    keyboardType: TextInputType.number,
-                    style: GoogleFonts.firaCode(
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    decoration: const InputDecoration(
-                      labelText: 'Nuevo PIN (4 dígitos)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    final randomPin = (1000 + Random().nextInt(9000))
-                        .toString();
-                    setModalState(() => pinCtrl.text = randomPin);
-                  },
-                  child: const Text('Azar'),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancelar'),
-              ),
-              ElevatedButton(
-                onPressed: isSaving
-                    ? null
-                    : () async {
-                        final pin = pinCtrl.text.trim();
-                        if (pin.length != 4) return;
-                        setModalState(() => isSaving = true);
-                        try {
-                          await _usuariosService.resetPassword(u.idUsuario, pin);
-                          if (ctx.mounted) Navigator.pop(ctx);
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('¡PIN de @${u.username} actualizado!'),
-                                backgroundColor: AppTheme.accentGreen,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error al cambiar PIN: $e'),
-                                backgroundColor: AppTheme.alertRed,
-                              ),
-                            );
-                          }
-                        } finally {
-                          if (dialogCtx.mounted) {
-                            setModalState(() => isSaving = false);
-                          }
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                ),
-                child: isSaving
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Guardar PIN'),
-              ),
-            ],
-          );
-        },
+      builder: (ctx) => _DialogoCambiarPin(
+        usuario: u,
+        usuariosService: _usuariosService,
       ),
-    ).then((_) => pinCtrl.dispose());
+    );
   }
 
   void _abrirModalPermisosIndividuales(UsuarioItem u) async {
@@ -4654,4 +4398,313 @@ class _SawtoothPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _SawtoothPainter oldDelegate) =>
       oldDelegate.color != color || oldDelegate.toothWidth != toothWidth;
+}
+
+class _DialogoCrearUsuario extends StatefulWidget {
+  final UsuariosService usuariosService;
+  final VoidCallback onUsuarioCreado;
+
+  const _DialogoCrearUsuario({
+    required this.usuariosService,
+    required this.onUsuarioCreado,
+  });
+
+  @override
+  State<_DialogoCrearUsuario> createState() => _DialogoCrearUsuarioState();
+}
+
+class _DialogoCrearUsuarioState extends State<_DialogoCrearUsuario> {
+  final _nameCtrl = TextEditingController();
+  final _userCtrl = TextEditingController();
+  final _pinCtrl = TextEditingController();
+  final String _rolSeleccionado = 'CAJERO';
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _userCtrl.dispose();
+    _pinCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return AlertDialog(
+      backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      title: Row(
+        children: [
+          Icon(LucideIcons.userPlus, color: primaryColor, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            'Nuevo Colaborador',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            key: const Key('inputNombreCajero'),
+            controller: _nameCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Nombre Completo',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            key: const Key('inputUsuarioCajero'),
+            controller: _userCtrl,
+            decoration: const InputDecoration(
+              labelText: 'Usuario de Ingreso',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  key: const Key('inputPinCajero'),
+                  controller: _pinCtrl,
+                  maxLength: 4,
+                  keyboardType: TextInputType.number,
+                  style: GoogleFonts.firaCode(
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'PIN (4 dígitos)',
+                    border: OutlineInputBorder(),
+                    counterText: '',
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                key: const Key('btnGenerarPinAzar'),
+                onPressed: () {
+                  final randomPin = (1000 + Random().nextInt(9000)).toString();
+                  setState(() => _pinCtrl.text = randomPin);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor.withValues(alpha: 0.15),
+                  foregroundColor: primaryColor,
+                  elevation: 0,
+                ),
+                child: const Text('PIN al Azar'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          key: const Key('btnConfirmarCrearCajero'),
+          onPressed: _isSaving
+              ? null
+              : () async {
+                  final user = _userCtrl.text.trim();
+                  final pin = _pinCtrl.text.trim();
+                  final name = _nameCtrl.text.trim();
+                  if (user.isEmpty || pin.length != 4) return;
+
+                  final messenger = ScaffoldMessenger.of(context);
+                  final nav = Navigator.of(context);
+                  setState(() => _isSaving = true);
+                  try {
+                    await widget.usuariosService.crearUsuario(
+                      username: user,
+                      nombreCompleto: name,
+                      password: pin,
+                      rol: _rolSeleccionado,
+                    );
+                    widget.onUsuarioCreado();
+                    if (!mounted) return;
+                    nav.pop();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '¡Colaborador $user creado exitosamente!',
+                        ),
+                        backgroundColor: AppTheme.accentGreen,
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Error: $e'),
+                        backgroundColor: AppTheme.alertRed,
+                      ),
+                    );
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isSaving = false);
+                    }
+                  }
+                },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+          ),
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Crear Cajero'),
+        ),
+      ],
+    );
+  }
+}
+
+class _DialogoCambiarPin extends StatefulWidget {
+  final UsuarioItem usuario;
+  final UsuariosService usuariosService;
+
+  const _DialogoCambiarPin({
+    required this.usuario,
+    required this.usuariosService,
+  });
+
+  @override
+  State<_DialogoCambiarPin> createState() => _DialogoCambiarPinState();
+}
+
+class _DialogoCambiarPinState extends State<_DialogoCambiarPin> {
+  final _pinCtrl = TextEditingController();
+  bool _isSaving = false;
+
+  @override
+  void dispose() {
+    _pinCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return AlertDialog(
+      backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      title: Text(
+        'Cambiar PIN de @${widget.usuario.username}',
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w800,
+          fontSize: 16,
+        ),
+      ),
+      content: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _pinCtrl,
+              maxLength: 4,
+              keyboardType: TextInputType.number,
+              style: GoogleFonts.firaCode(
+                letterSpacing: 2,
+                fontWeight: FontWeight.bold,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Nuevo PIN (4 dígitos)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () {
+              final randomPin = (1000 + Random().nextInt(9000)).toString();
+              setState(() => _pinCtrl.text = randomPin);
+            },
+            child: const Text('Azar'),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: _isSaving
+              ? null
+              : () async {
+                  final pin = _pinCtrl.text.trim();
+                  if (pin.length != 4) return;
+                  final messenger = ScaffoldMessenger.of(context);
+                  final nav = Navigator.of(context);
+                  setState(() => _isSaving = true);
+                  try {
+                    await widget.usuariosService.resetPassword(
+                      widget.usuario.idUsuario,
+                      pin,
+                    );
+                    if (!mounted) return;
+                    nav.pop();
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '¡PIN de @${widget.usuario.username} actualizado!',
+                        ),
+                        backgroundColor: AppTheme.accentGreen,
+                      ),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Error al cambiar PIN: $e'),
+                        backgroundColor: AppTheme.alertRed,
+                      ),
+                    );
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isSaving = false);
+                    }
+                  }
+                },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+          ),
+          child: _isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text('Guardar PIN'),
+        ),
+      ],
+    );
+  }
 }
