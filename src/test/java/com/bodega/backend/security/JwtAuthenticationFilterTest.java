@@ -206,4 +206,29 @@ class JwtAuthenticationFilterTest {
         assertNull(SecurityContextHolder.getContext().getAuthentication(), "El token anterior al cambio de clave debe ser rechazado");
         verify(filterChain).doFilter(request, response);
     }
+
+    @Test
+    @DisplayName("Debe autenticar vía query param token para endpoint de streaming SSE")
+    void testAutenticacionViaQueryParamParaSseStream() throws ServletException, IOException {
+        String token = "sse.jwt.token";
+        when(request.getHeader("Authorization")).thenReturn(null);
+        when(request.getRequestURI()).thenReturn("/api/notificaciones/stream");
+        when(request.getParameter("token")).thenReturn(token);
+        when(jwtUtil.extractAllClaims(token)).thenReturn(claims);
+        when(claims.getSubject()).thenReturn("admin1");
+        when(claims.getIssuedAt()).thenReturn(new Date(System.currentTimeMillis()));
+
+        UserSecurityProfile profile = new UserSecurityProfile(
+                "admin1", "hashedPass", "ADMIN", true, null,
+                1L, "Bodega Test", "PRO", "#2563EB", null, null, true
+        );
+        when(userSecurityCacheService.getSecurityProfile("admin1")).thenReturn(Optional.of(profile));
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        assertNotNull(auth, "La autenticación debe establecerse desde el query param en SSE");
+        assertEquals("admin1", auth.getName());
+        verify(filterChain).doFilter(request, response);
+    }
 }

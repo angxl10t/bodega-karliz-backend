@@ -23,6 +23,8 @@ public class NotificacionService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificacionService.class);
     private static final Long SSE_TIMEOUT_MS = 30 * 60 * 1000L; // 30 minutos
+    private static final int MAX_SUSCRIPTORES_POR_BODEGA = 15;
+    private static final int MAX_SUSCRIPTORES_GLOBAL = 250;
 
     private final NotificacionRepository notificacionRepository;
     private final List<SseSubscriber> suscriptores = new CopyOnWriteArrayList<>();
@@ -53,10 +55,36 @@ public class NotificacionService {
 
     /**
      * Suscribe un cliente HTTP vía Server-Sent Events (SSE).
+     * Incluye control de saturación DoS, límite por bodega y desalojo de conexiones huérfanas.
      */
     public SseEmitter suscribir(Long idBodega, Long idUsuario, String rol) {
         if (idBodega == null) {
             throw new IllegalArgumentException("idBodega es requerido para la suscripción SSE");
+        }
+
+        // Protección DoS: límite global de suscriptores para no agotar la memoria del contenedor
+        if (suscriptores.size() >= MAX_SUSCRIPTORES_GLOBAL) {
+            SseSubscriber masAntiguo = suscriptores.isEmpty() ? null : suscriptores.get(0);
+            if (masAntiguo != null) {
+                try {
+                    masAntiguo.emitter.complete();
+                } catch (Exception ignored) {}
+                suscriptores.remove(masAntiguo);
+            }
+        }
+
+        // Protección por Bodega: si se supera el máximo por inquilino, desalojar la conexión más antigua del mismo usuario/bodega
+        long activosBodega = suscriptores.stream().filter(s -> Objects.equals(s.idBodega, idBodega)).count();
+        if (activosBodega >= MAX_SUSCRIPTORES_POR_BODEGA) {
+            suscriptores.stream()
+                    .filter(s -> Objects.equals(s.idBodega, idBodega) && (idUsuario == null || Objects.equals(s.idUsuario, idUsuario)))
+                    .findFirst()
+                    .ifPresent(viejo -> {
+                        try {
+                            viejo.emitter.complete();
+                        } catch (Exception ignored) {}
+                        suscriptores.remove(viejo);
+                    });
         }
 
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
@@ -193,16 +221,34 @@ public class NotificacionService {
         return notificacionRepository.contarNoLeidas(idBodega, idUsuario, rolNorm);
     }
 
+    @Transactional(readOnly = true)
+    public boolean existeAlertaStockPendiente(Long idBodega, Long idProducto, boolean agotado) {
+        if (idBodega == null || idProducto == null) return false;
+        String prodFilter = "\"idProducto\":" + idProducto + ",";
+        String tituloLike = agotado ? "%Agotado%" : null;
+        return notificacionRepository.existeAlertaStockPendiente(idBodega, prodFilter, tituloLike);
+    }
+
     @Transactional
-    public boolean marcarComoLeida(Long idBodega, Long idNotificacion) {
+    public boolean marcarComoLeida(Long idBodega, Long idUsuario, String rol, Long idNotificacion) {
         Optional<Notificacion> opt = notificacionRepository.findById(idNotificacion);
         if (opt.isPresent()) {
             Notificacion n = opt.get();
             if (Objects.equals(n.getBodega().getIdBodega(), idBodega)) {
-                n.setLeido(true);
-                n.setFechaLeido(OffsetDateTime.now());
-                notificacionRepository.save(n);
-                return true;
+                String rolNorm = (rol != null) ? rol.trim().toUpperCase() : "CAJERO";
+                boolean esAdmin = "ADMIN".equalsIgnoreCase(rolNorm) || "SUPERADMIN".equalsIgnoreCase(rolNorm);
+                boolean esDestinatarioUsuario = n.getUsuarioDestinatario() == null
+                        || (idUsuario != null && Objects.equals(n.getUsuarioDestinatario().getIdUsuario(), idUsuario));
+                boolean esDestinatarioRol = "TODOS".equalsIgnoreCase(n.getRolDestinatario())
+                        || n.getRolDestinatario() == null
+                        || n.getRolDestinatario().equalsIgnoreCase(rolNorm);
+
+                if (esAdmin || (esDestinatarioUsuario && esDestinatarioRol)) {
+                    n.setLeido(true);
+                    n.setFechaLeido(OffsetDateTime.now());
+                    notificacionRepository.save(n);
+                    return true;
+                }
             }
         }
         return false;

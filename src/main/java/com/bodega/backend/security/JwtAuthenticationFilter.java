@@ -35,16 +35,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         io.jsonwebtoken.Claims claims = null;
         String username = null;
+        String jwt = null;
 
         if (authorizationHeader != null && authorizationHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
-            String jwt = authorizationHeader.substring(7).trim();
-            if (!jwt.isEmpty()) {
-                try {
-                    claims = jwtUtil.extractAllClaims(jwt);
-                    username = claims.getSubject();
-                } catch (Exception e) {
-                    // Token inválido, expirado o con firma incorrecta
-                }
+            jwt = authorizationHeader.substring(7).trim();
+        } else if (request.getRequestURI() != null && request.getRequestURI().contains("/notificaciones/stream")) {
+            // Compatibilidad robusta para EventSource / Web SSE donde los navegadores no permiten cabeceras Authorization personalizadas
+            String tokenParam = request.getParameter("token");
+            if (tokenParam != null && !tokenParam.isBlank()) {
+                jwt = tokenParam.trim();
+            }
+        }
+
+        if (jwt != null && !jwt.isEmpty()) {
+            try {
+                claims = jwtUtil.extractAllClaims(jwt);
+                username = claims.getSubject();
+            } catch (Exception e) {
+                // Token inválido, expirado o con firma incorrecta
             }
         }
 

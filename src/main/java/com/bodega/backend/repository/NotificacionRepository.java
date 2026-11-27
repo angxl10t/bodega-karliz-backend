@@ -47,4 +47,15 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
             @Param("rol") String rol,
             @Param("ahora") OffsetDateTime ahora
     );
+
+    @Query("SELECT COUNT(n) > 0 FROM Notificacion n WHERE n.bodega.idBodega = :idBodega " +
+           "AND n.tipo = 'STOCK_CRITICO' " +
+           "AND n.leido = false " +
+           "AND n.metadataJson LIKE CONCAT('%', :prodFilter, '%') " +
+           "AND (:tituloLike IS NULL OR n.titulo LIKE :tituloLike)")
+    boolean existeAlertaStockPendiente(
+            @Param("idBodega") Long idBodega,
+            @Param("prodFilter") String prodFilter,
+            @Param("tituloLike") String tituloLike
+    );
 }

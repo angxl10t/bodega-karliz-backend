@@ -5,11 +5,13 @@ import com.bodega.backend.entity.Usuario;
 import com.bodega.backend.repository.UsuarioRepository;
 import com.bodega.backend.service.NotificacionService;
 import com.bodega.backend.service.TenantService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -69,6 +71,9 @@ public class NotificacionController {
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamNotificaciones() {
         UserSessionInfo s = resolveUserSession();
+        if (s.idBodega == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bodega no identificada en la sesión actual.");
+        }
         return notificacionService.suscribir(s.idBodega, s.idUsuario, s.rol);
     }
 
@@ -79,6 +84,9 @@ public class NotificacionController {
     public ResponseEntity<List<NotificacionDTO>> listarNotificaciones(
             @RequestParam(required = false, defaultValue = "30") int limite) {
         UserSessionInfo s = resolveUserSession();
+        if (s.idBodega == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bodega no identificada en la sesión actual.");
+        }
         List<NotificacionDTO> lista = notificacionService.listar(s.idBodega, s.idUsuario, s.rol, limite);
         return ResponseEntity.ok(lista);
     }
@@ -89,17 +97,23 @@ public class NotificacionController {
     @GetMapping("/conteo-no-leidas")
     public ResponseEntity<Map<String, Object>> conteoNoLeidas() {
         UserSessionInfo s = resolveUserSession();
+        if (s.idBodega == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bodega no identificada en la sesión actual.");
+        }
         long noLeidas = notificacionService.contarNoLeidas(s.idBodega, s.idUsuario, s.rol);
         return ResponseEntity.ok(Map.of("noLeidas", noLeidas));
     }
 
     /**
-     * Marca una notificación como leída.
+     * Marca una notificación como leída verificando pertenencia de bodega y permisos de rol.
      */
     @PutMapping("/{id}/leer")
     public ResponseEntity<Map<String, Object>> marcarComoLeida(@PathVariable Long id) {
-        Long idBodega = tenantService.getCurrentBodegaId();
-        boolean ok = notificacionService.marcarComoLeida(idBodega, id);
+        UserSessionInfo s = resolveUserSession();
+        if (s.idBodega == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bodega no identificada en la sesión actual.");
+        }
+        boolean ok = notificacionService.marcarComoLeida(s.idBodega, s.idUsuario, s.rol, id);
         return ResponseEntity.ok(Map.of("exito", ok, "idNotificacion", id));
     }
 
@@ -109,6 +123,9 @@ public class NotificacionController {
     @PutMapping("/marcar-todas")
     public ResponseEntity<Map<String, Object>> marcarTodasComoLeidas() {
         UserSessionInfo s = resolveUserSession();
+        if (s.idBodega == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bodega no identificada en la sesión actual.");
+        }
         int actualizadas = notificacionService.marcarTodasComoLeidas(s.idBodega, s.idUsuario, s.rol);
         return ResponseEntity.ok(Map.of("exito", true, "actualizadas", actualizadas));
     }
