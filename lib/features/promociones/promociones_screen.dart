@@ -83,7 +83,11 @@ class _PromocionesScreenState extends State<PromocionesScreen>
 
   Color _parseColor(String hex) {
     try {
-      return Color(int.parse(hex.replaceAll('#', '0xFF')));
+      String clean = hex.replaceAll('#', '').trim();
+      if (clean.length == 6) clean = 'FF$clean';
+      final val = int.tryParse(clean, radix: 16);
+      if (val != null) return Color(val);
+      return const Color(0xFF2563EB);
     } catch (_) {
       return const Color(0xFF2563EB);
     }

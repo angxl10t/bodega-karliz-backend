@@ -143,7 +143,8 @@ class ThemeProvider extends ChangeNotifier {
         clean = 'FF$clean';
       }
       if (clean.length == 8) {
-        return Color(int.parse(clean, radix: 16));
+        final val = int.tryParse(clean, radix: 16);
+        if (val != null) return Color(val);
       }
       return AppTheme.brandPrimary;
     } catch (_) {

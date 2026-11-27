@@ -1090,7 +1090,7 @@ class PagoSuscripcionItem {
       monto: json['monto'] != null
           ? (json['monto'] is num
                 ? (json['monto'] as num).toDouble()
-                : double.tryParse(json['monto'].toString()) ?? 0.0)
+                : double.tryParse(json['monto'].toString().replaceAll(',', '.')) ?? 0.0)
           : 0.0,
       fechaPago: json['fechaPago'],
       usuarioRegistro: json['usuarioRegistro'],
@@ -1134,12 +1134,12 @@ class StarterPackPresetItem {
       precioVenta: json['precioVenta'] != null
           ? (json['precioVenta'] is num
                 ? (json['precioVenta'] as num).toDouble()
-                : double.tryParse(json['precioVenta'].toString()) ?? 0.0)
+                : double.tryParse(json['precioVenta'].toString().replaceAll(',', '.')) ?? 0.0)
           : 0.0,
       precioCosto: json['precioCosto'] != null
           ? (json['precioCosto'] is num
                 ? (json['precioCosto'] as num).toDouble()
-                : double.tryParse(json['precioCosto'].toString()) ?? 0.0)
+                : double.tryParse(json['precioCosto'].toString().replaceAll(',', '.')) ?? 0.0)
           : 0.0,
       imagenUrl: json['imagenUrl']?.toString(),
       activo: json['activo'] == true,
@@ -1208,7 +1208,7 @@ class SugerenciaPrecioItem {
     double? parseD(dynamic v) {
       if (v == null) return null;
       if (v is num) return v.toDouble();
-      return double.tryParse(v.toString());
+      return double.tryParse(v.toString().replaceAll(',', '.'));
     }
 
     int? parseI(dynamic v) {

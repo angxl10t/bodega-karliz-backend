@@ -288,7 +288,8 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       try {
         String clean = hex.replaceAll('#', '').trim();
         if (clean.length == 6) clean = 'FF$clean';
-        return Color(int.parse(clean, radix: 16));
+        final val = int.tryParse(clean, radix: 16);
+        if (val != null) return Color(val);
       } catch (_) {}
     }
     return AppTheme.brandPrimary;
@@ -1341,8 +1342,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
   Color _parseColorBadge(dynamic hex) {
     if (hex == null) return _colorPromocion;
     try {
-      final s = hex.toString().replaceAll('#', '0xFF');
-      final c = Color(int.parse(s));
+      String s = hex.toString().replaceAll('#', '').trim();
+      if (s.length == 6) s = 'FF$s';
+      final val = int.tryParse(s, radix: 16);
+      if (val == null) return _colorPromocion;
+      final c = Color(val);
       final rgb = c.toARGB32() & 0x00FFFFFF;
       // Si era el verde genérico heredado (#16A34A, #10B981, #059669, #047857),
       // o si la tienda tiene marca verde, adoptar el color de promociones dinámico

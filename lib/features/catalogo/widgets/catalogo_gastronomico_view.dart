@@ -1744,7 +1744,7 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
     final categoria = prod['categoria']?.toString() ?? 'Platos';
     final double precio = (prod['precioVenta'] is num)
         ? (prod['precioVenta'] as num).toDouble()
-        : double.tryParse(prod['precioVenta']?.toString() ?? '0') ?? 0.0;
+        : double.tryParse(prod['precioVenta']?.toString().replaceAll(',', '.') ?? '0') ?? 0.0;
     final double? promoPrice = (prod['precioPromocional'] is num)
         ? (prod['precioPromocional'] as num).toDouble()
         : null;
@@ -2094,7 +2094,7 @@ class _CatalogoGastronomicoViewState extends State<CatalogoGastronomicoView> {
     final categoria = prod['categoria']?.toString() ?? 'Platos';
     final double precio = (prod['precioVenta'] is num)
         ? (prod['precioVenta'] as num).toDouble()
-        : double.tryParse(prod['precioVenta']?.toString() ?? '0') ?? 0.0;
+        : double.tryParse(prod['precioVenta']?.toString().replaceAll(',', '.') ?? '0') ?? 0.0;
     final double? promoPrice = (prod['precioPromocional'] is num)
         ? (prod['precioPromocional'] as num).toDouble()
         : null;

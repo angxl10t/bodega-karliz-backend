@@ -2000,7 +2000,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final totalUsuarios = _metricasSistema['totalUsuarios'] ?? _usuarios.length;
     final totalVentas = _metricasSistema['totalVentas'] ?? 0;
     final totalRecaudado = _metricasSistema['totalRecaudado'] != null
-        ? double.tryParse(_metricasSistema['totalRecaudado'].toString()) ?? 0.0
+        ? double.tryParse(
+              _metricasSistema['totalRecaudado'].toString().replaceAll(',', '.'),
+            ) ??
+            0.0
         : _pagos.fold<double>(0.0, (acc, p) => acc + p.monto);
 
     return Container(
@@ -5928,7 +5931,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     try {
       String hex = hexString.replaceAll('#', '').trim();
       if (hex.length == 6) hex = 'FF$hex';
-      if (hex.length == 8) return Color(int.parse(hex, radix: 16));
+      if (hex.length == 8) {
+        final val = int.tryParse(hex, radix: 16);
+        if (val != null) return Color(val);
+      }
       return defaultColor;
     } catch (_) {
       return defaultColor;

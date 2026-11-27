@@ -186,7 +186,11 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
 
   Color _parseColor(String hex) {
     try {
-      return Color(int.parse(hex.replaceAll('#', '0xFF')));
+      String clean = hex.replaceAll('#', '').trim();
+      if (clean.length == 6) clean = 'FF$clean';
+      final val = int.tryParse(clean, radix: 16);
+      if (val != null) return Color(val);
+      return const Color(0xFFEF4444);
     } catch (_) {
       return const Color(0xFFEF4444);
     }
