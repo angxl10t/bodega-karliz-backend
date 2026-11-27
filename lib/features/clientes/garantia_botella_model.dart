@@ -55,11 +55,7 @@ class GarantiaBotella {
 
     DateTime? parseDate(dynamic v) {
       if (v == null) return null;
-      try {
-        return DateTime.parse(v.toString());
-      } catch (_) {
-        return null;
-      }
+      return DateTime.tryParse(v.toString());
     }
 
     return GarantiaBotella(

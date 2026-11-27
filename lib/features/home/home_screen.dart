@@ -267,10 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
             if (mounted && info != null) {
               int? dias;
               if (info.fechaVencimientoPlan != null) {
-                try {
-                  final fv = DateTime.parse(info.fechaVencimientoPlan!);
+                final fv = DateTime.tryParse(info.fechaVencimientoPlan!);
+                if (fv != null) {
                   dias = fv.difference(DateTime.now()).inDays;
-                } catch (_) {}
+                }
               }
               setState(() {
                 _bodegaInfo = info;

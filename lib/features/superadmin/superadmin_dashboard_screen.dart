@@ -2210,22 +2210,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         if (_filtroEstadoBodega == 'INACTIVAS' && b.estado) return false;
         if (_filtroEstadoBodega == 'POR VENCER') {
           if (b.fechaVencimientoPlan == null) return false;
-          try {
-            final exp = DateTime.parse(b.fechaVencimientoPlan!);
-            final diff = exp.difference(DateTime.now()).inDays;
-            if (diff < 0 || diff > 7) return false;
-          } catch (_) {
-            return false;
-          }
+          final exp = DateTime.tryParse(b.fechaVencimientoPlan!);
+          if (exp == null) return false;
+          final diff = exp.difference(DateTime.now()).inDays;
+          if (diff < 0 || diff > 7) return false;
         }
         if (_filtroEstadoBodega == 'VENCIDAS') {
           if (b.fechaVencimientoPlan == null) return false;
-          try {
-            final exp = DateTime.parse(b.fechaVencimientoPlan!);
-            if (exp.isAfter(DateTime.now())) return false;
-          } catch (_) {
-            return false;
-          }
+          final exp = DateTime.tryParse(b.fechaVencimientoPlan!);
+          if (exp == null || exp.isAfter(DateTime.now())) return false;
         }
       }
 
@@ -2414,8 +2407,8 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     bool vencido = false;
     bool porVencer = false;
     if (b.fechaVencimientoPlan != null) {
-      try {
-        final exp = DateTime.parse(b.fechaVencimientoPlan!);
+      final exp = DateTime.tryParse(b.fechaVencimientoPlan!);
+      if (exp != null) {
         final diff = exp.difference(DateTime.now()).inDays;
         diasRestantes = diff;
         if (diff < 0) {
@@ -2423,7 +2416,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         } else if (diff <= 7) {
           porVencer = true;
         }
-      } catch (_) {}
+      }
     }
 
     return Container(
@@ -4325,12 +4318,11 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
   }
 
   String _formatearFechaIso(String iso) {
-    try {
-      final dt = DateTime.parse(iso);
+    final dt = DateTime.tryParse(iso);
+    if (dt != null) {
       return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-    } catch (_) {
-      return iso;
     }
+    return iso;
   }
 
   String _formatearUptime(int seconds) {
