@@ -40,6 +40,7 @@ public class PedidoWebService {
         this(pedidoWebRepository, productoRepository, null);
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
     public PedidoWebService(PedidoWebRepository pedidoWebRepository,
                             ProductoRepository productoRepository,
                             @org.springframework.beans.factory.annotation.Autowired(required = false) NotificacionService notificacionService) {

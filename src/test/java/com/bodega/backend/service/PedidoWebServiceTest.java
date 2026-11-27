@@ -33,6 +33,9 @@ class PedidoWebServiceTest {
     @Mock
     private ProductoRepository productoRepository;
 
+    @Mock
+    private NotificacionService notificacionService;
+
     @InjectMocks
     private PedidoWebService service;
 
@@ -113,6 +116,18 @@ class PedidoWebServiceTest {
         RevisionPedidosDTO rev = service.verificarRevision(1L, 0L);
         assertTrue(rev.isHayCambio());
         assertTrue(rev.getRevision() >= 1L);
+
+        // Verificar que se emitió la notificación SSE en tiempo real para mostrador
+        verify(notificacionService, times(1)).crearYNotificar(
+                eq(bodega),
+                isNull(),
+                eq("TODOS"),
+                eq("NUEVO_PEDIDO_WEB"),
+                anyString(),
+                anyString(),
+                anyString(),
+                eq("ALTA")
+        );
     }
 
     @Test
