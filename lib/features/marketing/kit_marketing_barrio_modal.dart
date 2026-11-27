@@ -256,7 +256,11 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
     final uri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(texto)}');
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
       } else {
         await launchUrl(uri, mode: LaunchMode.platformDefault);
       }

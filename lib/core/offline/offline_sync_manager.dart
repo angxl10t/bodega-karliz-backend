@@ -216,108 +216,109 @@ class OfflineSyncManager {
     _isSyncing = true;
     isSyncingNotifier.value = true;
 
-    int sincronizadas = 0;
-    int fallidas = 0;
-    final totalInicial = _queue.length;
+    try {
+      int sincronizadas = 0;
+      int fallidas = 0;
+      final totalInicial = _queue.length;
 
-    debugPrint(
-      '[SyncManager] Iniciando sincronización de $totalInicial ventas offline...',
-    );
+      debugPrint(
+        '[SyncManager] Iniciando sincronización de $totalInicial ventas offline...',
+      );
 
-    // Procesa en orden FIFO estricto para mantener la cronología de transacciones
-    // Filtra ventas que hayan superado el límite de reintentos por error permanente
-    final copias = _queue.where((v) {
-      if (v.estadoSync == 'PENDIENTE') return true;
-      if (v.estadoSync == 'ERROR' && v.intentosSync < 5) return true;
-      return false;
-    }).toList();
+      // Procesa en orden FIFO estricto para mantener la cronología de transacciones
+      // Filtra ventas que hayan superado el límite de reintentos por error permanente
+      final copias = _queue.where((v) {
+        if (v.estadoSync == 'PENDIENTE') return true;
+        if (v.estadoSync == 'ERROR' && v.intentosSync < 5) return true;
+        return false;
+      }).toList();
 
-    if (copias.isEmpty) {
+      if (copias.isEmpty) {
+        return SyncBatchResult(
+          totalPendientes: _queue.length,
+          sincronizadas: 0,
+          fallidas: _queue.length,
+          mensaje: 'Las ventas en cola tienen errores permanentes. Revísalas en la bandeja offline.',
+        );
+      }
+
+      for (final venta in copias) {
+        venta.estadoSync = 'SINCRONIZANDO';
+        venta.intentosSync++;
+        venta.fechaUltimoIntento = DateTime.now();
+
+        try {
+          final res = await _ventaService.registrarVentaCompleta(
+            venta.toVentaEnvio(),
+          );
+
+          if (res.success) {
+            // El servidor procesó o validó la idempotencia exitosamente
+            _queue.removeWhere((v) => v.uuid == venta.uuid);
+            sincronizadas++;
+            debugPrint(
+              '[SyncManager] Sincronización exitosa: ${venta.localTicket} -> ${res.venta?.serieCorrelativo}',
+            );
+          } else {
+            final err = res.errorMessage ?? 'Error desconocido del servidor';
+            venta.ultimoError = err;
+
+            // Si el error es de conexión o timeout, el servidor sigue inaccesible
+            if (err.toLowerCase().contains('conexión') ||
+                err.toLowerCase().contains('red') ||
+                err.toLowerCase().contains('timeout')) {
+              venta.estadoSync = 'PENDIENTE';
+              fallidas++;
+              isOfflineNotifier.value = true;
+              debugPrint(
+                '[SyncManager] Servidor aún no disponible. Pausando cola.',
+              );
+              break; // Detiene el lote hasta el siguiente reintento
+            } else {
+              // Error de negocio (ej: cliente dado de baja, validación tributaria)
+              venta.estadoSync = 'ERROR';
+              fallidas++;
+              debugPrint(
+                '[SyncManager] Error de negocio al sincronizar ${venta.localTicket}: $err',
+              );
+            }
+          }
+        } catch (e) {
+          venta.estadoSync = 'PENDIENTE';
+          venta.ultimoError = e.toString();
+          fallidas++;
+          isOfflineNotifier.value = true;
+          debugPrint('[SyncManager] Error de red inesperado al sincronizar: $e');
+          break; // Detiene el lote
+        }
+      }
+
+      await _saveQueue();
+
+      if (sincronizadas > 0) {
+        lastSyncSuccessNotifier.value = DateTime.now();
+        isOfflineNotifier.value = false;
+
+        // Refresca catálogo e inventario oficial desde el backend
+        ProductoService.invalidateCache();
+        unawaited(ProductoService().getProductos(forceRefresh: true));
+        VentaService.notifyVentasChanged();
+      }
+
+      final resumen = SyncBatchResult(
+        totalPendientes: totalInicial,
+        sincronizadas: sincronizadas,
+        fallidas: fallidas,
+        mensaje: sincronizadas > 0
+            ? '¡$sincronizadas venta(s) sincronizadas con éxito!'
+            : 'No se pudo conectar con el servidor. Se reintentará automáticamente.',
+      );
+
+      return resumen;
+    } finally {
       _isSyncing = false;
       isSyncingNotifier.value = false;
-      return SyncBatchResult(
-        totalPendientes: _queue.length,
-        sincronizadas: 0,
-        fallidas: _queue.length,
-        mensaje: 'Las ventas en cola tienen errores permanentes. Revísalas en la bandeja offline.',
-      );
     }
-
-    for (final venta in copias) {
-      venta.estadoSync = 'SINCRONIZANDO';
-      venta.intentosSync++;
-      venta.fechaUltimoIntento = DateTime.now();
-
-      try {
-        final res = await _ventaService.registrarVentaCompleta(
-          venta.toVentaEnvio(),
-        );
-
-        if (res.success) {
-          // El servidor procesó o validó la idempotencia exitosamente
-          _queue.removeWhere((v) => v.uuid == venta.uuid);
-          sincronizadas++;
-          debugPrint(
-            '[SyncManager] Sincronización exitosa: ${venta.localTicket} -> ${res.venta?.serieCorrelativo}',
-          );
-        } else {
-          final err = res.errorMessage ?? 'Error desconocido del servidor';
-          venta.ultimoError = err;
-
-          // Si el error es de conexión o timeout, el servidor sigue inaccesible
-          if (err.toLowerCase().contains('conexión') ||
-              err.toLowerCase().contains('red') ||
-              err.toLowerCase().contains('timeout')) {
-            venta.estadoSync = 'PENDIENTE';
-            fallidas++;
-            isOfflineNotifier.value = true;
-            debugPrint(
-              '[SyncManager] Servidor aún no disponible. Pausando cola.',
-            );
-            break; // Detiene el lote hasta el siguiente reintento
-          } else {
-            // Error de negocio (ej: cliente dado de baja, validación tributaria)
-            venta.estadoSync = 'ERROR';
-            fallidas++;
-            debugPrint(
-              '[SyncManager] Error de negocio al sincronizar ${venta.localTicket}: $err',
-            );
-          }
-        }
-      } catch (e) {
-        venta.estadoSync = 'PENDIENTE';
-        venta.ultimoError = e.toString();
-        fallidas++;
-        isOfflineNotifier.value = true;
-        debugPrint('[SyncManager] Error de red inesperado al sincronizar: $e');
-        break; // Detiene el lote
-      }
-    }
-
-    await _saveQueue();
-    _isSyncing = false;
-    isSyncingNotifier.value = false;
-
-    if (sincronizadas > 0) {
-      lastSyncSuccessNotifier.value = DateTime.now();
-      isOfflineNotifier.value = false;
-
-      // Refresca catálogo e inventario oficial desde el backend
-      ProductoService.invalidateCache();
-      ProductoService().getProductos(forceRefresh: true);
-      VentaService.notifyVentasChanged();
-    }
-
-    final resumen = SyncBatchResult(
-      totalPendientes: totalInicial,
-      sincronizadas: sincronizadas,
-      fallidas: fallidas,
-      mensaje: sincronizadas > 0
-          ? '¡$sincronizadas venta(s) sincronizadas con éxito!'
-          : 'No se pudo conectar con el servidor. Se reintentará automáticamente.',
-    );
-
-    return resumen;
   }
 
   /// Inicia el chequeo periódico en segundo plano para sincronizar cuando regrese internet

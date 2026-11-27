@@ -153,7 +153,11 @@ class _RegistrarAbonoSheetState extends State<RegistrarAbonoSheet> {
         'https://wa.me/$tel?text=${Uri.encodeComponent(mensaje)}',
       );
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
       } else {
         await launchUrl(uri, mode: LaunchMode.platformDefault);
       }

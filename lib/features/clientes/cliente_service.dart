@@ -312,7 +312,11 @@ class ClienteService {
     try {
       final uri = Uri.parse(urlString);
       if (await canLaunchUrl(uri)) {
-        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+        try {
+          return await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          return await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
       } else {
         return await launchUrl(uri, mode: LaunchMode.platformDefault);
       }

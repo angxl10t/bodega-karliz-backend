@@ -13309,7 +13309,11 @@ class _VentasScreenState extends State<VentasScreen>
 
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
       } else {
         await launchUrl(uri, mode: LaunchMode.platformDefault);
       }

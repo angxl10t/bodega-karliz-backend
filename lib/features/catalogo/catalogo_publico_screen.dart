@@ -883,7 +883,11 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
       final uri = Uri.parse(urlStr);
       try {
         if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          try {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } catch (_) {
+            await launchUrl(uri, mode: LaunchMode.platformDefault);
+          }
         } else {
           await launchUrl(uri, mode: LaunchMode.platformDefault);
         }

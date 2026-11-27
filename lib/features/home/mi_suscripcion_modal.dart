@@ -96,7 +96,11 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
     final uri = PagoYapeModal.buildWhatsAppSupportUri(mensaje);
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
       } else {
         await launchUrl(uri, mode: LaunchMode.platformDefault);
       }

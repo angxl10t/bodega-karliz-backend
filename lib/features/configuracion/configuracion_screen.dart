@@ -3022,9 +3022,13 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     final uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+        try {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
       } else {
-        await launchUrl(uri);
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
       }
     } catch (e) {
       if (mounted) {
@@ -3051,7 +3055,11 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     );
     try {
       if (await canLaunchUrl(waUri)) {
-        await launchUrl(waUri, mode: LaunchMode.externalApplication);
+        try {
+          await launchUrl(waUri, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(waUri, mode: LaunchMode.platformDefault);
+        }
       } else {
         _copiarEnlacePublico();
       }

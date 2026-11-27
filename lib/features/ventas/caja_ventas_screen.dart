@@ -726,9 +726,17 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     final url = phoneParam.isNotEmpty
         ? Uri.parse('https://wa.me/$phoneParam?text=$encoded')
         : Uri.parse('https://wa.me/?text=$encoded');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      if (await canLaunchUrl(url)) {
+        try {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          await launchUrl(url, mode: LaunchMode.platformDefault);
+        }
+      } else {
+        await launchUrl(url, mode: LaunchMode.platformDefault);
+      }
+    } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
