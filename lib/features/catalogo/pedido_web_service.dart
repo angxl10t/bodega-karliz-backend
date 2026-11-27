@@ -194,9 +194,7 @@ class PedidoWebService {
         for (final item in decoded) {
           try {
             if (item is Map) {
-              _pedidos.add(
-                PedidoWeb.fromJson(Map<String, dynamic>.from(item)),
-              );
+              _pedidos.add(PedidoWeb.fromJson(Map<String, dynamic>.from(item)));
             }
           } catch (itemErr) {
             debugPrint(

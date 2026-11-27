@@ -288,7 +288,9 @@ class OfflineSyncManager {
           venta.ultimoError = e.toString();
           fallidas++;
           isOfflineNotifier.value = true;
-          debugPrint('[SyncManager] Error de red inesperado al sincronizar: $e');
+          debugPrint(
+            '[SyncManager] Error de red inesperado al sincronizar: $e',
+          );
           break; // Detiene el lote
         }
       }

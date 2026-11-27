@@ -2418,7 +2418,9 @@ class _CatalogoPublicoScreenState extends State<CatalogoPublicoScreen> {
                                                     'https://wa.me/$tf?text=$msg',
                                                   );
                                                   try {
-                                                    if (await canLaunchUrl(uri)) {
+                                                    if (await canLaunchUrl(
+                                                      uri,
+                                                    )) {
                                                       await launchUrl(
                                                         uri,
                                                         mode: LaunchMode

@@ -1426,9 +1426,12 @@ class _CrearPromocionSheetState extends State<CrearPromocionSheet> {
                               final firstDate = _fechaInicio ?? DateTime(2025);
                               DateTime lastDate = DateTime(2030);
                               if (lastDate.isBefore(firstDate)) {
-                                lastDate = firstDate.add(const Duration(days: 365));
+                                lastDate = firstDate.add(
+                                  const Duration(days: 365),
+                                );
                               }
-                              DateTime initial = _fechaFin ??
+                              DateTime initial =
+                                  _fechaFin ??
                                   (_fechaInicio ?? DateTime.now()).add(
                                     const Duration(days: 7),
                                   );

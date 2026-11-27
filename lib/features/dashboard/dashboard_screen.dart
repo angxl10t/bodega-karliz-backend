@@ -245,7 +245,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       final tenant = await SecureStorageService.read('id_bodega') ?? 'default';
       final prefs = await SharedPreferences.getInstance();
       final key = 'cajaya_operaciones_favoritas_$tenant';
-      final list = prefs.getStringList(key) ??
+      final list =
+          prefs.getStringList(key) ??
           prefs.getStringList('cajaya_operaciones_favoritas');
       if (list != null && list.isNotEmpty && mounted) {
         setState(() => _favoritosIds = list);
@@ -387,7 +388,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     try {
       final tenant = await SecureStorageService.read('id_bodega') ?? 'default';
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('cajaya_operaciones_favoritas_$tenant', updated);
+      await prefs.setStringList(
+        'cajaya_operaciones_favoritas_$tenant',
+        updated,
+      );
       await prefs.setStringList('cajaya_operaciones_favoritas', updated);
     } catch (_) {}
 
@@ -533,7 +537,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     NuevoProductoSheet.show(context, _cargarDatos);
   }
 
-  Future<void> _mostrarDialogoEditarMeta(BuildContext context, bool isDark) async {
+  Future<void> _mostrarDialogoEditarMeta(
+    BuildContext context,
+    bool isDark,
+  ) async {
     if (!_esPro) {
       PlanUpgradeModal.show(
         context,
@@ -547,137 +554,139 @@ class _DashboardScreenState extends State<DashboardScreen>
     final ctrl = TextEditingController(text: _metaDiaria.toStringAsFixed(0));
     try {
       await showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.brandPrimary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.brandPrimary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  LucideIcons.target,
+                  color: AppTheme.brandPrimary,
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                LucideIcons.target,
-                color: AppTheme.brandPrimary,
-                size: 20,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Meta Diaria de Venta',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Meta Diaria de Venta',
+              IconButton(
+                icon: const Icon(LucideIcons.x, size: 18),
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Ingresa tu objetivo de venta para hoy en Soles (S/):',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
                 style: GoogleFonts.outfit(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: isDark ? Colors.white : AppTheme.textDark,
                 ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(LucideIcons.x, size: 18),
-              tooltip: 'Cerrar',
-              onPressed: () => Navigator.pop(ctx),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ingresa tu objetivo de venta para hoy en Soles (S/):',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              autofocus: true,
-              style: GoogleFonts.outfit(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.textDark,
-              ),
-              decoration: InputDecoration(
-                prefixText: 'S/ ',
-                prefixStyle: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.brandPrimary,
-                ),
-                filled: true,
-                fillColor: isDark
-                    ? AppTheme.cardDarkSunken
-                    : const Color(0xFFF1F5F9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark
-                        ? AppTheme.borderDark
-                        : const Color(0xFFCBD5E1),
+                decoration: InputDecoration(
+                  prefixText: 'S/ ',
+                  prefixStyle: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.brandPrimary,
                   ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(
-              'Cancelar',
-              style: GoogleFonts.plusJakartaSans(
-                fontWeight: FontWeight.w700,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.brandPrimary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              final val = double.tryParse(
-                ctrl.text.replaceAll(',', '.').trim(),
-              );
-              if (val != null && val > 0) {
-                _guardarMetaDiaria(val);
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Meta diaria actualizada a S/ ${val.toStringAsFixed(2)}',
+                  filled: true,
+                  fillColor: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF1F5F9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : const Color(0xFFCBD5E1),
                     ),
-                    backgroundColor: AppTheme.accentGreen,
-                    behavior: SnackBarBehavior.floating,
                   ),
-                );
-              }
-            },
-            child: Text(
-              'Guardar Meta',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF64748B),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.brandPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                final val = double.tryParse(
+                  ctrl.text.replaceAll(',', '.').trim(),
+                );
+                if (val != null && val > 0) {
+                  _guardarMetaDiaria(val);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Meta diaria actualizada a S/ ${val.toStringAsFixed(2)}',
+                      ),
+                      backgroundColor: AppTheme.accentGreen,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Guardar Meta',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      );
     } finally {
       ctrl.dispose();
     }

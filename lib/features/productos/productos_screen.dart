@@ -3455,8 +3455,7 @@ class _ProductosScreenState extends State<ProductosScreen>
                                           initialDate: initial,
                                           firstDate: firstDate,
                                           lastDate: lastDate,
-                                          helpText:
-                                              'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
+                                          helpText: 'ACTUALIZAR FECHA VENCIMIENTO / LOTE FIFO',
                                           confirmText: 'GUARDAR',
                                           cancelText: 'CANCELAR',
                                         );

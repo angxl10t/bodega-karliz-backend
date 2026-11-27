@@ -267,7 +267,10 @@ class _KarlizBarcodeScannerModalState extends State<KarlizBarcodeScannerModal>
         },
       );
     } finally {
-      Future.delayed(const Duration(milliseconds: 350), () => manualCtrl.dispose());
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => manualCtrl.dispose(),
+      );
     }
   }
 

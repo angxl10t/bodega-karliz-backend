@@ -907,140 +907,144 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
 
     try {
       final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2563EB).withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                LucideIcons.banknote,
-                color: Color(0xFF2563EB),
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Fondo Inicial de Caja',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.textDark,
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  LucideIcons.banknote,
+                  color: Color(0xFF2563EB),
+                  size: 22,
                 ),
               ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ingresa el monto de sencillo o base con el que se abrió la gaveta al inicio de la jornada:',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? AppTheme.textDarkSecondary
-                    : const Color(0xFF334155),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: ctrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              autofocus: true,
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.brandPrimary,
-              ),
-              decoration: InputDecoration(
-                labelText: 'Monto Base (S/)',
-                prefixText: 'S/ ',
-                prefixStyle: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.brandPrimary,
-                ),
-                filled: true,
-                fillColor: isDark
-                    ? AppTheme.cardDarkSunken
-                    : const Color(0xFFF1F5F9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(
-                    color: isDark ? AppTheme.borderDark : AppTheme.borderLight,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Fondo Inicial de Caja',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppTheme.textDark,
                   ),
                 ),
               ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Ingresa el monto de sencillo o base con el que se abrió la gaveta al inicio de la jornada:',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.textDarkSecondary
+                      : const Color(0xFF334155),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: ctrl,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                autofocus: true,
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.brandPrimary,
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Monto Base (S/)',
+                  prefixText: 'S/ ',
+                  prefixStyle: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.brandPrimary,
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? AppTheme.cardDarkSunken
+                      : const Color(0xFFF1F5F9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: isDark
+                          ? AppTheme.borderDark
+                          : AppTheme.borderLight,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Cancelar',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.brandPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                'Guardar Base',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+              ),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-              'Cancelar',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.brandPrimary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              'Guardar Base',
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmado == true) {
-      final monto =
-          double.tryParse(ctrl.text.trim().replaceAll(',', '.')) ?? 0.0;
-      final ok = await _ventaService.registrarFondoInicial(
-        monto,
-        fecha: _fechaSeleccionada,
       );
-      if (mounted) {
-        if (ok) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Fondo inicial de caja actualizado con éxito.'),
-              backgroundColor: AppTheme.accentGreen,
-            ),
-          );
-          _cargarDatos();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al guardar el fondo inicial.'),
-              backgroundColor: AppTheme.alertRed,
-            ),
-          );
+
+      if (confirmado == true) {
+        final monto =
+            double.tryParse(ctrl.text.trim().replaceAll(',', '.')) ?? 0.0;
+        final ok = await _ventaService.registrarFondoInicial(
+          monto,
+          fecha: _fechaSeleccionada,
+        );
+        if (mounted) {
+          if (ok) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Fondo inicial de caja actualizado con éxito.'),
+                backgroundColor: AppTheme.accentGreen,
+              ),
+            );
+            _cargarDatos();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error al guardar el fondo inicial.'),
+                backgroundColor: AppTheme.alertRed,
+              ),
+            );
+          }
         }
       }
+    } finally {
+      Future.delayed(const Duration(milliseconds: 350), () => ctrl.dispose());
     }
-  } finally {
-    Future.delayed(const Duration(milliseconds: 350), () => ctrl.dispose());
   }
-}
 
   Future<void> _mostrarModalRegistrarEgreso() async {
     final registrado = await EgresoCajaModal.show(context);

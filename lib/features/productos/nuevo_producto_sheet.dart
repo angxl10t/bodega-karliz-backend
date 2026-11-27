@@ -1483,7 +1483,8 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                   final lastDate = now.add(
                                     const Duration(days: 365 * 5),
                                   );
-                                  DateTime initial = _fechaVencimiento ??
+                                  DateTime initial =
+                                      _fechaVencimiento ??
                                       now.add(const Duration(days: 30));
                                   if (initial.isBefore(firstDate)) {
                                     initial = firstDate;

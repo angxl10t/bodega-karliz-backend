@@ -3830,10 +3830,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   void _abrirModalCambiarPin(UsuarioItem u) {
     showDialog(
       context: context,
-      builder: (ctx) => _DialogoCambiarPin(
-        usuario: u,
-        usuariosService: _usuariosService,
-      ),
+      builder: (ctx) =>
+          _DialogoCambiarPin(usuario: u, usuariosService: _usuariosService),
     );
   }
 
@@ -4435,9 +4433,7 @@ class _DialogoCrearUsuarioState extends State<_DialogoCrearUsuario> {
 
     return AlertDialog(
       backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: Row(
         children: [
           Icon(LucideIcons.userPlus, color: primaryColor, size: 20),
@@ -4609,15 +4605,10 @@ class _DialogoCambiarPinState extends State<_DialogoCambiarPin> {
 
     return AlertDialog(
       backgroundColor: isDark ? const Color(0xFF1E2436) : Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: Text(
         'Cambiar PIN de @${widget.usuario.username}',
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w800,
-          fontSize: 16,
-        ),
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16),
       ),
       content: Row(
         children: [

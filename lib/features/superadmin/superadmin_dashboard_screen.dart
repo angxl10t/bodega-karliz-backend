@@ -1038,7 +1038,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         },
       ),
     ).then((_) {
-      Future.delayed(const Duration(milliseconds: 350), () => msgCtrl.dispose());
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => msgCtrl.dispose(),
+      );
     });
   }
 
@@ -1510,7 +1513,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
         },
       ),
     ).then((_) {
-      Future.delayed(const Duration(milliseconds: 350), () => passCtrl.dispose());
+      Future.delayed(
+        const Duration(milliseconds: 350),
+        () => passCtrl.dispose(),
+      );
     });
   }
 
@@ -2020,9 +2026,12 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
     final totalVentas = _metricasSistema['totalVentas'] ?? 0;
     final totalRecaudado = _metricasSistema['totalRecaudado'] != null
         ? double.tryParse(
-              _metricasSistema['totalRecaudado'].toString().replaceAll(',', '.'),
-            ) ??
-            0.0
+                _metricasSistema['totalRecaudado'].toString().replaceAll(
+                  ',',
+                  '.',
+                ),
+              ) ??
+              0.0
         : _pagos.fold<double>(0.0, (acc, p) => acc + p.monto);
 
     return Container(
@@ -6308,7 +6317,10 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
                   final uri = Uri.parse(whatsappUrl);
                   try {
                     if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
                     } else {
                       await launchUrl(uri, mode: LaunchMode.platformDefault);
                     }

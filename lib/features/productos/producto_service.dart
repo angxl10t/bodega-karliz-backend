@@ -37,8 +37,9 @@ class ProductoService {
   static final ValueNotifier<int> productosRevision = ValueNotifier<int>(0);
 
   /// Retorna una copia de la lista de productos en caché si está disponible
-  static List<Producto>? get cachedProductos =>
-      _cachedProductos != null ? List<Producto>.unmodifiable(_cachedProductos!) : null;
+  static List<Producto>? get cachedProductos => _cachedProductos != null
+      ? List<Producto>.unmodifiable(_cachedProductos!)
+      : null;
 
   /// Invalida manualmente la caché en memoria (ej: tras crear, editar, vender o comprar)
   static void invalidateCache({bool notify = true}) {
