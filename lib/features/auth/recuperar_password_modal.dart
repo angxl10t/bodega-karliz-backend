@@ -102,6 +102,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
   // Paso 1: Solicitar Código OTP
   // ---------------------------------------------------------------------------
   Future<void> _enviarCodigo() async {
+    if (_isLoading) return;
     final id = _identificadorController.text.trim();
     if (id.isEmpty) {
       setState(
@@ -145,6 +146,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
   // Paso 2: Verificar Código OTP
   // ---------------------------------------------------------------------------
   Future<void> _verificarCodigo() async {
+    if (_isLoading) return;
     final id = _identificadorController.text.trim();
     final codigo = _codigoController.text.trim();
 
@@ -181,6 +183,7 @@ class _RecuperarPasswordModalState extends State<RecuperarPasswordModal> {
   // Paso 3: Restablecer Contraseña
   // ---------------------------------------------------------------------------
   Future<void> _restablecerPassword() async {
+    if (_isLoading) return;
     final id = _identificadorController.text.trim();
     final codigo = _codigoController.text.trim();
     final pass = _nuevaPasswordController.text.trim();

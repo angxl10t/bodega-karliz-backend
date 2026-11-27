@@ -73,6 +73,7 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
   }
 
   Future<void> _enviarReclamo() async {
+    if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
     if (!_aceptaTerminos) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -182,6 +182,7 @@ class _KitMarketingBarrioModalState extends State<KitMarketingBarrioModal>
   }
 
   Future<void> _imprimirVolantesTermicos() async {
+    if (_isPrinting) return;
     setState(() => _isPrinting = true);
     final messenger = ScaffoldMessenger.of(context);
 

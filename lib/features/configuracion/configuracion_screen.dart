@@ -338,18 +338,36 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     );
 
     if (confirmar == true && mounted) {
-      final ok = await _authService.revocarTerminal(idTerminal);
-      if (ok && mounted) {
-        _cargarTerminalesPOS();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Terminal "$nombre" revocada exitosamente.',
-              style: GoogleFonts.plusJakartaSans(),
+      try {
+        final ok = await _authService.revocarTerminal(idTerminal);
+        if (ok && mounted) {
+          _cargarTerminalesPOS();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Terminal "$nombre" revocada exitosamente.',
+                style: GoogleFonts.plusJakartaSans(),
+              ),
+              backgroundColor: AppTheme.accentGreen,
             ),
-            backgroundColor: AppTheme.accentGreen,
-          ),
-        );
+          );
+        } else if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo revocar la terminal en el servidor.'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error al revocar terminal: $e'),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
       }
     }
   }
@@ -3791,6 +3809,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     final userCtrl = TextEditingController();
     final pinCtrl = TextEditingController();
     String rolSeleccionado = 'CAJERO';
+    bool isSaving = false;
 
     showDialog(
       context: context,
@@ -3883,55 +3902,82 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
               ),
               ElevatedButton(
                 key: const Key('btnConfirmarCrearCajero'),
-                onPressed: () async {
-                  final user = userCtrl.text.trim();
-                  final pin = pinCtrl.text.trim();
-                  final name = nameCtrl.text.trim();
-                  if (user.isEmpty || pin.length != 4) return;
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        final user = userCtrl.text.trim();
+                        final pin = pinCtrl.text.trim();
+                        final name = nameCtrl.text.trim();
+                        if (user.isEmpty || pin.length != 4) return;
 
-                  try {
-                    await _usuariosService.crearUsuario(
-                      username: user,
-                      nombreCompleto: name,
-                      password: pin,
-                      rol: rolSeleccionado,
-                    );
-                    final updatedUsers = await _usuariosService
-                        .listarUsuarios();
-                    if (!mounted) return;
-                    setState(() => _usuarios = updatedUsers);
-                    if (ctx.mounted) Navigator.pop(ctx);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '¡Colaborador $user creado exitosamente!',
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
-                  }
-                },
+                        setModalState(() => isSaving = true);
+                        try {
+                          await _usuariosService.crearUsuario(
+                            username: user,
+                            nombreCompleto: name,
+                            password: pin,
+                            rol: rolSeleccionado,
+                          );
+                          final updatedUsers = await _usuariosService
+                              .listarUsuarios();
+                          if (!mounted) return;
+                          setState(() => _usuarios = updatedUsers);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '¡Colaborador $user creado exitosamente!',
+                                ),
+                                backgroundColor: AppTheme.accentGreen,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: AppTheme.alertRed,
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (dialogCtx.mounted) {
+                            setModalState(() => isSaving = false);
+                          }
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Crear Cajero'),
+                child: isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Crear Cajero'),
               ),
             ],
           );
         },
       ),
-    );
+    ).then((_) {
+      nameCtrl.dispose();
+      userCtrl.dispose();
+      pinCtrl.dispose();
+    });
   }
 
   void _abrirModalCambiarPin(UsuarioItem u) {
     final pinCtrl = TextEditingController();
+    bool isSaving = false;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -3985,30 +4031,58 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 child: const Text('Cancelar'),
               ),
               ElevatedButton(
-                onPressed: () async {
-                  final pin = pinCtrl.text.trim();
-                  if (pin.length != 4) return;
-                  await _usuariosService.resetPassword(u.idUsuario, pin);
-                  if (ctx.mounted) Navigator.pop(ctx);
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('¡PIN de @${u.username} actualizado!'),
-                      ),
-                    );
-                  }
-                },
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        final pin = pinCtrl.text.trim();
+                        if (pin.length != 4) return;
+                        setModalState(() => isSaving = true);
+                        try {
+                          await _usuariosService.resetPassword(u.idUsuario, pin);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('¡PIN de @${u.username} actualizado!'),
+                                backgroundColor: AppTheme.accentGreen,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error al cambiar PIN: $e'),
+                                backgroundColor: AppTheme.alertRed,
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (dialogCtx.mounted) {
+                            setModalState(() => isSaving = false);
+                          }
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Guardar PIN'),
+                child: isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Guardar PIN'),
               ),
             ],
           );
         },
       ),
-    );
+    ).then((_) => pinCtrl.dispose());
   }
 
   void _abrirModalPermisosIndividuales(UsuarioItem u) async {
@@ -4515,13 +4589,27 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     );
 
     if (confirmar == true) {
-      await _usuariosService.eliminarUsuario(u.idUsuario);
-      final updated = await _usuariosService.listarUsuarios();
-      if (mounted) {
-        setState(() => _usuarios = updated);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Usuario @${u.username} eliminado')),
-        );
+      try {
+        await _usuariosService.eliminarUsuario(u.idUsuario);
+        final updated = await _usuariosService.listarUsuarios();
+        if (mounted) {
+          setState(() => _usuarios = updated);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Usuario @${u.username} eliminado'),
+              backgroundColor: AppTheme.accentGreen,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
+              backgroundColor: AppTheme.alertRed,
+            ),
+          );
+        }
       }
     }
   }

@@ -592,7 +592,14 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           );
         },
       ),
-    );
+    ).then((_) {
+      nombreCtrl.dispose();
+      rucCtrl.dispose();
+      telCtrl.dispose();
+      dirCtrl.dispose();
+      userCtrl.dispose();
+      passCtrl.dispose();
+    });
   }
 
   Future<void> _enviarRecordatorioWhatsApp(
@@ -1022,7 +1029,7 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           );
         },
       ),
-    );
+    ).then((_) => msgCtrl.dispose());
   }
 
   Future<void> _eliminarAnuncio() async {
@@ -5405,7 +5412,15 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           );
         },
       ),
-    );
+    ).then((_) {
+      codigoCtrl.dispose();
+      nombreCtrl.dispose();
+      marcaCtrl.dispose();
+      categoriaCtrl.dispose();
+      precioVentaCtrl.dispose();
+      precioCostoCtrl.dispose();
+      imagenUrlCtrl.dispose();
+    });
   }
 
   Future<void> _mostrarModalSugerirABodegas(
@@ -5755,7 +5770,13 @@ class _SuperAdminDashboardScreenState extends State<SuperAdminDashboardScreen>
           );
         },
       ),
-    );
+    ).then((_) {
+      precioVentaCtrl.dispose();
+      precioCostoCtrl.dispose();
+      nombreCtrl.dispose();
+      marcaCtrl.dispose();
+      motivoCtrl.dispose();
+    });
   }
 
   Future<void> _confirmarEliminarPresetItem(

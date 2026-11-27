@@ -64,8 +64,9 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
           _isLoading = false;
 
           if (info?.fechaVencimientoPlan != null) {
-            try {
-              _fechaVencimiento = DateTime.parse(info!.fechaVencimientoPlan!);
+            final parsedDate = DateTime.tryParse(info!.fechaVencimientoPlan!);
+            if (parsedDate != null) {
+              _fechaVencimiento = parsedDate;
               final diff = _fechaVencimiento!.difference(DateTime.now()).inDays;
               _diasRestantes = diff >= 0 ? diff : 0;
               if (diff > 5) {
@@ -75,7 +76,7 @@ class _MiSuscripcionModalState extends State<MiSuscripcionModal> {
               } else {
                 _estadoSuscripcion = 'VENCIDO';
               }
-            } catch (_) {}
+            }
           }
         });
       }

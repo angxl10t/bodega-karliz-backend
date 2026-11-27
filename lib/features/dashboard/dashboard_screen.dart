@@ -522,7 +522,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     NuevoProductoSheet.show(context, _cargarDatos);
   }
 
-  void _mostrarDialogoEditarMeta(BuildContext context, bool isDark) {
+  Future<void> _mostrarDialogoEditarMeta(BuildContext context, bool isDark) async {
     if (!_esPro) {
       PlanUpgradeModal.show(
         context,
@@ -534,7 +534,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
     final ctrl = TextEditingController(text: _metaDiaria.toStringAsFixed(0));
-    showDialog(
+    try {
+      await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
@@ -666,6 +667,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         ],
       ),
     );
+    } finally {
+      ctrl.dispose();
+    }
   }
 
   List<_OperacionItem> _obtenerTodasLasOperaciones(bool isDark) {

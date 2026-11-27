@@ -897,7 +897,8 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
           : '50.00',
     );
 
-    final confirmado = await showDialog<bool>(
+    try {
+      final confirmado = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppTheme.cardDarkElevated : Colors.white,
@@ -1028,7 +1029,10 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
         }
       }
     }
+  } finally {
+    ctrl.dispose();
   }
+}
 
   Future<void> _mostrarModalRegistrarEgreso() async {
     final registrado = await EgresoCajaModal.show(context);
@@ -1069,24 +1073,30 @@ class _CajaVentasScreenState extends State<CajaVentasScreen>
     );
 
     if (confirmado == true) {
-      final ok = await _ventaService.anularEgreso(egreso.idEgreso);
-      if (mounted) {
-        if (ok) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Egreso anulado con éxito.'),
-              backgroundColor: AppTheme.accentGreen,
-            ),
-          );
-          _cargarDatos();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error al anular el egreso.'),
-              backgroundColor: AppTheme.alertRed,
-            ),
-          );
+      if (_isLoading) return;
+      setState(() => _isLoading = true);
+      try {
+        final ok = await _ventaService.anularEgreso(egreso.idEgreso);
+        if (mounted) {
+          if (ok) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Egreso anulado con éxito.'),
+                backgroundColor: AppTheme.accentGreen,
+              ),
+            );
+            _cargarDatos();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error al anular el egreso.'),
+                backgroundColor: AppTheme.alertRed,
+              ),
+            );
+          }
         }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
