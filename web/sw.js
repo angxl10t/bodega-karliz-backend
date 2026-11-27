@@ -1,5 +1,5 @@
 // Service Worker para CajaYa Cloud POS (PWA)
-const CACHE_NAME = 'cajaya-pwa-v28';
+const CACHE_NAME = 'cajaya-pwa-v29';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -15,7 +15,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Listener de Fetch: SOLO interceptar GET del mismo origen (nunca APIs cross-origin ni mutaciones POST/PUT/PATCH)
+// Listener de Fetch: Estrategia Network-First con Respaldo en Caché para Recursos Estáticos
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   let url;
@@ -27,14 +27,41 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(event.request).catch(async () => {
-      const cached = await caches.match(event.request);
-      if (cached) return cached;
-      return new Response('Offline', {
-        status: 503,
-        statusText: 'Service Unavailable',
-      });
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Almacenar en caché estáticos del mismo origen para resiliencia offline en bodega
+        if (
+          networkResponse.status === 200 &&
+          (url.pathname.endsWith('.js') ||
+           url.pathname.endsWith('.wasm') ||
+           url.pathname.endsWith('.html') ||
+           url.pathname.endsWith('.png') ||
+           url.pathname.endsWith('.ttf') ||
+           url.pathname.endsWith('.wav') ||
+           url.pathname.endsWith('.json') ||
+           url.pathname === '/' ||
+           url.pathname.endsWith('/'))
+        ) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        // Si no hay red y se navega, retornar la app shell index.html
+        if (event.request.mode === 'navigate') {
+          const cachedIndex = await caches.match('index.html') || await caches.match('./');
+          if (cachedIndex) return cachedIndex;
+        }
+        return new Response('Offline', {
+          status: 503,
+          statusText: 'Service Unavailable',
+        });
+      })
   );
 });
 
