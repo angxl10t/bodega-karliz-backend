@@ -60,6 +60,14 @@ class ThermalTicketService {
         .replaceAll('Ñ', 'N')
         .replaceAll('¡', '')
         .replaceAll('¿', '')
+        .replaceAll('°', 'o.')
+        .replaceAll('•', '-')
+        .replaceAll('–', '-')
+        .replaceAll('—', '-')
+        .replaceAll('“', '"')
+        .replaceAll('”', '"')
+        .replaceAll('‘', "'")
+        .replaceAll('’', "'")
         .replaceAll(
           RegExp(r'[^\x20-\x7E]'),
           '',

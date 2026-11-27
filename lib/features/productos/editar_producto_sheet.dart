@@ -899,6 +899,7 @@ class _EditarProductoSheetState extends State<EditarProductoSheet> {
                                           title: 'Escanear Código de Barras',
                                           subtitle: 'Enfoque el código del producto para asignarlo',
                                         );
+                                    if (!mounted) return;
                                     if (code != null && code.isNotEmpty) {
                                       setState(
                                         () => _codigoBarrasCtrl.text = code,

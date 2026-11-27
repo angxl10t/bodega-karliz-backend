@@ -176,6 +176,7 @@ class _AjusteStockSheetState extends State<AjusteStockSheet> {
       tipoAjuste: _tipoAjuste,
       motivo: motivo,
     );
+    if (!mounted) return;
     setState(() => _isSaving = false);
 
     if (ok) {

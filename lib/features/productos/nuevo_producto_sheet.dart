@@ -1203,6 +1203,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                             title: 'Escanear Código de Barras',
                                             subtitle: 'Enfoque el código del producto para asignarlo',
                                           );
+                                      if (!mounted) return;
                                       if (code != null && code.isNotEmpty) {
                                         setState(
                                           () => _codigoBarrasCtrl.text = code,
@@ -1294,6 +1295,7 @@ class _NuevoProductoSheetState extends State<NuevoProductoSheet> {
                                 title: 'Escanear Código de Barras',
                                 subtitle: 'Enfoque el código del producto para asignarlo',
                               );
+                              if (!mounted) return;
                               if (code != null && code.isNotEmpty) {
                                 setState(() => _codigoBarrasCtrl.text = code);
                               }

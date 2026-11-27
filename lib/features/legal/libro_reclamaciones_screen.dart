@@ -274,6 +274,7 @@ class _LibroReclamacionesScreenState extends State<LibroReclamacionesScreen>
         '${ApiConstants.baseUrl}/public/reclamaciones/${Uri.encodeComponent(cod)}',
       );
       final resp = await http.get(uri).timeout(const Duration(seconds: 25));
+      if (!mounted) return;
 
       if (resp.statusCode == 200) {
         final data = jsonDecode(utf8.decode(resp.bodyBytes));

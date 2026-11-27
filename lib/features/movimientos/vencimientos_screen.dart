@@ -310,6 +310,7 @@ class _VencimientosScreenState extends State<VencimientosScreen> {
 
   Future<void> _escanearCodigo() async {
     final codigo = await KarlizBarcodeScannerModal.scan(context);
+    if (!mounted) return;
     if (codigo != null && codigo.isNotEmpty) {
       setState(() {
         _searchDebouncer.cancel();

@@ -328,6 +328,7 @@ class _ProductosScreenState extends State<ProductosScreen>
       title: 'Buscar Producto por Código',
       subtitle: 'Enfoque el código de barras para localizar el artículo',
     );
+    if (!mounted) return;
     if (code != null && code.isNotEmpty) {
       setState(() {
         _searchController.text = code;
